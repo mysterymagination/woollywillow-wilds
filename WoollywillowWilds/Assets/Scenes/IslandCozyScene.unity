@@ -526,6 +526,7 @@ GameObject:
   - component: {fileID: 901670628}
   - component: {fileID: 901670627}
   - component: {fileID: 901670629}
+  - component: {fileID: 901670630}
   m_Layer: 0
   m_Name: unmaker_0
   m_TagString: Untagged
@@ -619,7 +620,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84d0408fcd66c2c4696d975c087b6356, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.PlayerController
-  speed: 1
+  gridMovementMode: 1
+  gridSpeed: 1
+  acceleration: 0
+  deceleration: 0
+  accelerationRate: 2
+  decelerationRate: 2
+  speed: 0.01
+  turnSpeed: 55
+  accelerationEventPeriod: 1
+--- !u!114 &901670630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901670626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6188e584c3280664e8eacf60cba81521, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClockworkTasks
 --- !u!1 &1151785939
 GameObject:
   m_ObjectHideFlags: 0
