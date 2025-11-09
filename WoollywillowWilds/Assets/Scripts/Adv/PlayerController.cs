@@ -16,6 +16,10 @@ namespace WildsAdv
          */
         public uint gridSpeed = 1;
         /**
+         * Unity space unit length of a grid square side.
+         */
+        public uint gridSquareSide = 256;
+        /**
         * Acceleration in m/s^2; acceleration is the rate of change of velocity, expressed
         * as meters per second per second as in velocity of N m/s increases by M m/s
         * every second. We'll use a constant rate of acceleration for simplicity,
@@ -123,7 +127,7 @@ namespace WildsAdv
             transform.position = position;
             */
 
-            // move vehicle forward
+            // move player forward
             //transform.Translate(Time.deltaTime * speed * moveValue[0], Time.deltaTime * speed * moveValue[1]);
         }
 
@@ -131,17 +135,27 @@ namespace WildsAdv
         {
             Vector2 moveValue = context.action.ReadValue<Vector2>();
             Debug.Log("Move input start event, move value shows " + moveValue[0] + "," + moveValue[1]);
-            // No forward input shouldn't immediately stop us; instead, we only track positive vs. negative and let deceleration slow us.
-            if (moveValue[1] != 0)
+
+            if (!gridMovementMode)
             {
-                forwardDirectionFactor = moveValue[1];
-                Debug.Log($"{context.action} started as move input is pressed");
-                moving = true;
+                // No forward input shouldn't immediately stop us; instead, we only track positive vs. negative and let deceleration slow us.
+                if (moveValue[1] != 0)
+                {
+                    forwardDirectionFactor = moveValue[1];
+                    Debug.Log($"{context.action} started as move input is pressed");
+                    moving = true;
+                }
+            } 
+            else
+            {
+                // move player forward
+                transform.Translate(new Vector3(Time.deltaTime * gridSpeed * moveValue[0] * gridSquareSide, Time.deltaTime * gridSpeed * moveValue[1] * gridSquareSide, 0.0F));
             }
         }
 
         void OnMoveInputEndEvent(CallbackContext context)
         {
+            /*
             Vector2 moveValue = context.action.ReadValue<Vector2>();
             Debug.Log("Move input end event, move value shows " + moveValue[0] + "," + moveValue[1]);
             if (moveValue[1] == 0)
@@ -149,6 +163,7 @@ namespace WildsAdv
                 Debug.Log($"{context.action} stopped as move input is released");
                 moving = false;
             }
+            */
         }
 
         /**
@@ -156,31 +171,34 @@ namespace WildsAdv
          */
         void OnAccelerationPeriodEvent()
         {
-            // check to see if move action was maintained through an accel period
-            if (previouslyMoving == moving)
+            if (!gridMovementMode) 
             {
-                if (moving)
+                // check to see if move action was maintained through an accel period
+                if (previouslyMoving == moving)
                 {
-                    acceleration += accelerationRate;
-                    speed += acceleration;
-                }
-                else
-                {
-                    if (speed > 0.0F)
+                    if (moving)
                     {
-                        deceleration += decelerationRate;
-                        speed -= deceleration;
+                        acceleration += accelerationRate;
+                        speed += acceleration;
                     }
                     else
                     {
-                        acceleration = 0.0F;
-                        deceleration = 0.0F;
+                        if (speed > 0.0F)
+                        {
+                            deceleration += decelerationRate;
+                            speed -= deceleration;
+                        }
+                        else
+                        {
+                            acceleration = 0.0F;
+                            deceleration = 0.0F;
+                        }
                     }
                 }
+                speed = Mathf.Clamp(speed, 0.0F, 100.0F);
+                Debug.Log("Accel event! Speed: " + speed);
+                previouslyMoving = moving;
             }
-            speed = Mathf.Clamp(speed, 0.0F, 100.0F);
-            Debug.Log("Accel event! Speed: " + speed);
-            previouslyMoving = moving;
         }
     }
 }

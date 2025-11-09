@@ -622,6 +622,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.PlayerController
   gridMovementMode: 1
   gridSpeed: 1
+  gridSquareSide: 60
   acceleration: 0
   deceleration: 0
   accelerationRate: 2
