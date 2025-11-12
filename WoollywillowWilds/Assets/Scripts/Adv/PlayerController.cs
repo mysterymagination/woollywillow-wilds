@@ -145,11 +145,16 @@ namespace WildsAdv
                     Debug.Log($"{context.action} started as move input is pressed");
                     moving = true;
                 }
-            } 
+            }
             else
             {
                 // move player forward
-                transform.Translate(new Vector3(Time.deltaTime * gridSpeed * moveValue[0] * gridSquareSide, Time.deltaTime * gridSpeed * moveValue[1] * gridSquareSide, 0.0F));
+                float x_translation = gridSpeed * moveValue[0];
+                float y_translation = gridSpeed * moveValue[1];
+                float z_translation = 0.0F;
+                Vector3 translation_vector = new Vector3(x_translation, y_translation, z_translation);
+                Debug.Log($"Moving by {translation_vector}");
+                transform.Translate(translation_vector);
             }
         }
 
@@ -171,7 +176,7 @@ namespace WildsAdv
          */
         void OnAccelerationPeriodEvent()
         {
-            if (!gridMovementMode) 
+            if (!gridMovementMode)
             {
                 // check to see if move action was maintained through an accel period
                 if (previouslyMoving == moving)
