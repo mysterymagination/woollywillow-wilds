@@ -1,9 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ui:UXML
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ui="UnityEngine.UIElements"
-    xmlns:uie="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
->
-    
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; align-items: center; justify-content: center; background-color: rgba(58, 38, 115, 0.55);">
+        <ui:ScrollView>
+            <ui:Label text="Lorem ipsum something and so forth and so on with stuff certain etc.&#10;sfdfdfsdf&#10;sdfsdfsdffdff&#10;adsasd&#10;asdasd" />
+        </ui:ScrollView>
+    </ui:VisualElement>
 </ui:UXML>
