@@ -535,8 +535,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 130543829}
-  - component: {fileID: 130543830}
   - component: {fileID: 130543831}
+  - component: {fileID: 130543830}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -559,10 +559,10 @@ RectTransform:
   - {fileID: 625025270}
   m_Father: {fileID: 685658154}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 35232.79, y: 66.03}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &130543830
 MonoBehaviour:
@@ -571,21 +571,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 130543828}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
-  m_HorizontalFit: 2
-  m_VerticalFit: 2
---- !u!114 &130543831
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 130543828}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
@@ -599,11 +585,25 @@ MonoBehaviour:
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
+  m_ChildControlWidth: 0
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &130543831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 130543828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &524688899
 GameObject:
   m_ObjectHideFlags: 0
@@ -761,8 +761,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 742215450}
   m_HandleRect: {fileID: 742215449}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.28468084
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -915,10 +915,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 130543829}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 17616.395, y: -33.015}
-  m_SizeDelta: {x: 35232.79, y: 66.03}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 2641.31, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &625025271
 MonoBehaviour:
@@ -940,14 +940,14 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: And thus begins the tale! And thus begins the tale! And thus begins the
-    tale! And thus begins the tale! And thus begins the tale! And thus begins the
-    tale! And thus begins the tale! And thus begins the tale! And thus begins the
-    tale! And thus begins the tale! And thus begins the tale! And thus begins the
+  m_text: "And thus begins the tale! And thus begins th tale!And thus begins the
     tale!And thus begins the tale!And thus begins the tale!And thus begins the tale!And
-    thus begins the tale!And thus begins the tale!And thus begins the tale!And thus
-    begins the tale!And thus begins the tale!And thus begins the tale!And thus begins
-    the tale! Dragons and fishes and so forth and so on cthulhus galore, why not?
+    thus begins the tale!And thus begins the tale!And thus begins the tale! Dragons
+    and fishes and so forth and so on cthulhus galore, why not?\n\n\n\n thus begins
+    the tale!And thus begins the tale!And thus begins the tale! Dragons and fishes
+    and so forth and so on cthulhus galore, why not?\n\n\n\n thus begins the tale!And
+    thus begins the tale!And thus begins the tale! Dragons and fishes and so forth
+    and so on cthulhus galore, why not?"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88003508be39e449cb51c48494e680cf, type: 2}
   m_sharedMaterial: {fileID: 21699584260080902, guid: 88003508be39e449cb51c48494e680cf,
@@ -1447,7 +1447,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 524688900}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.074967384
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
