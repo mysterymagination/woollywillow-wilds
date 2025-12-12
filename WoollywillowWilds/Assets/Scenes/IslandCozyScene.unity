@@ -878,6 +878,12 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4213502713377827672, guid: e6b86b80bf604414ba5f1e54e0ed3008,
+        type: 3}
+      propertyPath: detailPanelPrefab
+      value: 
+      objectReference: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
+        type: 3}
     - target: {fileID: 4428473525683812347, guid: e6b86b80bf604414ba5f1e54e0ed3008,
         type: 3}
       propertyPath: m_AnchorMax.x
