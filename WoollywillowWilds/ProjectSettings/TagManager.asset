@@ -6,6 +6,7 @@ TagManager:
   tags:
   - TutorialRequirement
   - TagStoryText
+  - RoomView
   layers:
   - Default
   - TransparentFX
@@ -43,14 +44,14 @@ TagManager:
   - name: Background
     uniqueID: 1156954527
     locked: 0
-  - name: Overlay
-    uniqueID: 3617464977
-    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
   - name: UI
     uniqueID: 3890859541
+    locked: 0
+  - name: Overlay
+    uniqueID: 3617464977
     locked: 0
   m_RenderingLayers:
   - Default
