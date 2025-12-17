@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace WildsAdv
 {
-    public class RoomInteraction : MonoBehaviour, IPointerClickHandler
+    public class RoomItem : MonoBehaviour, IPointerClickHandler
     {
         /**
          * Human readable object name assigned in the editor.
