@@ -25,12 +25,11 @@ namespace WildsAdv
             // Output to console the clicked GameObject's name and the following message.
             Debug.Log(objectID + " Game Object Clicked at " + pointerEventData);
 
-            GameObject roomView = GameObject.FindWithTag("RoomView");
+            GameObject roomView = GameObject.FindWithTag("RoomCanvas");
             // load the ${objectID}_ItemDetail image into the detailPanelPrefab's ItemPanel -> ItemImage imageview. 
             if (roomView && detailPanelPrefab)
             {
                 // Add image texture2d to item detail panel.
-                // TODO: why is the instantiated subcanvas not rendering over the main canvas?
                 GameObject detailPanel = Instantiate(detailPanelPrefab, roomView.transform.position, roomView.transform.rotation, roomView.transform);//new Vector3(0.0F, 0.0F, 0.0F), Quaternion.identity);
                 /*
                 GameObject itemImage = detailPanel.transform.Find("ItemPanel").Find("ItemImage").gameObject;
