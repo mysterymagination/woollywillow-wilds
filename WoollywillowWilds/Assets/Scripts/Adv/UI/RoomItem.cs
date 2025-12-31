@@ -30,7 +30,8 @@ namespace WildsAdv
             if (roomView && detailPanelPrefab)
             {
                 // Add image texture2d to item detail panel.
-                GameObject detailPanel = Instantiate(detailPanelPrefab, roomView.transform.position, roomView.transform.rotation, roomView.transform);//new Vector3(0.0F, 0.0F, 0.0F), Quaternion.identity);
+                GameObject detailPanel = Instantiate(detailPanelPrefab, new Vector3(0.0F, 0.0F, 0.0F), Quaternion.identity, roomView.transform);
+                // Instantiate(detailPanelPrefab, roomView.transform.position, roomView.transform.rotation, roomView.transform); // this seems to put us offset relative the parent transform, so I'm betting that by using the parent's transform stats and then also attaching we're applying parent transform twice?
                 /*
                 GameObject itemImage = detailPanel.transform.Find("ItemPanel").Find("ItemImage").gameObject;
                 Image image = itemImage.GetComponent<Image>();
