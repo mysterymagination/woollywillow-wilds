@@ -1086,6 +1086,12 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1672722734}
+    - target: {fileID: 960951124665525280, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: detailPanelPrefab
+      value: 
+      objectReference: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
+        type: 3}
     - target: {fileID: 1744464601050752646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -1281,6 +1287,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7206072485110494329, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: detailPanelPrefab
+      value: 
+      objectReference: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
+        type: 3}
     - target: {fileID: 7455759066877203337, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_AnchorMax.x
