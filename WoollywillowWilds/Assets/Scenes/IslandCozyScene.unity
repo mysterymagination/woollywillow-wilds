@@ -632,7 +632,7 @@ PrefabInstance:
     - target: {fileID: 1880431741455058401, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.9
+      value: 0.95
       objectReference: {fileID: 0}
     - target: {fileID: 1880431741455058401, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
@@ -642,7 +642,7 @@ PrefabInstance:
     - target: {fileID: 1880431741455058401, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 1880431741455058401, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
@@ -682,22 +682,22 @@ PrefabInstance:
     - target: {fileID: 6165459172339820104, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.8
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 6165459172339820104, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.8
+      value: 0.835
       objectReference: {fileID: 0}
     - target: {fileID: 6165459172339820104, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.2
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 6165459172339820104, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.2
+      value: 0.165
       objectReference: {fileID: 0}
     - target: {fileID: 6165459172339820104, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
@@ -777,7 +777,7 @@ PrefabInstance:
     - target: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7262786862605853316, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
@@ -1092,6 +1092,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
+    - target: {fileID: 960951124665525280, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription
+      value: The mighty dragon princess!
+      objectReference: {fileID: 0}
     - target: {fileID: 1744464601050752646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -1106,6 +1111,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchorMin.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription
+      value: She's so pretty!
       objectReference: {fileID: 0}
     - target: {fileID: 2021737181620554091, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -1186,6 +1196,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_TagString
+      value: StoryText
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -1293,6 +1308,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7130083804590568917, guid: b7ee517ba37385041a83f3427e3a7c33,
         type: 3}
+    - target: {fileID: 7206072485110494329, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription
+      value: Stalwart guardian of the gardens.
+      objectReference: {fileID: 0}
     - target: {fileID: 7455759066877203337, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_AnchorMax.x

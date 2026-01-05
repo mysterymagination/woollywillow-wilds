@@ -5,9 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - TutorialRequirement
-  - TagStoryText
   - RoomView
   - RoomCanvas
+  - StoryText
   layers:
   - Default
   - TransparentFX

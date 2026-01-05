@@ -4,12 +4,21 @@
 - Ideally we'd specify that the border image has a cut-out in its shape to accomodate the item detail image inset shape, but most engines won't support comlpex geometry like that for the UI. Dunno if Unity would, but it's computationally simpler to just have a transparency in the border image for the cut-out section and treat the entire border image as an overlay layer.
 - The key point of interest is making sure the transparent area of the border image matches the aspect ratio of the item detail image inset shape. I'm pretty sure there's no way around manual image transforms at the asset level to achieve this since it will be a potentially different operation per border image.
 
-# Component Aspect Ratios Relative to Total Screen Dimensions
+# Using Component Aspect Ratios Relative to Total Screen Dimensions
 - I'm not sure these are super useful since the images and canvasi will be added as transform children of the constraining parents, so as far as each child is concerned the constraining parent dimensions are the total surrounding dimensions.
 - On the other hand, our purpose for these calcs is to use in modding the asset files directly, so the transform hierarchy is not relevant. It would probably be much less confusing to use standard ratio numbers rather than percentages of unknown dimensions, even though I think the latter will still work.
 
+## Total screen dimensions
+### Reference Resolution
+- 800px x 600px
+### Raw Measure on 3440px x 1440px Display
+- 30cm x 17cm
+
 ## Room View aspect ratio (room_ar)
 - 76% width x 66% height
+- 2:1
+### Raw Measure
+- 19cm x 9.5cm
 
 ## Item Detail View outer aspect ratio (item_ar)
 - (.8room_ar.x - .2room_ar.x) x (.8room_ar.y - .2room_ar.y)
@@ -22,3 +31,40 @@
    - 0.4332 - 0.0228 = 0.4104
    - 0.3564 - 0.0396 = 0.3168
    - 0.4104 width x 0.3168 height
+### Raw Measure
+- ~12cm x ~5.5cm
+### Total Screen Percentage Measure
+- 12.3cm x 5.4cm
+- So that method pretty much works out. Not exactly straightforward, though, so I'm going to skip ahead to using the actual standalone aspect ratio of the detail image inset bounds, which is all we need. 
+
+# Using Item Detail Inset Aspect Ratio Directly
+## Inset Aspect Ratio (inset_ar)
+- ~~2.2:1~~
+- 1.5:1
+## Detail Image Aspect Ratio (image_ar)
+- 1.5:1
+- Probably the inset_ar should match image_ar; not sure why I didn't design it that way originally.
+   - I want to achieve 1.5:1 for the image_ar within a X:Y for the item_ar within a 2:1 for room_ar.
+   - First step is to find what the item_ar X:Y aspect ratio will be if the image_ar is 1.5:1.
+      - We define our image_ar in terms of percentage of item_ar, as .8item_ar.x : .8item_ar.y, but since we're talking about aspect ratio and the percentages are the same for each dimen we'll want item_ar to also be 1.5:1
+   - Second step is to figure out how we achieve 1.5:1 for item_ar expressed as percentage of room_ar's 2:1?
+         - item_ar.x = .75room_ar.x
+         - item_ar.y = room_ar.y
+         - item_ar.x_min = 12.5%
+         - item_ar.x_max = 87.5%
+         - item_ar.y_min = 0%
+         - item_ar.y_min = 100%
+         - So to keep that aspect ratio but cover different actual screen area, we can take percentages of the above percentages and as long as we apply the same percentage to all dimensions we should keep our aspect ratio. I'd like the width coverage to be about 50%, so we'll go from there:
+            - 0.75X = 0.5, X = 0.667 or ~66%
+            - item_ar.x = .5room_ar.x
+            - item_ar.y = .66room_ar.y
+            - item_ar.x_min = 25%
+            - item_ar.x_max = 75%
+            - item_ar.y_min = 16.5%
+            - item_ar.y_min = 83.5%
+   - Third step is adjusting the above so that we have a constant depth (I guess you'd call it?) of border frame. This is tricky because a depth of Ncm is going to be a different percentage of the item_ar.x than item_ar.y since the aspect ratio is not 1:1. In order to build in extra room for a frame around the inset_ar that we need to be 1.5:1, we'll need to modify item_ar.
+      - I think it would be easiest to have two guiding principles:
+         1. A given Ncm frame depth we want all around the inset bounds.
+         1. Our set 1.5:1 inset_ar. 
+      - I like the look of 0.5cm frame depth on my reference display, which is 5% of above item_ar.x.
+      - So from 0.5cm frame depth and a 1.5:1 inset_ar, we need to figure out what our item_ar and item view percentages become and then modify our inset view percentages to work out to a 1.5:1 inset_ar.

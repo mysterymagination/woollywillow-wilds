@@ -8,7 +8,7 @@ public class Room : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        GameObject storyText = GameObject.FindWithTag("TagStoryText");
+        GameObject storyText = GameObject.FindWithTag("StoryText");
         Debug.Log("StoryText says " + storyText);
         TMP_Text textComponent = storyText.GetComponent<TMP_Text>();
         textComponent.text = RoomIntroText;
