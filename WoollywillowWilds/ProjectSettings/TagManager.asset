@@ -8,6 +8,7 @@ TagManager:
   - RoomView
   - RoomCanvas
   - StoryText
+  - TagStoryText
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - UI_Overlay
   - 
   - 
   - 
