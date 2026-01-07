@@ -8,7 +8,7 @@ TagManager:
   - RoomView
   - RoomCanvas
   - StoryText
-  - TagStoryText
+  - FrameImage
   layers:
   - Default
   - TransparentFX

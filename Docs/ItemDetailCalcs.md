@@ -13,10 +13,13 @@
 - 800px x 600px
 ### Raw Measure on 3440px x 1440px Display
 - 30cm x 17cm
+#### GardenCanvas Dimensions
+- 1337.5px x 600px
 
 ## Room View aspect ratio (room_ar)
-- 76% width x 66% height
-- 2:1
+- 75% width x 66.66% height
+- 1003.125px x 400.02px
+- ~2.51:1
 ### Raw Measure
 - 19cm x 9.5cm
 
@@ -47,21 +50,29 @@
    - I want to achieve 1.5:1 for the image_ar within a X:Y for the item_ar within a 2:1 for room_ar.
    - First step is to find what the item_ar X:Y aspect ratio will be if the image_ar is 1.5:1.
       - We define our image_ar in terms of percentage of item_ar, as .8item_ar.x : .8item_ar.y, but since we're talking about aspect ratio and the percentages are the same for each dimen we'll want item_ar to also be 1.5:1
-   - Second step is to figure out how we achieve 1.5:1 for item_ar expressed as percentage of room_ar's 2:1?
-         - item_ar.x = .75room_ar.x
+   - Second step is to figure out how we achieve 1.5:1 for item_ar expressed as percentage of room_ar's ~~2:1~~ 2.5:1?
+         - item_ar.x = .6room_ar.x
          - item_ar.y = room_ar.y
-         - item_ar.x_min = 12.5%
-         - item_ar.x_max = 87.5%
+         - item_ar.x_min = 20%
+         - item_ar.x_max = 80%
          - item_ar.y_min = 0%
          - item_ar.y_min = 100%
          - So to keep that aspect ratio but cover different actual screen area, we can take percentages of the above percentages and as long as we apply the same percentage to all dimensions we should keep our aspect ratio. I'd like the width coverage to be about 50%, so we'll go from there:
-            - 0.75X = 0.5, X = 0.667 or ~66%
+            - 0.6X = 0.5, X = 0.833 or ~83% to go from 60% to 50% on X, so we need to apply ~83% to Y as well.
             - item_ar.x = .5room_ar.x
-            - item_ar.y = .66room_ar.y
+            - item_ar.y = .83room_ar.y
             - item_ar.x_min = 25%
             - item_ar.x_max = 75%
-            - item_ar.y_min = 16.5%
-            - item_ar.y_min = 83.5%
+            - item_ar.y_min = 8.5%
+            - item_ar.y_min = 91.5%
+         - But then there's not much room for the surrounding frame, so :
+            - 0.6X = 0.5, X = 0.833 or ~83% to go from 60% to 50% on X, so we need to apply ~83% to Y as well.
+            - item_ar.x = .5room_ar.x
+            - item_ar.y = .83room_ar.y
+            - item_ar.x_min = 25%
+            - item_ar.x_max = 75%
+            - item_ar.y_min = 8.5%
+            - item_ar.y_min = 91.5%
    - Third step is adjusting the above so that we have a constant depth (I guess you'd call it?) of border frame. This is tricky because a depth of Ncm is going to be a different percentage of the item_ar.x than item_ar.y since the aspect ratio is not 1:1. In order to build in extra room for a frame around the inset_ar that we need to be 1.5:1, we'll need to modify item_ar.
       - I think it would be easiest to have two guiding principles:
          1. A given Ncm frame depth we want all around the inset bounds.
@@ -71,7 +82,7 @@
       - Hmm, I think this might be impossible the way I'm trying to do it i.e. with both frame and detail inset bounds given as percentages of the item display bounds.
          - What we could do instead, if we must avoid any content wrapping and keep constraints in terms of percentages of parents, is have a second canvas for the frame which will be installed centered over (or under) the item detail canvas (origin at same coords). Then as long as the frame's cut-out transparency matches the inset_ar, we should get a scenario where we effectively slot the item detail canvas into the cut-out... except matching inset_ar isn't going to be sufficient. We'd need the cut-out dimens to actually match those of the detail inset, else the aspect ratio doesn't help. To get that, we'd need to scale the entire frame image by an arbitrary amount, however much is required to make the cut-out match when taking the arbitrary dimens of the frame graphic elements themselves into account.
          - So basically metadata about the frame size and how much it adds around the cut-out so we can calculate the appropriate scale factor? Or I guess the actual pixel dimens of the cut-out would do since the frame elements have to run along its edges and its what we really care about anyway. Might be able to get all that data at runtime from the engine.
-         - Else, could just say f***it.js to the algebra and layering and have the four frame elements as separate assets that we bolt on around the edges of our detail inset panel, which I guess in this scenario will become the entire item detail canvas.
+         - Else, could just say f***it.js to the algebra and layering and have the four frame elements as separate assets that we bolt on around the edges of our detail inset panel, which I guess in this scenario will become the entire item detail canvas. Could even do a cheeky coupla panels surrounding the item canvas with a constrained size at build time so there's no need to adjust anything at runtime; our frame components can just be loaded into those panels and they'll scale to fit automatically.
 
 # Frame Image Modification
 - Once we have the item_ar and inset_ar above, we'll need to edit any given frame image so that the total aspect ratio matches item_ar and the transparent rectangle cut-out matches inset_ar. That way we can have the picture frame image as a background and overlay the item detail image in the inset panel, and the detail image should slot right in nicely to the cut-out. 
