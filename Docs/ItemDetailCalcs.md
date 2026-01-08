@@ -83,6 +83,30 @@
          - What we could do instead, if we must avoid any content wrapping and keep constraints in terms of percentages of parents, is have a second canvas for the frame which will be installed centered over (or under) the item detail canvas (origin at same coords). Then as long as the frame's cut-out transparency matches the inset_ar, we should get a scenario where we effectively slot the item detail canvas into the cut-out... except matching inset_ar isn't going to be sufficient. We'd need the cut-out dimens to actually match those of the detail inset, else the aspect ratio doesn't help. To get that, we'd need to scale the entire frame image by an arbitrary amount, however much is required to make the cut-out match when taking the arbitrary dimens of the frame graphic elements themselves into account.
          - So basically metadata about the frame size and how much it adds around the cut-out so we can calculate the appropriate scale factor? Or I guess the actual pixel dimens of the cut-out would do since the frame elements have to run along its edges and its what we really care about anyway. Might be able to get all that data at runtime from the engine.
          - Else, could just say f***it.js to the algebra and layering and have the four frame elements as separate assets that we bolt on around the edges of our detail inset panel, which I guess in this scenario will become the entire item detail canvas. Could even do a cheeky coupla panels surrounding the item canvas with a constrained size at build time so there's no need to adjust anything at runtime; our frame components can just be loaded into those panels and they'll scale to fit automatically.
+      - Waitaminute, hang on, I actually pulled out some graph paper and it seems like it should be possible after all. How about a 5:4 or 1.25:1 item_ar and then inset_ar.x can be .6item_ar.x and inset_ar.y can be .5item_ar.y? That should give us 1.5:1 for the inset and the remaining surround should be a uniform depth/width/whatever border?
+         1. First step is getting the constraint percentages of room_ar that will give us a 1.25:1 item_ar:
+            1. room_ar is ~2.5:1, so to get to 1.25 we need 0.5item_ar.x and let item_ar.y fill room_ar.y
+            1. item_ar.x_min = 0.25
+            1. item_ar.x_max = 0.75
+            1. item_ar.y_min = 0
+            1. item_ar.y_max = 1
+            1. To leave some room on Y, we'll scale both dimens down by TODO
+         1. Second step is defining our 1.5:1 inset_ar as percentages of the parent item_ar.
+            1. Expanding my 1.25:1 to 5:4 for simplicity, we can get to a child 3:2 (reduceable to 1.5:1) by taking 60% of item_ar.x and 50% of item_ar.y
+            1. inset_ar.x_min = 0.2
+            1. inset_ar.x_max = 0.8
+            1. inset_ar.y_min = 0.25
+            1. insert_ar.y_max = 0.75
+         - This works! Gives us a constant border of about 2.5cm on my reference screen. However! If I scale my 1.5:1 inset_ar dimens to try to leave less of a gigantic border area, the proportions are no longer equal all around. I'm not quite sure on the math behind this, but it seems we need very specific relative dimens to make this effect work. Curious! Worth a deeper look at some point.  
+            - You can also get passably close by making item_ar 1.5:1 via 50% X and 83% Y of the 2.5:1 room_ar and then inset just a constant percentage of parent dimens so it will alsob e 1.5:1
+            - Anyway, this whole approach of trying to match a frame image transparent cut-out over our item image inset introduces headaches with the actual surrounding frame size since that will also be bounded and will contribute to the overall frame image dimens. We can prep the asset with a 1.5:1 cut-out and then scale the loaded frame image at runtime by whatever it takes to match the runtime measured dimens of the item detail canvas, but then the system will perform further scaling out of our control to make the arbitrary frame surround dimens fit with the bounds; this will mess up the alignment of the cut-out. 
+
 
 # Frame Image Modification
 - Once we have the item_ar and inset_ar above, we'll need to edit any given frame image so that the total aspect ratio matches item_ar and the transparent rectangle cut-out matches inset_ar. That way we can have the picture frame image as a background and overlay the item detail image in the inset panel, and the detail image should slot right in nicely to the cut-out. 
+
+# Bolt-on Additive Frame Strat
+- Notion is to make our 1.5:1 item inset and leave room surrounding it to add on panels that can host the left, top, right, bottom edges of the frame surround elements.
+- This means we don't need to modify the assets (necessarily) except to make a separate image per frame surround element.
+- todo: This almost worked, except I see an odd misalignment of the textures after constraint scaling occurs in the surround panels, even after accounting for the 2.5:1 (dimens uniformly scaled down from room_ar) item_ar.
+   - I think this may have occurred because the original image aspect ratio is vastly different from the 2.5:1 we're trying to shove it into?

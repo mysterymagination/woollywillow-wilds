@@ -9,6 +9,9 @@ TagManager:
   - RoomCanvas
   - StoryText
   - FrameImage
+  - TagStoryText
+  - ItemCanvas
+  - ExitButton
   layers:
   - Default
   - TransparentFX

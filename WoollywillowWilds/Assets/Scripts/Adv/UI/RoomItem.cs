@@ -44,7 +44,7 @@ namespace WildsAdv
                 // Load the item detail image.
                 Image image = itemImage.GetComponent<Image>();
                 image.sprite = detailImage;
-                
+                // todo: get a handle to the panel with tag ExitButton and install OnPointerClick handler that removes the detailPanel GameObject from the scene.
 
             }
             // Load the GenerateItemDescription() result into StoryText.
