@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 namespace WildsAdv
 {
@@ -14,6 +15,10 @@ namespace WildsAdv
          * Starting description.
          */
         public string defaultDescription;
+        /**
+         * Simple no-arg UnityEvent that will Invoke() in OnInteract(), allowing any registered display handling that does not rely on input data to run.
+         */
+        public UnityEvent DisplayHandler;
 
         // Detect if a click occurs
         public void OnPointerClick(PointerEventData pointerEventData)
@@ -24,7 +29,8 @@ namespace WildsAdv
         }
         public void OnInteract(PointerEventData pointerEventData)
         {
-            // TODO: add direct list of event listeners for inspector or just lean on Button that already does so, then loop through and callback to 'em
+            // Handle any display we want e.g. loading up canvas with detailed image.
+            DisplayHandler.Invoke();
 
             // Load the GenerateItemDescription() result into StoryText.
             GameObject storyTextObject = GameObject.FindWithTag("StoryText");
