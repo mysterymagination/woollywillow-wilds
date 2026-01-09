@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace WildsAdv
 {
-    public class CloseBehavior : MonoBehaviour
+    public class ItemCanvasUnloader : MonoBehaviour
     {
         public string tagToClose = "ItemCanvas";
         public bool transient = false;

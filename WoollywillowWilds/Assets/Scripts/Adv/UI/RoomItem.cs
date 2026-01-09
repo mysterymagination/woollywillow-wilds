@@ -1,8 +1,6 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace WildsAdv
 {
@@ -12,14 +10,6 @@ namespace WildsAdv
          * Human readable object name assigned in the editor.
          */
         public string objectID;
-        /**
-         * A GameObject prefab with a UI panel and image view ready to host the detail image.
-         */
-        public GameObject detailPanelPrefab;
-        /**
-         * A GameObject with texture data representing the item detail image.
-         */
-        public Sprite detailImage;
         /**
          * Starting description.
          */
@@ -34,19 +24,8 @@ namespace WildsAdv
         }
         public void OnInteract(PointerEventData pointerEventData)
         {
-            GameObject roomView = GameObject.FindWithTag("RoomView");
-            // load the ${objectID}_ItemDetail image into the detailPanelPrefab's ItemPanel -> ItemImage imageview. 
-            if (roomView && detailPanelPrefab)
-            {
-                // Load item detail panel prefab as relative transform child of RoomView.
-                GameObject detailPanel = Instantiate(detailPanelPrefab, roomView.transform, false);
-                GameObject itemImage = detailPanel.transform.Find("ItemPanel").Find("ItemImage").gameObject;
-                // Load the item detail image.
-                Image image = itemImage.GetComponent<Image>();
-                image.sprite = detailImage;
-                // todo: get a handle to the panel with tag ExitButton and install OnPointerClick handler that removes the detailPanel GameObject from the scene.
+            // TODO: add direct list of event listeners for inspector or just lean on Button that already does so, then loop through and callback to 'em
 
-            }
             // Load the GenerateItemDescription() result into StoryText.
             GameObject storyTextObject = GameObject.FindWithTag("StoryText");
             TMP_Text storyText = storyTextObject.GetComponent<TMP_Text>();
