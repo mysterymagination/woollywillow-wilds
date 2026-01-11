@@ -544,13 +544,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d6e3a8423e6d2442a5d42f8ec8d9ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.ItemCanvasLoader
-  detailPanel: {fileID: 887966573744759646}
+  detailCanvas: {fileID: 887966573744759646}
   detailImage: {fileID: 7384299352562020843, guid: 70d6d34be46bd1b49999cd399d8cd3b2,
     type: 3}
-  parentTag: RoomView
+  canvasParentTag: RoomView
   imageParentTag: ItemPanel
   imageTag: ItemImage
-  isPrefab: 0
+  closeTag: ExitButton
+  isTransient: 0
 --- !u!1 &612315547 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5448363793797265590, guid: b9cd15040409ab648ab5d444cc8dfb6c,
@@ -569,13 +570,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d6e3a8423e6d2442a5d42f8ec8d9ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.ItemCanvasLoader
-  detailPanel: {fileID: 887966573744759646}
+  detailCanvas: {fileID: 887966573744759646}
   detailImage: {fileID: 5545978771003637547, guid: 42a49f9320a04b748a2ba70ac522af19,
     type: 3}
-  parentTag: RoomView
+  canvasParentTag: RoomView
   imageParentTag: ItemPanel
   imageTag: ItemImage
-  isPrefab: 0
+  closeTag: ExitButton
+  isTransient: 0
 --- !u!1 &675390427
 GameObject:
   m_ObjectHideFlags: 0
@@ -1389,6 +1391,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
       propertyPath: defaultDescription
       value: She's so pretty!
       objectReference: {fileID: 0}
@@ -1782,13 +1789,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d6e3a8423e6d2442a5d42f8ec8d9ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.ItemCanvasLoader
-  detailPanel: {fileID: 887966573744759646}
+  detailCanvas: {fileID: 887966573744759646}
   detailImage: {fileID: -2465587508231424960, guid: 34693735689d39849b2eddcaead5b64b,
     type: 3}
-  parentTag: RoomView
+  canvasParentTag: RoomView
   imageParentTag: ItemPanel
   imageTag: ItemImage
-  isPrefab: 0
+  closeTag: ExitButton
+  isTransient: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

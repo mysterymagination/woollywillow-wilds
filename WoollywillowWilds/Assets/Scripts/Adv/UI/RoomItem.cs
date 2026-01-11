@@ -19,6 +19,7 @@ namespace WildsAdv
          * Simple no-arg UnityEvent that will Invoke() in OnInteract(), allowing any registered display handling that does not rely on input data to run.
          */
         public UnityEvent DisplayHandler;
+        public delegate int Calculate(int x, int y);
 
         // Detect if a click occurs
         public void OnPointerClick(PointerEventData pointerEventData)
