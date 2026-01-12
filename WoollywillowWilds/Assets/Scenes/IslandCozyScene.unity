@@ -548,9 +548,9 @@ MonoBehaviour:
   detailImage: {fileID: 7384299352562020843, guid: 70d6d34be46bd1b49999cd399d8cd3b2,
     type: 3}
   canvasParentTag: RoomView
-  imageParentTag: ItemPanel
-  imageTag: ItemImage
-  closeTag: ExitButton
+  imageParentName: ItemPanel
+  imageName: ItemImage
+  closeButtonName: ExitButton
   isTransient: 0
 --- !u!1 &612315547 stripped
 GameObject:
@@ -574,9 +574,9 @@ MonoBehaviour:
   detailImage: {fileID: 5545978771003637547, guid: 42a49f9320a04b748a2ba70ac522af19,
     type: 3}
   canvasParentTag: RoomView
-  imageParentTag: ItemPanel
-  imageTag: ItemImage
-  closeTag: ExitButton
+  imageParentName: ItemPanel
+  imageName: ItemImage
+  closeButtonName: ExitButton
   isTransient: 0
 --- !u!1 &674322745 stripped
 GameObject:
@@ -1680,17 +1680,17 @@ PrefabInstance:
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.28
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.28
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.28
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -1891,9 +1891,9 @@ MonoBehaviour:
   detailImage: {fileID: -2465587508231424960, guid: 34693735689d39849b2eddcaead5b64b,
     type: 3}
   canvasParentTag: RoomView
-  imageParentTag: ItemPanel
-  imageTag: ItemImage
-  closeTag: ExitButton
+  imageParentName: ItemPanel
+  imageName: ItemImage
+  closeButtonName: ExitButton
   isTransient: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

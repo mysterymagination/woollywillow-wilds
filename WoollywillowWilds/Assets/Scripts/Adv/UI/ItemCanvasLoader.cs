@@ -26,22 +26,22 @@ namespace WildsAdv
         public string canvasParentTag = "RoomView";
         /**
             <summary>
-                Tag of the item Panel UI element that contains our Image UI element.
+                GameObject name of the item Panel UI element that contains our Image UI element.
             </summary>
          */
-        public string imageParentTag = "ItemPanel";
+        public string imageParentName = "ItemPanel";
         /**
             <summary>
-                Tag of the item Image UI element into which we load our detailImage Sprite.
+                GameObject name of the item Image UI element into which we load our detailImage Sprite.
             </summary>
          */
-        public string imageTag = "ItemImage";
+        public string imageName = "ItemImage";
         /**
             <summary>
-                Tag of the UI element which should close the canvas onclick.
+                GameObject name of the UI element which should close the canvas onclick.
             </summary>
          */
-        public string closeTag = "ExitButton";
+        public string closeButtonName = "ExitButton";
         /**
             <summary>
                 True if the Canvas given in detailPanel needs to be instantiated from a prefab, false if the Canvas is already-extant part of the scene and simply needs to be activated.
@@ -70,11 +70,11 @@ namespace WildsAdv
                     GameObject exitButtonGameObject;
                     try
                     {
-                        exitButtonGameObject = loadedCanvas.transform.Find(closeTag).gameObject;
+                        exitButtonGameObject = loadedCanvas.transform.Find(closeButtonName).gameObject;
                     }
                     catch (NullReferenceException e)
                     {
-                        Debug.LogError("Failed finding " + closeTag + " transform child of loaded canvas.");
+                        Debug.LogError("Failed finding " + closeButtonName + " transform child of loaded canvas.");
                         throw e;
                     }
                     Button exitButton = exitButtonGameObject.GetComponent<Button>();
@@ -90,11 +90,11 @@ namespace WildsAdv
                 GameObject itemImage;
                 try
                 {
-                    itemImage = loadedCanvas.transform.Find(imageParentTag).Find(imageTag).gameObject;
+                    itemImage = loadedCanvas.transform.Find(imageParentName).Find(imageName).gameObject;
                 }
                 catch (NullReferenceException e)
                 {
-                    Debug.LogError("Failed finding " + imageParentTag + " transform child of loaded canvas and/or its " + imageTag + " transform child.");
+                    Debug.LogError("Failed finding " + imageParentName + " transform child of loaded canvas and/or its " + imageName + " transform child.");
                     throw e;
                 }
 
