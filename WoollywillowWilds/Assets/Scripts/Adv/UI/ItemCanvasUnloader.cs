@@ -4,31 +4,34 @@ namespace WildsAdv
 {
     public class ItemCanvasUnloader : MonoBehaviour
     {
-        public string tagToClose = "ItemCanvas";
+        /// <summary>
+        /// Handle to the canvas we need to close.
+        /// </summary>
+        public GameObject canvasToClose;
+        /// <summary>
+        /// True if the canvas should be destroyed on close, false if the canvas should only be deactivated on close.
+        /// </summary>
         public bool transient = false;
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
 
-        }
-
-        public void OnClick()
+        /// <summary>
+        /// Function suitable for use as a UnityAction registered with a UnityEvent that handles closing/unloading an item detail canvas.
+        /// </summary>
+        public void CanvasUnloadHandler()
         {
-            GameObject objectToClose = GameObject.FindWithTag(tagToClose);
-            if (objectToClose)
+            if (canvasToClose)
             {
                 if (!transient)
                 {
-                    objectToClose.SetActive(false);
+                    canvasToClose.SetActive(false);
                 }
                 else
                 {
-                    Destroy(objectToClose);
+                    Destroy(canvasToClose);
                 }
             }
             else
             {
-                Debug.LogError("GameObject with tag " + tagToClose + " not found; could not close it.");
+                Debug.LogError("GameObject " + canvasToClose + " not found; could not close it.");
             }
         }
     }

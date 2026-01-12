@@ -578,6 +578,26 @@ MonoBehaviour:
   imageTag: ItemImage
   closeTag: ExitButton
   isTransient: 0
+--- !u!1 &674322745 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4082947834967517017, guid: 1d3480cfa14bdc64790be72e80b83daa,
+    type: 3}
+  m_PrefabInstance: {fileID: 887966573744759645}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &674322751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 674322745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f2a95abfafc6874683df94834959d95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.ItemCanvasUnloader
+  canvasToClose: {fileID: 887966573744759646}
+  transient: 0
 --- !u!1 &675390427
 GameObject:
   m_ObjectHideFlags: 0
@@ -776,6 +796,7 @@ GameObject:
   - component: {fileID: 1672722734}
   - component: {fileID: 1672722733}
   - component: {fileID: 1672722736}
+  - component: {fileID: 1672722737}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -823,10 +844,10 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 10000
   field of view: 60
-  orthographic: 1
-  orthographic size: 5
+  orthographic: 0
+  orthographic size: 100
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -851,7 +872,7 @@ Transform:
   m_GameObject: {fileID: 1672722732}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -677}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -901,6 +922,19 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1672722737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1672722732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50f42ea641fe2fc448a5f90bb6cb3563, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.CameraZoomControl
+  zoomRate: 50
 --- !u!1 &1890730679
 GameObject:
   m_ObjectHideFlags: 0
@@ -1013,6 +1047,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: ItemCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 674322751}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CanvasUnloadHandler
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: WildsAdv.ItemCanvasUnloader, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426884974904085448, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7221525690155430843, guid: 1d3480cfa14bdc64790be72e80b83daa,
         type: 3}
@@ -1148,7 +1217,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4082947834967517017, guid: 1d3480cfa14bdc64790be72e80b83daa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 674322751}
   m_SourcePrefab: {fileID: 100100000, guid: 1d3480cfa14bdc64790be72e80b83daa, type: 3}
 --- !u!1 &887966573744759646 stripped
 GameObject:
@@ -1318,6 +1391,11 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 250814331609793459, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_IsActive
@@ -1328,6 +1406,11 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1672722734}
+    - target: {fileID: 707349411261519764, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_RenderMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 960951124665525280, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: detailPanelPrefab
@@ -1557,12 +1640,12 @@ PrefabInstance:
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_Pivot.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_Pivot.y
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -1587,12 +1670,27 @@ PrefabInstance:
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 1337.5
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.28
       objectReference: {fileID: 0}
     - target: {fileID: 6552172439803478210, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}

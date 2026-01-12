@@ -65,6 +65,20 @@ namespace WildsAdv
                 {
                     // Load item detail panel prefab as relative transform child of the given parent.
                     loadedCanvas = Instantiate(detailCanvas, parentView.transform, false);
+
+                    // Install exit/unload behavior
+                    GameObject exitButtonGameObject;
+                    try
+                    {
+                        exitButtonGameObject = loadedCanvas.transform.Find(closeTag).gameObject;
+                    }
+                    catch (NullReferenceException e)
+                    {
+                        Debug.LogError("Failed finding " + closeTag + " transform child of loaded canvas.");
+                        throw e;
+                    }
+                    Button exitButton = exitButtonGameObject.GetComponent<Button>();
+                    exitButton.onClick.AddListener(CanvasUnloadHandler);
                 }
                 else
                 {
@@ -87,24 +101,6 @@ namespace WildsAdv
                 // Load the item detail image.
                 Image image = itemImage.GetComponent<Image>();
                 image.sprite = detailImage;
-
-                // Install exit/unload behavior
-                GameObject exitButtonGameObject;
-                try
-                {
-                    exitButtonGameObject = loadedCanvas.transform.Find(closeTag).gameObject;
-                }
-                catch (NullReferenceException e)
-                {
-                    Debug.LogError("Failed finding " + closeTag + " transform child of loaded canvas.");
-                    throw e;
-                }
-                Button exitButton = exitButtonGameObject.GetComponent<Button>();
-                // todo: this is a hacky solution for avoiding accumulation of close listeners, all of which after the latest will find loadedCanvas already nullified.
-                //   Better might be to limit this unload handler installation to transient canvasi and then assume the in-scene one has its unload already worked out?
-                //   We could install the unloader behavior on the exitbutton of the in-scene FrameCanvas instance rather than the prefab to cover this.
-                exitButton.onClick.RemoveAllListeners();
-                exitButton.onClick.AddListener(CanvasUnloadHandler);
             }
             else
             {
