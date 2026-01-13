@@ -8,6 +8,9 @@ using System;
 
 namespace WildsAdv
 {
+    /// <summary>
+    /// Installs main camera zoom behavior over the RoomView canvas. Relies on the root canvas render mode to be Projection.
+    /// </summary>
     public class CameraZoomControl : MonoBehaviour
     {
         /// <summary>
@@ -58,11 +61,13 @@ namespace WildsAdv
                 Vector2 scrollWheelChange = scrollWheelAction.ReadValue<Vector2>();
                 Vector3 updatedCamPos = Camera.main.transform.position;
                 // todo: This technically kind of works, but the experience sucks. Better to make the translation part explicit, like the user right clicks someplace and that becomes camera x,y and then scroll only changes z.
+                /*
                 if (scrollWheelChange[1] != 0.0F)
                 {
                     updatedCamPos.x = worldPointerPos.x;
                     updatedCamPos.y = worldPointerPos.y;
                 }
+                */
                 updatedCamPos.z += scrollWheelChange[1] * zoomRate;
                 Debug.Log("Scrollwheelchange says " + scrollWheelChange + " and new cam pos is " + updatedCamPos);
                 Camera.main.transform.position = updatedCamPos;
