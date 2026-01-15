@@ -30,10 +30,18 @@ namespace WildsAdv
         /// </summary>
         public string TextToTypeWrite { get; set; }
 
-        // Update is called once per frame
-        void Update()
+        /// <summary>
+        /// Converts TextToTypeWrite into a character array and launches coroutines on
+        /// a delay based on typeWriterDelayMilliseconds.
+        /// </summary>
+        void TypeWrite()
         {
             // todo: timing to simulate characters being written at configurable delay, like on a typewriter.
+            //   These have to process in sequence, so we can't fire and forget all at once; instead, each coroutine completion
+            //   should check to see if the array is empty and launch a new writer coroutine if not
+            //   until all characters have been written. Else, could maybe do a loop through the character
+            //   array with awaits/yields?
+
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
     }
