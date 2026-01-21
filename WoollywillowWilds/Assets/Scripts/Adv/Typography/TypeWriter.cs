@@ -11,9 +11,13 @@ namespace WildsAdv
     public class TypeWriter : MonoBehaviour
     {
         /// <summary>
-        /// The TMP_Text textview we wish to write into.
+        /// The TMP_Text textview Component we wish to write into.
         /// </summary>
-        public TMP_Text targetTextView;
+        public TMP_Text targetTextViewComponent;
+        /// <summary>
+        /// The ClockworkTasks Component that will manage timing for us.
+        /// </summary>
+        public ClockworkTasks clockComponent;
         /// <summary>
         /// The delay time in between typewritten characters being written to the text view, in milliseconds.
         /// If randomDelay is set, the delay will be a random number generated in randomDelayRangeMilliseconds +/- this value.
@@ -52,18 +56,29 @@ namespace WildsAdv
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
         private int textPosition = 0;
+        /// <summary>
+        /// The key at which our typewriter Coroutine will be stored in ClockworkTasks.clockroutineMap.
+        /// </summary>
+        private string eventKey = "TypeWriterEvent";
+        private string debugStory = "";
+
+        /// <summary>
+        /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
+        /// </summary>
+        public void ResetState()
+        {
+            textPosition = 0;
+            debugStory = "";
+            // todo: stop any coroutine at the eventKey.
+        }
 
         /// <summary>
         /// Converts TextToTypeWrite into a character array and launches coroutines on
         /// a delay based on typeWriterDelayMilliseconds.
         /// </summary>
-        void TypeWrite()
+        public void TypeWrite()
         {
-            // todo: timing to simulate characters being written at configurable delay, like on a typewriter.
-            //   These have to process in sequence, so we can't fire and forget all at once; instead, each coroutine completion
-            //   should check to see if the array is empty and launch a new writer coroutine if not
-            //   until all characters have been written. Else, could maybe do a loop through the character
-            //   array with awaits/yields?
+            // calculate our writeevent period
             float derivedWriteDelay = typeWriterDelayMilliseconds;
             if (randomDelay)
             {
@@ -71,9 +86,28 @@ namespace WildsAdv
                 derivedWriteDelay += rnd.Next(-randomDelayRangeMilliseconds, randomDelayRangeMilliseconds);
                 derivedWriteDelay = Math.Clamp(derivedWriteDelay, 0, float.MaxValue);
             }
+            // ClockworkTasks API expects time in seconds.
+            derivedWriteDelay /= 1000.0F;
+            Debug.Log("Write event period is " + derivedWriteDelay);
             writeEvent.AddListener(OnWriteEvent);
-            ClockworkTasks clocks = gameObject.GetComponent<ClockworkTasks>();
-            clocks.LaunchClock("TypeWriterEvent", writeEvent, 0, true, derivedWriteDelay);
+            // todo: this API only allows for constant periodicity; what I'd really like is to have each writeevent come down at a slightly randomized period.
+            //   The Coroutine = StartCoroutine(IEnumerator) API is kinda weird and rigid anyway; I'd prefer a nice async/await inna loop that's controlled client-side.
+            //   That's doable with the current API via passing `false` for looping and using the derivedWriteDelay as the initial (and only) delay argument, but I
+            //   want to explore the other available C#/Unity structured concurrency biz.
+            // todo: this hard dependency of one Component on a sibling in order to have any use feels like an antipattern; better to have this guy's job be to take the
+            //   text input and figure out how chunking it over time should work, and OnWriteEvent() would call up to a provided event which would be implemented back in RoomItem
+            //   since he knows about the storytextview already... that said, RoomItem is just another Component and therefore not in any better position than this guy for
+            //   finding required siblings e.g. ClockworkTasks. I dunno if we can escape external dependencies cleanly, but it might be better to have interface fields rather than
+            //   specific Component implementations here so that users of this Component can supply interface impls however they please and this Component remains decoupled from
+            //   any specific siblings.
+            if (clockComponent)
+            {
+                clockComponent.LaunchClock(eventKey, writeEvent, 0, true, derivedWriteDelay);
+            }
+            else
+            {
+                Debug.LogError("ClockworkTasks component is missing, so we cannot schedule timed writes.");
+            }
 
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
@@ -87,9 +121,29 @@ namespace WildsAdv
                 derivedChunkSize += rnd.Next(-randomChunkSizeRange, randomChunkSizeRange);
                 derivedChunkSize = Math.Clamp(derivedChunkSize, 1, int.MaxValue);
             }
-            // todo: check that we have derivedChunkSize characters left. If not, send the last of what we have.
-            targetTextView.text += TextToTypeWrite.Substring(textPosition, derivedChunkSize);
-            // todo: if we've sent the last of the TextToTypeWrite corpus, StopCoroutine(ClockworkTasks.clockroutineMap["TypeWriterEvent"]) to cancel the TypeWriterEvent tagged coroutine.
+            // check that we have derivedChunkSize characters left. If not, send the last of what we have.
+            if (textPosition + derivedChunkSize > TextToTypeWrite.Length)
+            {
+                derivedChunkSize = TextToTypeWrite.Length - textPosition;
+            }
+            //Debug.Log("Story chunk size: " + derivedChunkSize);
+            string storyChunk = TextToTypeWrite.Substring(textPosition, derivedChunkSize);
+            Debug.Log("Writing story chunk: " + storyChunk);
+            targetTextViewComponent.text += storyChunk;
+            Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
+            Debug.Log("Debug story text is now: {" + debugStory + "}.");
+            debugStory += storyChunk;
+            // update textPosition to the next unwritten segment.
+            textPosition += derivedChunkSize;
+            // if we've sent the last of the TextToTypeWrite corpus, StopCoroutine(ClockworkTasks.clockroutineMap[eventKey]) to cancel the TypeWriterEvent tagged coroutine.
+            if (textPosition >= TextToTypeWrite.Length)
+            {
+                Debug.Log("Finished writing story chunks; shutting down coroutine loop. Our final debug story says: {" + debugStory + "}.");
+                // todo: need a way to have closing the item detail canvas also short circuit this typewriter coroutine... most direct approach specifically for the non-transient FrameCanvas
+                //   would be to have the ItemCanvasUnloader Component look for a TypeWriter in parent GameObject and then call a shutdown function. Better would be if we could broadcast
+                //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary. 
+                StopCoroutine(clockComponent.clockroutineMap[eventKey]);
+            }
         }
     }
 }

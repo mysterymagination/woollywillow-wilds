@@ -34,9 +34,31 @@ namespace WildsAdv
             DisplayHandler.Invoke();
 
             // Load the GenerateItemDescription() result into StoryText.
+            string desc = GenerateDescription();
             GameObject storyTextObject = GameObject.FindWithTag("StoryText");
             TMP_Text storyText = storyTextObject.GetComponent<TMP_Text>();
-            storyText.text = GenerateDescription();
+            ClockworkTasks clock = gameObject.GetComponent<ClockworkTasks>();
+            TypeWriter writer = gameObject.GetComponent<TypeWriter>();
+            if (storyText)
+            {
+                storyText.text = "";
+                if (writer && clock)
+                {
+                    writer.ResetState();
+                    writer.targetTextViewComponent = storyText;
+                    writer.clockComponent = clock;
+                    writer.TextToTypeWrite = desc;
+                    writer.TypeWrite();
+                }
+                else
+                {
+                    storyText.text = desc;
+                }
+            }
+            else
+            {
+                Debug.LogError("Missing TMP_Text Component expected to display item description.");
+            }
         }
         public string GenerateDescription()
         {

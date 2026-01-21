@@ -50,23 +50,43 @@ namespace WildsAdv
 
         [SerializeField] public Dictionary<string, Coroutine> clockroutineMap = new Dictionary<string, Coroutine>();
 
+        /// <summary>
+        /// Launches a Coroutine wrapping a function call that will invoke the input unityEvent after the given delay and then again at the given period iff loop is true.
+        /// This Coroutine will remain active in the clockroutineMap under the input tag key and may be reused with StartCoroutine() or cancelled with StopCoroutine().
+        /// </summary>
+        /// <param name="tag">string handle we want to key our new Coroutine in clockroutineMap; if there is already a Coroutine at this key, it will be stopped to ensure we don't leak potentially active Coroutines.</param>
+        /// <param name="unityEvent">The event to be invoked when the Coroutine runs its code.</param>
+        /// <param name="delay">Initial delay before first invocation, in seconds.</param>
+        /// <param name="loop">True if the event should be invoked repeatedly forever (until the Coroutine is explicitly stopped), false if it should only invoke once.</param>
+        /// <param name="period">The period at which the event will be invoked subsequent to the first invocation iff loop is true.</param>
         public void LaunchClock(string tag, UnityEvent unityEvent, float delay, bool loop = false, float period = 0.0f)
         {
+            if (clockroutineMap.ContainsKey(tag))
+            {
+                StopCoroutine(clockroutineMap[tag]);
+            }
             Coroutine clockRoutine = StartCoroutine(InvokeDelayed(unityEvent, delay, loop, period));
-            clockroutineMap.Add(tag, clockRoutine);
+            clockroutineMap[tag] = clockRoutine;
         }
 
         private IEnumerator InvokeDelayed(UnityEvent unityEvent, float delay, bool loop = false, float period = 0.0f)
         {
             yield return new WaitForSeconds(delay);
+            //Debug.Log("Invoking delayed event after delay of " + delay + " seconds.");
             unityEvent.Invoke();
             if (loop)
             {
                 while (true)
                 {
+                    //Debug.Log("Inside loop.");
                     yield return new WaitForSeconds(period);
+                    //Debug.Log("Invoking looped event at period " + period + " seconds.");
                     unityEvent.Invoke();
                 }
+            }
+            else
+            {
+                Debug.Log("No looping desired, coroutine work is finished for now.");
             }
         }
 
