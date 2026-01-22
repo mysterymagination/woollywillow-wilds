@@ -116,7 +116,7 @@ namespace WildsAdv
 
             // simple direct coroutine solution that eschews character sequence, for sanity
             StopAllCoroutines();
-            IEnumerator functor = WriteThing();
+            IEnumerator functor = WriteThing(0.0F, derivedWriteDelay);
             Debug.Log("WriteThing IEnumerator about to start is " + functor);
             StartCoroutine(functor);
 
@@ -124,14 +124,17 @@ namespace WildsAdv
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
 
-        IEnumerator WriteThing()
+        IEnumerator WriteThing(float initDelay, float loopPeriod)
         {
-            uint count = 0;
-            while (count < 25)
+            yield return new WaitForSeconds(initDelay);
+            OnWriteEvent();
+            //uint count = 0;
+            //while (count < 25)
+            while (textPosition < TextToTypeWrite.Length)
             {
-                yield return new WaitForSeconds(1);
+                yield return new WaitForSeconds(loopPeriod);
                 OnWriteEvent();
-                count++;
+                //count++;
             }
         }
 
