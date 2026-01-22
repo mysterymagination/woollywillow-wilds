@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
+using System.Threading;
 using TMPro;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -100,6 +103,7 @@ namespace WildsAdv
             //   finding required siblings e.g. ClockworkTasks. I dunno if we can escape external dependencies cleanly, but it might be better to have interface fields rather than
             //   specific Component implementations here so that users of this Component can supply interface impls however they please and this Component remains decoupled from
             //   any specific siblings.
+            /*
             if (clockComponent)
             {
                 clockComponent.LaunchClock(eventKey, writeEvent, 0, true, derivedWriteDelay);
@@ -108,8 +112,27 @@ namespace WildsAdv
             {
                 Debug.LogError("ClockworkTasks component is missing, so we cannot schedule timed writes.");
             }
+            */
+
+            // simple direct coroutine solution that eschews character sequence, for sanity
+            StopAllCoroutines();
+            IEnumerator functor = WriteThing();
+            Debug.Log("WriteThing IEnumerator about to start is " + functor);
+            StartCoroutine(functor);
+
 
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
+        }
+
+        IEnumerator WriteThing()
+        {
+            uint count = 0;
+            while (count < 25)
+            {
+                yield return new WaitForSeconds(1);
+                OnWriteEvent();
+                count++;
+            }
         }
 
         void OnWriteEvent()
@@ -126,13 +149,13 @@ namespace WildsAdv
             {
                 derivedChunkSize = TextToTypeWrite.Length - textPosition;
             }
-            //Debug.Log("Story chunk size: " + derivedChunkSize);
+            Debug.Log("Story chunk size: " + derivedChunkSize);
             string storyChunk = TextToTypeWrite.Substring(textPosition, derivedChunkSize);
             Debug.Log("Writing story chunk: " + storyChunk);
             targetTextViewComponent.text += storyChunk;
+            debugStory += storyChunk;
             Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
             Debug.Log("Debug story text is now: {" + debugStory + "}.");
-            debugStory += storyChunk;
             // update textPosition to the next unwritten segment.
             textPosition += derivedChunkSize;
             // if we've sent the last of the TextToTypeWrite corpus, StopCoroutine(ClockworkTasks.clockroutineMap[eventKey]) to cancel the TypeWriterEvent tagged coroutine.
@@ -142,7 +165,14 @@ namespace WildsAdv
                 // todo: need a way to have closing the item detail canvas also short circuit this typewriter coroutine... most direct approach specifically for the non-transient FrameCanvas
                 //   would be to have the ItemCanvasUnloader Component look for a TypeWriter in parent GameObject and then call a shutdown function. Better would be if we could broadcast
                 //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary. 
-                StopCoroutine(clockComponent.clockroutineMap[eventKey]);
+                if (clockComponent)
+                {
+                    clockComponent.StopClock(eventKey);
+                }
+                else
+                {
+                    Debug.LogError("ClockworkTasks component is missing, so we cannot stop the typewriting clock.");
+                }
             }
         }
     }

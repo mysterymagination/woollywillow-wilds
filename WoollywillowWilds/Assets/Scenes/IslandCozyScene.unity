@@ -2084,7 +2084,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.TypeWriter
   targetTextViewComponent: {fileID: 0}
   clockComponent: {fileID: 0}
-  typeWriterDelayMilliseconds: 100
+  typeWriterDelayMilliseconds: 1000
   randomDelay: 0
   randomDelayRangeMilliseconds: 50
   characterChunkSize: 1
