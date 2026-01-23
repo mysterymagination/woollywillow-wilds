@@ -54,7 +54,7 @@ namespace WildsAdv
         /// <summary>
         /// Timed event whose invocation will call the necessary handlers to write the next chunk of characters to the storyview.
         /// </summary>
-        private UnityEvent writeEvent = new UnityEvent();
+        public UnityEvent writeEvent;
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
@@ -92,7 +92,7 @@ namespace WildsAdv
             // ClockworkTasks API expects time in seconds.
             derivedWriteDelay /= 1000.0F;
             Debug.Log("Write event period is " + derivedWriteDelay);
-            writeEvent.AddListener(OnWriteEvent);
+
             // todo: this API only allows for constant periodicity; what I'd really like is to have each writeevent come down at a slightly randomized period.
             //   The Coroutine = StartCoroutine(IEnumerator) API is kinda weird and rigid anyway; I'd prefer a nice async/await inna loop that's controlled client-side.
             //   That's doable with the current API via passing `false` for looping and using the derivedWriteDelay as the initial (and only) delay argument, but I
@@ -103,7 +103,6 @@ namespace WildsAdv
             //   finding required siblings e.g. ClockworkTasks. I dunno if we can escape external dependencies cleanly, but it might be better to have interface fields rather than
             //   specific Component implementations here so that users of this Component can supply interface impls however they please and this Component remains decoupled from
             //   any specific siblings.
-            /*
             if (clockComponent)
             {
                 clockComponent.LaunchClock(eventKey, writeEvent, 0, true, derivedWriteDelay);
@@ -112,14 +111,14 @@ namespace WildsAdv
             {
                 Debug.LogError("ClockworkTasks component is missing, so we cannot schedule timed writes.");
             }
-            */
 
-            // simple direct coroutine solution that eschews character sequence, for sanity
+
+            /* this works
             StopAllCoroutines();
             IEnumerator functor = WriteThing(0.0F, derivedWriteDelay);
             Debug.Log("WriteThing IEnumerator about to start is " + functor);
             StartCoroutine(functor);
-
+            */
 
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
@@ -138,7 +137,7 @@ namespace WildsAdv
             }
         }
 
-        void OnWriteEvent()
+        public void OnWriteEvent()
         {
             int derivedChunkSize = characterChunkSize;
             if (randomChunkSize)
@@ -170,7 +169,8 @@ namespace WildsAdv
                 //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary. 
                 if (clockComponent)
                 {
-                    clockComponent.StopClock(eventKey);
+                    bool stoppedAnything = clockComponent.StopClock(eventKey);
+                    Debug.Log(stoppedAnything ? "Stopped the write event" : "Failed to stop the write event");
                 }
                 else
                 {

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEditor;
 using UnityEditorInternal;
+using System.Threading;
 namespace WildsAdv
 {
     public class ClockworkTasks : MonoBehaviour
@@ -48,7 +49,9 @@ namespace WildsAdv
 
         [SerializeField] public Dictionary<string, TimedTask> timedTaskMap = new Dictionary<string, TimedTask>();
 
+        // todo: something's weird about this setup and/or trying to run/stop coroutines across Components, even if StartCoroutine and StopCoroutine are called from the same Component.
         [SerializeField] public Dictionary<string, Coroutine> clockroutineMap = new Dictionary<string, Coroutine>();
+        [SerializeField] public Dictionary<string, IEnumerator> clockroutineMap2 = new Dictionary<string, IEnumerator>();
 
         /// <summary>
         /// Launches a Coroutine wrapping a function call that will invoke the input unityEvent after the given delay and then again at the given period iff loop is true.
@@ -61,13 +64,12 @@ namespace WildsAdv
         /// <param name="period">The period at which the event will be invoked subsequent to the first invocation iff loop is true.</param>
         public void LaunchClock(string eventKey, UnityEvent unityEvent, float delay, bool loop = false, float period = 0.0f)
         {
-            StopAllCoroutines();
-            if (clockroutineMap.ContainsKey(eventKey))
-            {
-                StopCoroutine(clockroutineMap[eventKey]);
-            }
-            Coroutine clockRoutine = StartCoroutine(InvokeDelayed(unityEvent, delay, loop, period));
-            clockroutineMap[eventKey] = clockRoutine;
+            bool stoppedAnything = StopClock(eventKey);
+            Debug.Log("ClockworkTasks " + (stoppedAnything ? "stopped event " + eventKey : "failed to stop event " + eventKey));
+            IEnumerator clockHandle = InvokeDelayed(unityEvent, delay, loop, period);
+            Coroutine clockRoutine = StartCoroutine(clockHandle);
+            // clockroutineMap[eventKey] = clockRoutine;
+            clockroutineMap2[eventKey] = clockHandle;
         }
 
         /// <summary>
@@ -77,9 +79,10 @@ namespace WildsAdv
         /// <returns>true if a Coroutine was found and stopped, false if clockroutineMap did not contain the input eventKey.</returns>
         public bool StopClock(string eventKey)
         {
-            if (clockroutineMap.ContainsKey(eventKey))
+            if (clockroutineMap2.ContainsKey(eventKey))
             {
-                StopCoroutine(clockroutineMap[eventKey]);
+                StopCoroutine(clockroutineMap2[eventKey]);
+                clockroutineMap2.Remove(eventKey);
                 return true;
             }
             else
@@ -90,17 +93,20 @@ namespace WildsAdv
 
         private IEnumerator InvokeDelayed(UnityEvent unityEvent, float delay, bool loop = false, float period = 0.0f)
         {
-            yield return new WaitForSeconds(delay);
+            //yield return new WaitForSeconds(delay);
             //Debug.Log("Invoking delayed event after delay of " + delay + " seconds.");
-            unityEvent.Invoke();
+            //unityEvent.Invoke();
             if (loop)
             {
-                while (true)
+                //while (true)
+                uint count = 0;
+                while (count < 50)
                 {
                     //Debug.Log("Inside loop.");
                     yield return new WaitForSeconds(period);
                     //Debug.Log("Invoking looped event at period " + period + " seconds.");
                     unityEvent.Invoke();
+                    count++;
                 }
             }
             else
