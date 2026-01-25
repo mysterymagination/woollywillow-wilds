@@ -60,9 +60,9 @@ namespace WildsAdv
         /// </summary>
         private int textPosition = 0;
         /// <summary>
-        /// The key at which our typewriter Coroutine will be stored in ClockworkTasks.clockroutineMap.
+        /// The function called by our typewrite Coroutine.
         /// </summary>
-        private string eventKey = "TypeWriterEvent";
+        private IEnumerator writeFunction;
         private string debugStory = "";
 
         /// <summary>
@@ -93,47 +93,31 @@ namespace WildsAdv
             derivedWriteDelay /= 1000.0F;
             Debug.Log("Write event period is " + derivedWriteDelay);
 
-            // todo: this API only allows for constant periodicity; what I'd really like is to have each writeevent come down at a slightly randomized period.
-            //   The Coroutine = StartCoroutine(IEnumerator) API is kinda weird and rigid anyway; I'd prefer a nice async/await inna loop that's controlled client-side.
-            //   That's doable with the current API via passing `false` for looping and using the derivedWriteDelay as the initial (and only) delay argument, but I
-            //   want to explore the other available C#/Unity structured concurrency biz.
-            // todo: this hard dependency of one Component on a sibling in order to have any use feels like an antipattern; better to have this guy's job be to take the
-            //   text input and figure out how chunking it over time should work, and OnWriteEvent() would call up to a provided event which would be implemented back in RoomItem
-            //   since he knows about the storytextview already... that said, RoomItem is just another Component and therefore not in any better position than this guy for
-            //   finding required siblings e.g. ClockworkTasks. I dunno if we can escape external dependencies cleanly, but it might be better to have interface fields rather than
-            //   specific Component implementations here so that users of this Component can supply interface impls however they please and this Component remains decoupled from
-            //   any specific siblings.
-            if (clockComponent)
-            {
-                clockComponent.LaunchClock(eventKey, writeEvent, 0, true, derivedWriteDelay);
-            }
-            else
-            {
-                Debug.LogError("ClockworkTasks component is missing, so we cannot schedule timed writes.");
-            }
-
-
-            /* this works
-            StopAllCoroutines();
-            IEnumerator functor = WriteThing(0.0F, derivedWriteDelay);
-            Debug.Log("WriteThing IEnumerator about to start is " + functor);
-            StartCoroutine(functor);
-            */
+            writeFunction = AsyncWrite(0.0F, derivedWriteDelay);
+            Debug.Log("WriteThing IEnumerator about to start is " + writeFunction);
+            // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
+            StopCoroutine(writeFunction);
+            StartCoroutine(writeFunction);
 
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
 
-        IEnumerator WriteThing(float initDelay, float loopPeriod)
+        // todo: need a way to have closing the item detail canvas also short circuit the typewriter coroutine... most direct approach specifically for the non-transient FrameCanvas
+        //   would be to have the ItemCanvasUnloader Component look for a TypeWriter in parent GameObject and then call a shutdown function. Better would be if we could broadcast
+        //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary.
+        //   That can be achieved with Component.BroadcastMessage() -- we could broadcast something like "OnCanvasClose". However, BroadcastMessage works by sending the method name down the
+        //   Component hierarchy of the host GameObject, and presently we have the TypeWriter disconnected from the canvas (it's hosted on the clickmap GO that also hosts the RoomItem),
+        //   so we would need a way to bridge that gap or re-arch so that TypeWriter lives on the FrameCanvas. Really it should live on the StoryView, and since there's only the one of those
+        //   we could have both RoomItem and ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) reach out to find him via tag.
+
+        IEnumerator AsyncWrite(float initDelay, float loopPeriod)
         {
             yield return new WaitForSeconds(initDelay);
             OnWriteEvent();
-            //uint count = 0;
-            //while (count < 25)
             while (textPosition < TextToTypeWrite.Length)
             {
                 yield return new WaitForSeconds(loopPeriod);
                 OnWriteEvent();
-                //count++;
             }
         }
 
@@ -160,23 +144,6 @@ namespace WildsAdv
             Debug.Log("Debug story text is now: {" + debugStory + "}.");
             // update textPosition to the next unwritten segment.
             textPosition += derivedChunkSize;
-            // if we've sent the last of the TextToTypeWrite corpus, StopCoroutine(ClockworkTasks.clockroutineMap[eventKey]) to cancel the TypeWriterEvent tagged coroutine.
-            if (textPosition >= TextToTypeWrite.Length)
-            {
-                Debug.Log("Finished writing story chunks; shutting down coroutine loop. Our final debug story says: {" + debugStory + "}.");
-                // todo: need a way to have closing the item detail canvas also short circuit this typewriter coroutine... most direct approach specifically for the non-transient FrameCanvas
-                //   would be to have the ItemCanvasUnloader Component look for a TypeWriter in parent GameObject and then call a shutdown function. Better would be if we could broadcast
-                //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary. 
-                if (clockComponent)
-                {
-                    bool stoppedAnything = clockComponent.StopClock(eventKey);
-                    Debug.Log(stoppedAnything ? "Stopped the write event" : "Failed to stop the write event");
-                }
-                else
-                {
-                    Debug.LogError("ClockworkTasks component is missing, so we cannot stop the typewriting clock.");
-                }
-            }
         }
     }
 }

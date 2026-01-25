@@ -93,20 +93,14 @@ namespace WildsAdv
 
         private IEnumerator InvokeDelayed(UnityEvent unityEvent, float delay, bool loop = false, float period = 0.0f)
         {
-            //yield return new WaitForSeconds(delay);
-            //Debug.Log("Invoking delayed event after delay of " + delay + " seconds.");
-            //unityEvent.Invoke();
+            yield return new WaitForSeconds(delay);
+            unityEvent.Invoke();
             if (loop)
             {
-                //while (true)
-                uint count = 0;
-                while (count < 50)
+                while (true)
                 {
-                    //Debug.Log("Inside loop.");
                     yield return new WaitForSeconds(period);
-                    //Debug.Log("Invoking looped event at period " + period + " seconds.");
                     unityEvent.Invoke();
-                    count++;
                 }
             }
             else
