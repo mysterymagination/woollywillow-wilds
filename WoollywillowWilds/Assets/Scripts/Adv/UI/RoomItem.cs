@@ -37,16 +37,13 @@ namespace WildsAdv
             string desc = GenerateDescription();
             GameObject storyTextObject = GameObject.FindWithTag("StoryText");
             TMP_Text storyText = storyTextObject.GetComponent<TMP_Text>();
-            ClockworkTasks clock = gameObject.GetComponent<ClockworkTasks>();
-            TypeWriter writer = gameObject.GetComponent<TypeWriter>();
+            TypeWriter writer = storyTextObject.GetComponent<TypeWriter>();
             if (storyText)
             {
                 storyText.text = "";
-                if (writer && clock)
+                if (writer)
                 {
                     writer.ResetState();
-                    writer.targetTextViewComponent = storyText;
-                    writer.clockComponent = clock;
                     writer.TextToTypeWrite = desc;
                     writer.TypeWrite();
                 }

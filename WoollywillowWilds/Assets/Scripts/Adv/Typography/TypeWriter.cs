@@ -18,10 +18,6 @@ namespace WildsAdv
         /// </summary>
         public TMP_Text targetTextViewComponent;
         /// <summary>
-        /// The ClockworkTasks Component that will manage timing for us.
-        /// </summary>
-        public ClockworkTasks clockComponent;
-        /// <summary>
         /// The delay time in between typewritten characters being written to the text view, in milliseconds.
         /// If randomDelay is set, the delay will be a random number generated in randomDelayRangeMilliseconds +/- this value.
         /// </summary>
@@ -52,10 +48,6 @@ namespace WildsAdv
         public string TextToTypeWrite { get; set; }
 
         /// <summary>
-        /// Timed event whose invocation will call the necessary handlers to write the next chunk of characters to the storyview.
-        /// </summary>
-        public UnityEvent writeEvent;
-        /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
         private int textPosition = 0;
@@ -63,7 +55,6 @@ namespace WildsAdv
         /// The function called by our typewrite Coroutine.
         /// </summary>
         private IEnumerator writeFunction;
-        private string debugStory = "";
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -71,8 +62,6 @@ namespace WildsAdv
         public void ResetState()
         {
             textPosition = 0;
-            debugStory = "";
-            // todo: stop any coroutine at the eventKey.
         }
 
         /// <summary>
@@ -102,26 +91,18 @@ namespace WildsAdv
             // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
 
-        // todo: need a way to have closing the item detail canvas also short circuit the typewriter coroutine... most direct approach specifically for the non-transient FrameCanvas
-        //   would be to have the ItemCanvasUnloader Component look for a TypeWriter in parent GameObject and then call a shutdown function. Better would be if we could broadcast
-        //   and event from ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) that says "we're goin' down!" and have Components respond as necessary.
-        //   That can be achieved with Component.BroadcastMessage() -- we could broadcast something like "OnCanvasClose". However, BroadcastMessage works by sending the method name down the
-        //   Component hierarchy of the host GameObject, and presently we have the TypeWriter disconnected from the canvas (it's hosted on the clickmap GO that also hosts the RoomItem),
-        //   so we would need a way to bridge that gap or re-arch so that TypeWriter lives on the FrameCanvas. Really it should live on the StoryView, and since there's only the one of those
-        //   we could have both RoomItem and ItemCanvasUnloader (and the CanvasUnloader function of ItemCanvasLoader, for transient canvasi) reach out to find him via tag.
-
         IEnumerator AsyncWrite(float initDelay, float loopPeriod)
         {
             yield return new WaitForSeconds(initDelay);
-            OnWriteEvent();
-            while (textPosition < TextToTypeWrite.Length)
+            bool successWrite = OnWriteEvent();
+            while (textPosition < TextToTypeWrite.Length && successWrite)
             {
                 yield return new WaitForSeconds(loopPeriod);
-                OnWriteEvent();
+                successWrite = OnWriteEvent();
             }
         }
 
-        public void OnWriteEvent()
+        public bool OnWriteEvent()
         {
             int derivedChunkSize = characterChunkSize;
             if (randomChunkSize)
@@ -138,12 +119,71 @@ namespace WildsAdv
             Debug.Log("Story chunk size: " + derivedChunkSize);
             string storyChunk = TextToTypeWrite.Substring(textPosition, derivedChunkSize);
             Debug.Log("Writing story chunk: " + storyChunk);
-            targetTextViewComponent.text += storyChunk;
-            debugStory += storyChunk;
-            Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
-            Debug.Log("Debug story text is now: {" + debugStory + "}.");
-            // update textPosition to the next unwritten segment.
-            textPosition += derivedChunkSize;
+            if (targetTextViewComponent)
+            {
+                targetTextViewComponent.text += storyChunk;
+                Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
+                // update textPosition to the next unwritten segment.
+                textPosition += derivedChunkSize;
+                return true;
+            }
+            else
+            {
+                Debug.LogError("Target textview TMP_Text Component is unset");
+                return false;
+            }
+        }
+
+        public bool Shutdown(bool clear)
+        {
+            bool succesfulShutdown = true;
+            if (writeFunction != null)
+            {
+                StopCoroutine(writeFunction);
+            }
+            else
+            {
+                Debug.LogError("Shutdown; writeFunction is null so we cannot stop the write Coroutine.");
+                succesfulShutdown = false;
+            }
+            if (targetTextViewComponent)
+            {
+                if (clear)
+                {
+                    targetTextViewComponent.text = "";
+                }
+            }
+            else
+            {
+                Debug.LogError("Shutdown; target textview is unset, so we cannot clear its text.");
+                succesfulShutdown = false;
+            }
+            ResetState();
+            return succesfulShutdown;
+        }
+
+        public void OnCanvasClose()
+        {
+            Shutdown(true);
+        }
+
+        public void OnFastForward()
+        {
+            if (Shutdown(false))
+            {
+                if (targetTextViewComponent)
+                {
+                    targetTextViewComponent.text = TextToTypeWrite;
+                }
+                else
+                {
+                    Debug.LogError("OnFastForward; target textview is unset, so we cannot skip ahead to full story text");
+                }
+            }
+            else
+            {
+                Debug.LogError("OnFastForward; shutting down the typewriter failed, so we cannot skip ahead to full story text.");
+            }
         }
     }
 }

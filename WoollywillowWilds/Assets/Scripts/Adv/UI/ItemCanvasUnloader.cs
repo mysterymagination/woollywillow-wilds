@@ -28,6 +28,15 @@ namespace WildsAdv
                 {
                     Destroy(canvasToClose);
                 }
+                GameObject storyTextObject = GameObject.FindWithTag("StoryText");
+                if (storyTextObject)
+                {
+                    storyTextObject.BroadcastMessage("OnCanvasClose");
+                }
+                else
+                {
+                    Debug.LogError("GameObject textview with tag StoryText not found; could not broadcast message OnCanvasClose.");
+                }
             }
             else
             {

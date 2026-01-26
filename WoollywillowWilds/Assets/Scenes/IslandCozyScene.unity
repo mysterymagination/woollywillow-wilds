@@ -654,6 +654,70 @@ MonoBehaviour:
     MaxWindowSize: 0
     Padding: 0
   m_LegacyMaxWindowSize: -2
+--- !u!1 &452892843 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+    type: 3}
+  m_PrefabInstance: {fileID: 6388059958434242665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &452892845 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8268417133129711484, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+    type: 3}
+  m_PrefabInstance: {fileID: 6388059958434242665}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452892843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &452892847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452892843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f5c07713928ab419d46bb9e6981b54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.TypeWriter
+  targetTextViewComponent: {fileID: 452892845}
+  typeWriterDelayMilliseconds: 100
+  randomDelay: 1
+  randomDelayRangeMilliseconds: 50
+  characterChunkSize: 1
+  randomChunkSize: 1
+  randomChunkSizeRange: 2
+--- !u!114 &452892848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452892843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 900b85f2a3763254db698f5babecdf65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClickHandler
+  onClickEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 452892847}
+        m_TargetAssemblyTypeName: WildsAdv.TypeWriter, Assembly-CSharp
+        m_MethodName: OnFastForward
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &567670016 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3164335655978825420, guid: b9cd15040409ab648ab5d444cc8dfb6c,
@@ -1642,7 +1706,7 @@ PrefabInstance:
         type: 3}
       propertyPath: defaultDescription
       value: She's so pretty! She sits in the center of the garden, keeping good
-        and gentle watch, patting puppies as they pass.
+        and gentle watch, patting puppies as they play.
       objectReference: {fileID: 0}
     - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -2023,18 +2087,18 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4151312082238275514}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 452892847}
+    - targetCorrespondingSourceObject: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 452892848}
     - targetCorrespondingSourceObject: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 6388059958434242667}
-    - targetCorrespondingSourceObject: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6388059958434242668}
-    - targetCorrespondingSourceObject: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6388059958434242673}
     - targetCorrespondingSourceObject: {fileID: 3164335655978825420, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       insertIndex: -1
@@ -2070,53 +2134,6 @@ MonoBehaviour:
   imageName: ItemImage
   closeButtonName: ExitButton
   isTransient: 0
---- !u!114 &6388059958434242668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6388059958434242666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74f5c07713928ab419d46bb9e6981b54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.TypeWriter
-  targetTextViewComponent: {fileID: 0}
-  clockComponent: {fileID: 0}
-  typeWriterDelayMilliseconds: 100
-  randomDelay: 1
-  randomDelayRangeMilliseconds: 50
-  characterChunkSize: 1
-  randomChunkSize: 1
-  randomChunkSizeRange: 2
-  writeEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 6388059958434242668}
-        m_TargetAssemblyTypeName: WildsAdv.TypeWriter, Assembly-CSharp
-        m_MethodName: OnWriteEvent
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!114 &6388059958434242673
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6388059958434242666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6188e584c3280664e8eacf60cba81521, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.ClockworkTasks
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
