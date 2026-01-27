@@ -1128,6 +1128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.CameraZoomControl
   zoomRate: 50
+  magnificationFactor: 2
 --- !u!114 &1672722738
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2087,6 +2088,10 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4151312082238275514}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2453009366571372957, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6388059958434242669}
     - targetCorrespondingSourceObject: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       insertIndex: -1
@@ -2134,6 +2139,26 @@ MonoBehaviour:
   imageName: ItemImage
   closeButtonName: ExitButton
   isTransient: 0
+--- !u!1 &6388059958434242668 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2453009366571372957, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+    type: 3}
+  m_PrefabInstance: {fileID: 6388059958434242665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6388059958434242669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6388059958434242668}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50f42ea641fe2fc448a5f90bb6cb3563, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.CameraZoomControl
+  zoomRate: 50
+  magnificationFactor: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

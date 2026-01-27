@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using System.Text;
 using System.Linq;
 using System;
+using Microsoft.Unity.VisualStudio.Editor;
 
 
 namespace WildsAdv
@@ -17,10 +18,12 @@ namespace WildsAdv
         /// The rate at which the camera zooms in response to mouse scroll.
         /// </summary>
         public float zoomRate = 50.0F;
+        public float magnificationFactor = 2.0F;
 
         // Update is called once per frame
         void Update()
         {
+            /* camera/virtual camera attempts; looking complicated at best. Assumes perspective projection cam and worldspace canvas, neither or which are great for 2D.
             // we need two data points:
             //   1. Does RoomView have pointer focus? We need this in order to see if scroll to zoom should be active at all.
             //      EDIT: we can use the value from #2 to see if the world space pointer location is inside the roomview world space rect bounds. Would be nice to just have an onfocusgained, onfocuslost event...
@@ -61,18 +64,26 @@ namespace WildsAdv
                 Vector2 scrollWheelChange = scrollWheelAction.ReadValue<Vector2>();
                 Vector3 updatedCamPos = Camera.main.transform.position;
                 // todo: This technically kind of works, but the experience sucks. Better to make the translation part explicit, like the user right clicks someplace and that becomes camera x,y and then scroll only changes z.
-                /*
-                if (scrollWheelChange[1] != 0.0F)
-                {
-                    updatedCamPos.x = worldPointerPos.x;
-                    updatedCamPos.y = worldPointerPos.y;
-                }
-                */
+                //if (scrollWheelChange[1] != 0.0F)
+                //{
+                //    updatedCamPos.x = worldPointerPos.x;
+                //    updatedCamPos.y = worldPointerPos.y;
+                //}
+                
                 updatedCamPos.z += scrollWheelChange[1] * zoomRate;
                 Debug.Log("Scrollwheelchange says " + scrollWheelChange + " and new cam pos is " + updatedCamPos);
                 Camera.main.transform.position = updatedCamPos;
             }
+            */
 
+            /* obviously not a great idea, and it only affects the story text for some reason.
+            InputAction scrollWheelAction = InputSystem.actions.FindAction("ScrollWheel");
+            Vector2 scrollWheelChange = scrollWheelAction.ReadValue<Vector2>();
+            //Image image = gameObject.GetComponent<Image>();
+            GameObject roomCanvasObject = GameObject.FindWithTag("RoomCanvas");
+            Canvas roomCanvas = roomCanvasObject.GetComponent<Canvas>();
+            roomCanvas.scaleFactor += magnificationFactor * scrollWheelChange[1];
+            */
         }
     }
 }
