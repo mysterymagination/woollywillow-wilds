@@ -46,6 +46,34 @@ namespace WildsAdv
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
         public string TextToTypeWrite { get; set; }
+        /// <summary>
+        /// Sound effect played during write events. By default, this will
+        /// begin at the beginning of the track and play unmodified until it
+        /// is instructed to stop; the write events' delay will be correlated
+        /// with the sfx playing, so normally the entire track will not get to play.
+        /// Thus, the parameters below allow for a degree of randomness in where
+        /// and how audio is played from the sfx source. 
+        /// </summary>
+        public AudioSource typingSfx;
+        /// <summary>
+        /// Percentage amount +/- to change the default sfx volume.
+        /// </summary>
+        public float sfxVolumeRandomRange = 0.0F;
+        /// <summary>
+        /// Percentage amount +/- to change the default sfx pitch.
+        /// </summary>
+        public float sfxPitchRandomRange = 0.0F;
+        /// <summary>
+        /// The time point in seconds in the track around which any sfxTimeRandomRange
+        /// should move the starting point for the next play. If there is no
+        /// random range, this value will just be the constant starting time point
+        /// whenever the track is played.
+        /// </summary>
+        public float sfxTimePivot = 0.0F;
+        /// <summary>
+        /// Amount of seconds +/- the sfxTimePivot point where the track will start playing next.
+        /// </summary>
+        public float sfxTimeRandomRange = 0.0F;
 
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
