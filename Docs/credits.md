@@ -8,6 +8,12 @@
 # Audio
 ## SFX
 1. Assets/Audio/birdchirping071414.mp3
-   -. Source: https://opengameart.org/content/bird-chirping-sounds
-   -. Authors: https://opengameart.org/users/syncopika
-   -. License: http://creativecommons.org/publicdomain/zero/1.0/
+   - Source: https://opengameart.org/content/bird-chirping-sounds
+   - Authors: https://opengameart.org/users/syncopika
+   - License: http://creativecommons.org/publicdomain/zero/1.0/
+2. Assets/Audio/voice_tones
+   - Authors: me :)
+   - Tools Used:
+      - https://sfbgames.itch.io/chiptone by [Tom Vian](https://sfbgames.itch.io/)
+      - https://www.beepbox.co/ by [John Nesky](https://johnnesky.com/)
+   - License: https://creativecommons.org/publicdomain/zero/1.0/
