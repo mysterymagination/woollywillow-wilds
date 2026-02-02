@@ -128,41 +128,16 @@ namespace WildsAdv
         IEnumerator AsyncWrite(float initDelay, float loopPeriod)
         {
             // start and stop sfx around write events so that we play for the delay.
-            // todo: may want another coroutine for sfx tracking if want to play with the sustain?
-            if (typingSfx)
-            {
-                if (typingSfx.isPlaying)
-                {
-                    typingSfx.Stop();
-                }
-                typingSfx.time = 2;
-                typingSfx.Play();
-                //Debug.Log("Playing sfx for "+initDelay+ "seconds.");
-            }
+            ContinuePlayingSfx();
             yield return new WaitForSeconds(initDelay);
             bool successWrite = OnWriteEvent();
-            if (typingSfx)
-            {
-                //typingSfx.Stop();
-            }
+            PauseSfx();
             while (textPosition < TextToTypeWrite.Length && successWrite)
             {
-                if (typingSfx)
-                {
-                    if (typingSfx.isPlaying)
-                {
-                    typingSfx.Stop();
-                }
-                    typingSfx.time = 2;
-                    typingSfx.Play();
-                    //Debug.Log("Playing sfx for "+loopPeriod+ "seconds in the write event loop.");
-                }
+                ContinuePlayingSfx();
                 yield return new WaitForSeconds(loopPeriod);
                 successWrite = OnWriteEvent();
-                if (typingSfx)
-                {
-                   //typingSfx.Stop();
-                }
+                PauseSfx();
             }
         }
 
@@ -195,6 +170,33 @@ namespace WildsAdv
             {
                 Debug.LogError("Target textview TMP_Text Component is unset");
                 return false;
+            }
+        }
+
+        protected void ContinuePlayingSfx()
+        {
+            if (typingSfx)
+            {
+                PauseSfx();
+                float randoComponent = UnityEngine.Random.Range(-sfxTimeRandomRange, sfxTimeRandomRange);
+                float derivedTimePoint = sfxTimePoint + randoComponent;
+                Debug.Log("Unclamped randomized derived sfx timepoint timepoint " + derivedTimePoint + ", from saved timepoint " + sfxTimePoint + " plus random generated float " + randoComponent);
+                derivedTimePoint = Math.Clamp(derivedTimePoint, 0, typingSfx.clip.length);
+                Debug.Log("Setting sfx timepoint from saved timepoint " + sfxTimePoint + " to rando derived timepoint " + derivedTimePoint);
+                typingSfx.time = derivedTimePoint;
+                typingSfx.Play();
+            }
+        }
+
+        protected void PauseSfx()
+        {
+            if (typingSfx)
+            {
+                if (typingSfx.isPlaying)
+                {
+                    sfxTimePoint = typingSfx.time;
+                    typingSfx.Pause();
+                }
             }
         }
 

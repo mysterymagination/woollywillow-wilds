@@ -695,7 +695,8 @@ MonoBehaviour:
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
   sfxTimePivot: 2
-  sfxTimeRandomRange: 1
+  sfxTimeRandomRange: 2
+  sfxContinuous: 1
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
