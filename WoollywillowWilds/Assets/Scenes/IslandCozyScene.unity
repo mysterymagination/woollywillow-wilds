@@ -695,7 +695,7 @@ MonoBehaviour:
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
   sfxTimePivot: 2
-  sfxTimeRandomRange: 2
+  sfxTimeRandomRange: 0
   sfxContinuous: 1
 --- !u!114 &452892848
 MonoBehaviour:
@@ -739,7 +739,7 @@ AudioSource:
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1.25
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0

@@ -88,7 +88,7 @@ namespace WildsAdv
         /// The function called by our typewrite Coroutine.
         /// </summary>
         private IEnumerator writeFunction;
-        private float sfxTimePoint = 0.0F;
+        //private float sfxTimePoint = 0.0F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -96,7 +96,11 @@ namespace WildsAdv
         public void ResetState()
         {
             textPosition = 0;
-            sfxTimePoint = 0.0F;
+            //sfxTimePoint = 0.0F;
+            if (typingSfx)
+            {
+                typingSfx.time = 0.0F;
+            }
         }
 
         /// <summary>
@@ -178,11 +182,15 @@ namespace WildsAdv
             if (typingSfx)
             {
                 PauseSfx();
-                float randoComponent = UnityEngine.Random.Range(-sfxTimeRandomRange, sfxTimeRandomRange);
-                float derivedTimePoint = sfxTimePoint + randoComponent;
-                Debug.Log("Unclamped randomized derived sfx timepoint timepoint " + derivedTimePoint + ", from saved timepoint " + sfxTimePoint + " plus random generated float " + randoComponent);
+                float randoVal = UnityEngine.Random.Range(-sfxTimeRandomRange, sfxTimeRandomRange);
+                float derivedTimePoint = typingSfx.time + randoVal;//sfxTimePoint + randoVal;
+                Debug.Log("Unclamped randomized derived sfx timepoint timepoint " + derivedTimePoint + ", from saved timepoint " + typingSfx.time + " plus random generated float " + randoVal);
+                // this will sometimes produce illegal seek values, presumably at the clip.length extrema.
+                // we can't really do anything about that AFAIK since using an upper bound less than
+                // clip.length causes loop mode to never reset time, and we get stuck at some note
+                // close to the end past the artificial max forever with or without loop.
                 derivedTimePoint = Math.Clamp(derivedTimePoint, 0, typingSfx.clip.length);
-                Debug.Log("Setting sfx timepoint from saved timepoint " + sfxTimePoint + " to rando derived timepoint " + derivedTimePoint);
+                Debug.Log("Setting sfx timepoint from saved timepoint " + typingSfx.time + " to rando derived timepoint " + derivedTimePoint);
                 typingSfx.time = derivedTimePoint;
                 typingSfx.Play();
             }
@@ -194,7 +202,17 @@ namespace WildsAdv
             {
                 if (typingSfx.isPlaying)
                 {
-                    sfxTimePoint = typingSfx.time;
+                    /*
+                    if (typingSfx.time >= typingSfx.clip.length)
+                    {
+                        sfxTimePoint = 0.0F;
+                    }
+                    else
+                    {
+                        sfxTimePoint = typingSfx.time;
+                        Debug.Log("SFX timepoint saved as " + sfxTimePoint);
+                    }
+                    */
                     typingSfx.Pause();
                 }
             }
