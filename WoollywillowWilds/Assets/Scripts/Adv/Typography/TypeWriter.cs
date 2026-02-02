@@ -52,7 +52,8 @@ namespace WildsAdv
         /// is instructed to stop; the write events' delay will be correlated
         /// with the sfx playing, so normally the entire track will not get to play.
         /// Thus, the parameters below allow for a degree of randomness in where
-        /// and how audio is played from the sfx source. 
+        /// and how audio is played from the sfx source.
+        /// If sfxPivotPoint is set, each fresh play will occur at or around that time in the track. If sfxContinuous is set, each fresh play will pick up where the track left off last (modulo sfxTimeRandomRange) and sfxPivotPoint will be ignored.
         /// </summary>
         public AudioSource typingSfx;
         /// <summary>
@@ -74,6 +75,10 @@ namespace WildsAdv
         /// Amount of seconds +/- the sfxTimePivot point where the track will start playing next.
         /// </summary>
         public float sfxTimeRandomRange = 0.0F;
+        /// <summary>
+        /// If true, the sfx time point will gradually progress per write event. It will still be subject to sfxTimeRandomRange, but sfxTimePivot will be ignored.
+        /// </summary>
+        public bool sfxContinuous = true;
 
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
@@ -83,6 +88,7 @@ namespace WildsAdv
         /// The function called by our typewrite Coroutine.
         /// </summary>
         private IEnumerator writeFunction;
+        private float sfxTimePoint = 0.0F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -90,6 +96,7 @@ namespace WildsAdv
         public void ResetState()
         {
             textPosition = 0;
+            sfxTimePoint = 0.0F;
         }
 
         /// <summary>
@@ -112,21 +119,50 @@ namespace WildsAdv
 
             writeFunction = AsyncWrite(0.0F, derivedWriteDelay);
             Debug.Log("WriteThing IEnumerator about to start is " + writeFunction);
+
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
             StartCoroutine(writeFunction);
-
-            // todo: play sound effect like the Camelot Shining series alongside timed type events?
         }
 
         IEnumerator AsyncWrite(float initDelay, float loopPeriod)
         {
+            // start and stop sfx around write events so that we play for the delay.
+            // todo: may want another coroutine for sfx tracking if want to play with the sustain?
+            if (typingSfx)
+            {
+                if (typingSfx.isPlaying)
+                {
+                    typingSfx.Stop();
+                }
+                typingSfx.time = 2;
+                typingSfx.Play();
+                //Debug.Log("Playing sfx for "+initDelay+ "seconds.");
+            }
             yield return new WaitForSeconds(initDelay);
             bool successWrite = OnWriteEvent();
+            if (typingSfx)
+            {
+                //typingSfx.Stop();
+            }
             while (textPosition < TextToTypeWrite.Length && successWrite)
             {
+                if (typingSfx)
+                {
+                    if (typingSfx.isPlaying)
+                {
+                    typingSfx.Stop();
+                }
+                    typingSfx.time = 2;
+                    typingSfx.Play();
+                    //Debug.Log("Playing sfx for "+loopPeriod+ "seconds in the write event loop.");
+                }
                 yield return new WaitForSeconds(loopPeriod);
                 successWrite = OnWriteEvent();
+                if (typingSfx)
+                {
+                   //typingSfx.Stop();
+                }
             }
         }
 
@@ -185,6 +221,10 @@ namespace WildsAdv
             {
                 Debug.LogError("Shutdown; target textview is unset, so we cannot clear its text.");
                 succesfulShutdown = false;
+            }
+            if (typingSfx)
+            {
+                typingSfx.Stop();
             }
             ResetState();
             return succesfulShutdown;
