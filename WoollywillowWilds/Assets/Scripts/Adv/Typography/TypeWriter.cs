@@ -132,17 +132,23 @@ namespace WildsAdv
         IEnumerator AsyncWrite(float initDelay, float loopPeriod)
         {
             // start and stop sfx around write events so that we play for the delay.
-            ContinuePlayingSfx();
+            //ContinuePlayingSfx();
             yield return new WaitForSeconds(initDelay);
             bool successWrite = OnWriteEvent();
-            PauseSfx();
+            //PauseSfx();
             while (textPosition < TextToTypeWrite.Length && successWrite)
             {
-                ContinuePlayingSfx();
+                //ContinuePlayingSfx();
+                PauseSfx();
                 yield return new WaitForSeconds(loopPeriod);
                 successWrite = OnWriteEvent();
-                PauseSfx();
+                //PauseSfx();
+                // so this approach with sound on write and pause at delay follows the voice replaces typewriter keys+hammer
+                // paradigm, but the write event itself essentially takes 0 time so... may need to add a 'render' (both sound and graphics, why not) delay
+                // inside OnWriteEvent() or here?
+                ContinuePlayingSfx();
             }
+            PauseSfx();
         }
 
         public bool OnWriteEvent()
