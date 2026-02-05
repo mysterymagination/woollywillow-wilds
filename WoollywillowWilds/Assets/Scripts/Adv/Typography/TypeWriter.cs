@@ -85,10 +85,21 @@ namespace WildsAdv
         /// </summary>
         private int textPosition = 0;
         /// <summary>
-        /// The function called by our typewrite Coroutine.
+        /// The function called by our typewrite Coroutine, representing one or more characters being stamped
+        /// by the hammer onto paper. The delay simulates human typing speed.
         /// </summary>
         private IEnumerator writeFunction;
+        /// <summary>
+        /// The function called by our sfx Coroutine, representing the sound of the
+        /// key stroke and hammer stamp. These will take a an amount of time correlated with
+        /// the character chunk size and the typing cadence given by the write event loop period.
+        /// The delay simulates the time it takes for a keystroke to occur and the hammer
+        /// to stamp, which will be less variable than the human typing cadence, but influenced
+        /// thereby and therefore somewhat variable.
+        /// </summary>
+        private IEnumerator sfxFunction;
         //private float sfxTimePoint = 0.0F;
+        public float keyHammerStrikeTimeMilliseconds = 25.0F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -118,8 +129,7 @@ namespace WildsAdv
                 derivedWriteDelay = Math.Clamp(derivedWriteDelay, 0, float.MaxValue);
             }
             // ClockworkTasks API expects time in seconds.
-            derivedWriteDelay /= 1000.0F;
-            Debug.Log("Write event period is " + derivedWriteDelay);
+            Debug.Log("Write event period ms is " + derivedWriteDelay);
 
             writeFunction = AsyncWrite(0.0F, derivedWriteDelay);
             Debug.Log("WriteThing IEnumerator about to start is " + writeFunction);
@@ -129,29 +139,39 @@ namespace WildsAdv
             StartCoroutine(writeFunction);
         }
 
-        IEnumerator AsyncWrite(float initDelay, float loopPeriod)
+        IEnumerator AsyncWrite(float initDelayMs, float loopPeriodMs)
         {
             // start and stop sfx around write events so that we play for the delay.
             //ContinuePlayingSfx();
-            yield return new WaitForSeconds(initDelay);
-            bool successWrite = OnWriteEvent();
+            //yield return new WaitForSeconds(initDelayMs / 1000.0F);
+            //int initialDelayChunkSize = OnWriteEvent();
             //PauseSfx();
-            while (textPosition < TextToTypeWrite.Length && successWrite)
+            while (textPosition < TextToTypeWrite.Length)// && initialDelayChunkSize > 0)
             {
                 //ContinuePlayingSfx();
-                PauseSfx();
-                yield return new WaitForSeconds(loopPeriod);
-                successWrite = OnWriteEvent();
+                //PauseSfx();
+                yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
+                int loopDelayChunkSize = OnWriteEvent();
                 //PauseSfx();
                 // so this approach with sound on write and pause at delay follows the voice replaces typewriter keys+hammer
                 // paradigm, but the write event itself essentially takes 0 time so... may need to add a 'render' (both sound and graphics, why not) delay
                 // inside OnWriteEvent() or here?
-                ContinuePlayingSfx();
+
+                // The time it takes for the key-hammer sound to occur should not
+                // affect the typing cadence, only vice-versa.
+                sfxFunction = AsyncSfx(loopDelayChunkSize, loopPeriodMs);
+                StopCoroutine(sfxFunction);
+                StartCoroutine(sfxFunction);
             }
+            StopCoroutine(sfxFunction);
             PauseSfx();
         }
 
-        public bool OnWriteEvent()
+        /// <summary>
+        /// Executes write behavior, writing a chunk of characters to the text sink.
+        /// </summary>
+        /// <returns>The number of characters written in this chunk.</returns>
+        public int OnWriteEvent()
         {
             int derivedChunkSize = characterChunkSize;
             if (randomChunkSize)
@@ -174,16 +194,16 @@ namespace WildsAdv
                 Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
                 // update textPosition to the next unwritten segment.
                 textPosition += derivedChunkSize;
-                return true;
+                return derivedChunkSize;
             }
             else
             {
                 Debug.LogError("Target textview TMP_Text Component is unset");
-                return false;
+                return 0;
             }
         }
 
-        protected void ContinuePlayingSfx()
+        IEnumerator AsyncSfx(int charactersWritten, float typingCadence)
         {
             if (typingSfx)
             {
@@ -199,6 +219,11 @@ namespace WildsAdv
                 Debug.Log("Setting sfx timepoint from saved timepoint " + typingSfx.time + " to rando derived timepoint " + derivedTimePoint);
                 typingSfx.time = derivedTimePoint;
                 typingSfx.Play();
+
+                float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
+                sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, typingCadence);
+                yield return new WaitForSeconds(keyHammerStrikeTimeMilliseconds / 1000.0F);
+                typingSfx.Pause();
             }
         }
 
