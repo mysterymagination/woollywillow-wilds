@@ -157,6 +157,7 @@ namespace WildsAdv
                 // paradigm, but the write event itself essentially takes 0 time so... may need to add a 'render' (both sound and graphics, why not) delay
                 // inside OnWriteEvent() or here?
 
+
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
                 sfxFunction = AsyncSfx(loopDelayChunkSize, loopPeriodMs);
@@ -222,7 +223,7 @@ namespace WildsAdv
 
                 float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
                 sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, typingCadence);
-                yield return new WaitForSeconds(keyHammerStrikeTimeMilliseconds / 1000.0F);
+                yield return new WaitForSeconds(sfxDurationMs / 1000.0F);
                 typingSfx.Pause();
             }
         }
