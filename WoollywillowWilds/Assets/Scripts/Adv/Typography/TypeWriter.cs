@@ -56,6 +56,7 @@ namespace WildsAdv
         /// If sfxPivotPoint is set, each fresh play will occur at or around that time in the track. If sfxContinuous is set, each fresh play will pick up where the track left off last (modulo sfxTimeRandomRange) and sfxPivotPoint will be ignored.
         /// </summary>
         public AudioSource typingSfx;
+        public AudioSource typingSfx2;
         /// <summary>
         /// Percentage amount +/- to change the default sfx volume.
         /// </summary>
@@ -114,24 +115,16 @@ namespace WildsAdv
             }
         }
 
+        private int loopIter = 0;
         /// <summary>
         /// Converts TextToTypeWrite into a character array and launches coroutines on
         /// a delay based on typeWriterDelayMilliseconds.
         /// </summary>
         public void TypeWrite()
         {
-            // calculate our writeevent period
-            float derivedWriteDelay = typeWriterDelayMilliseconds;
-            if (randomDelay)
-            {
-                System.Random rnd = new System.Random();
-                derivedWriteDelay += rnd.Next(-randomDelayRangeMilliseconds, randomDelayRangeMilliseconds);
-                derivedWriteDelay = Math.Clamp(derivedWriteDelay, 0, float.MaxValue);
-            }
-            // ClockworkTasks API expects time in seconds.
-            Debug.Log("Write event period ms is " + derivedWriteDelay);
+            
 
-            writeFunction = AsyncWrite(0.0F, derivedWriteDelay);
+            writeFunction = AsyncWrite(0.0F, loopIter);
             Debug.Log("WriteThing IEnumerator about to start is " + writeFunction);
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
@@ -139,7 +132,7 @@ namespace WildsAdv
             StartCoroutine(writeFunction);
         }
 
-        IEnumerator AsyncWrite(float initDelayMs, float loopPeriodMs)
+        IEnumerator AsyncWrite(float initDelayMs, int loopIter)
         {
             // start and stop sfx around write events so that we play for the delay.
             //ContinuePlayingSfx();
@@ -150,6 +143,17 @@ namespace WildsAdv
             {
                 //ContinuePlayingSfx();
                 //PauseSfx();
+                // calculate our writeevent period
+            float loopPeriodMs = typeWriterDelayMilliseconds;
+            if (randomDelay)
+            {
+                System.Random rnd = new System.Random();
+                loopPeriodMs += rnd.Next(0, randomDelayRangeMilliseconds);
+                loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
+            }
+            // ClockworkTasks API expects time in seconds.
+            Debug.Log("Write event period ms is " + loopPeriodMs);
+                Debug.Log("About to delay for "+loopPeriodMs+"ms before keystrokin");
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 int loopDelayChunkSize = OnWriteEvent();
                 //PauseSfx();
@@ -160,9 +164,11 @@ namespace WildsAdv
 
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
-                sfxFunction = AsyncSfx(loopDelayChunkSize, loopPeriodMs);
-                StopCoroutine(sfxFunction);
+                sfxFunction = AsyncSfx(loopDelayChunkSize, loopPeriodMs, loopIter);
+                //StopCoroutine(sfxFunction);
                 StartCoroutine(sfxFunction);
+                
+                loopIter++;
             }
             StopCoroutine(sfxFunction);
             PauseSfx();
@@ -204,7 +210,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx(int charactersWritten, float typingCadence)
+        IEnumerator AsyncSfx(int charactersWritten, float typingCadence, int loopIter)
         {
             if (typingSfx)
             {
@@ -218,13 +224,23 @@ namespace WildsAdv
                 // close to the end past the artificial max forever with or without loop.
                 derivedTimePoint = Math.Clamp(derivedTimePoint, 0, typingSfx.clip.length);
                 Debug.Log("Setting sfx timepoint from saved timepoint " + typingSfx.time + " to rando derived timepoint " + derivedTimePoint);
+                
                 typingSfx.time = derivedTimePoint;
                 typingSfx.Play();
+                
+                typingSfx2.time = derivedTimePoint;
+                typingSfx2.Play();
+                
 
                 float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
-                sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, typingCadence);
+                sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, keyHammerStrikeTimeMilliseconds + typingCadence);
                 yield return new WaitForSeconds(sfxDurationMs / 1000.0F);
-                typingSfx.Pause();
+
+                
+                    typingSfx.Pause();
+                
+                    typingSfx2.Pause();
+                
             }
         }
 
