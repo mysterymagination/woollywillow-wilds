@@ -201,6 +201,9 @@ namespace WildsAdv
                 source.resource = typingSfx;
                 source.Play();
                 yield return new WaitForSeconds(typingSfx.length);
+
+                // remove the host AudioSource Component at the bottom of the Coroutine functor.
+                Destroy(source);
             }
         }
 
