@@ -691,7 +691,7 @@ MonoBehaviour:
   characterChunkSize: 1
   randomChunkSize: 1
   randomChunkSizeRange: 2
-  typingSfx: {fileID: 8300000, guid: 0ed997b865e853c4da6c10223967fae5, type: 3}
+  typingSfx: {fileID: 8300000, guid: 6caa5a257387f0b46baa4a4b5cf3818d, type: 3}
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
   sfxTimePivot: 2
