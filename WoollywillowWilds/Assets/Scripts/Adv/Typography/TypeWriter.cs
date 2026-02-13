@@ -54,9 +54,10 @@ namespace WildsAdv
         /// Thus, the parameters below allow for a degree of randomness in where
         /// and how audio is played from the sfx source.
         /// If sfxPivotPoint is set, each fresh play will occur at or around that time in the track. If sfxContinuous is set, each fresh play will pick up where the track left off last (modulo sfxTimeRandomRange) and sfxPivotPoint will be ignored.
+        /// EDIT: with a single AudioSource field I've found we run into a bottleneck of calling Play -> Play and then nothing playing at all. You have to Pause/Stop in between, which sounds bad. Instead, I'm going to try out
+        /// adding/removing AudioSource Components as needed at runtime and allowed each to play out in its own Coroutine.
         /// </summary>
-        public AudioSource typingSfx;
-        public AudioSource typingSfx2;
+        public AudioClip typingSfx;
         /// <summary>
         /// Percentage amount +/- to change the default sfx volume.
         /// </summary>
@@ -72,6 +73,12 @@ namespace WildsAdv
         /// whenever the track is played.
         /// </summary>
         public float sfxTimePivot = 0.0F;
+        /// <summary>
+        /// The current time point in seconds at which the next sfx AudioSource should play.
+        /// This should be tracked as sfxTimePivot modulo sfxTimeRandomRange plus whatever jump
+        /// or continuous tracking we may want.
+        /// </summary>
+        private float sfxTimePoint = 0.0F;
         /// <summary>
         /// Amount of seconds +/- the sfxTimePivot point where the track will start playing next.
         /// </summary>
@@ -90,17 +97,6 @@ namespace WildsAdv
         /// by the hammer onto paper. The delay simulates human typing speed.
         /// </summary>
         private IEnumerator writeFunction;
-        /// <summary>
-        /// The function called by our sfx Coroutine, representing the sound of the
-        /// key stroke and hammer stamp. These will take a an amount of time correlated with
-        /// the character chunk size and the typing cadence given by the write event loop period.
-        /// The delay simulates the time it takes for a keystroke to occur and the hammer
-        /// to stamp, which will be less variable than the human typing cadence, but influenced
-        /// thereby and therefore somewhat variable.
-        /// </summary>
-        private IEnumerator sfxFunction;
-        //private float sfxTimePoint = 0.0F;
-        public float keyHammerStrikeTimeMilliseconds = 25.0F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -108,70 +104,46 @@ namespace WildsAdv
         public void ResetState()
         {
             textPosition = 0;
-            //sfxTimePoint = 0.0F;
-            if (typingSfx)
-            {
-                typingSfx.time = 0.0F;
-            }
+            sfxTimePoint = 0.0F;
         }
 
-        private int loopIter = 0;
         /// <summary>
         /// Converts TextToTypeWrite into a character array and launches coroutines on
         /// a delay based on typeWriterDelayMilliseconds.
         /// </summary>
         public void TypeWrite()
         {
-            
-
-            writeFunction = AsyncWrite(0.0F, loopIter);
-            Debug.Log("WriteThing IEnumerator about to start is " + writeFunction);
+            writeFunction = AsyncWrite(0.0F);
+            Debug.Log("WriteThing IEnumerator about to start is " + writeFunction + ", and a second call preparing that function gives us IEnumerator " + AsyncWrite(1.0F));
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
             StartCoroutine(writeFunction);
         }
 
-        IEnumerator AsyncWrite(float initDelayMs, int loopIter)
+        IEnumerator AsyncWrite(float initDelayMs)
         {
-            // start and stop sfx around write events so that we play for the delay.
-            //ContinuePlayingSfx();
-            //yield return new WaitForSeconds(initDelayMs / 1000.0F);
-            //int initialDelayChunkSize = OnWriteEvent();
-            //PauseSfx();
-            while (textPosition < TextToTypeWrite.Length)// && initialDelayChunkSize > 0)
+            yield return new WaitForSeconds(initDelayMs / 1000.0F);
+            int initialDelayChunkSize = OnWriteEvent();
+            while (textPosition < TextToTypeWrite.Length && initialDelayChunkSize > 0)
             {
-                //ContinuePlayingSfx();
-                //PauseSfx();
                 // calculate our writeevent period
-            float loopPeriodMs = typeWriterDelayMilliseconds;
-            if (randomDelay)
-            {
-                System.Random rnd = new System.Random();
-                loopPeriodMs += rnd.Next(0, randomDelayRangeMilliseconds);
-                loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
-            }
-            // ClockworkTasks API expects time in seconds.
-            Debug.Log("Write event period ms is " + loopPeriodMs);
-                Debug.Log("About to delay for "+loopPeriodMs+"ms before keystrokin");
+                float loopPeriodMs = typeWriterDelayMilliseconds;
+                if (randomDelay)
+                {
+                    System.Random rnd = new System.Random();
+                    loopPeriodMs += rnd.Next(0, randomDelayRangeMilliseconds);
+                    loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
+                }
+                Debug.Log("Write event period ms is " + loopPeriodMs);
+                Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 int loopDelayChunkSize = OnWriteEvent();
-                //PauseSfx();
-                // so this approach with sound on write and pause at delay follows the voice replaces typewriter keys+hammer
-                // paradigm, but the write event itself essentially takes 0 time so... may need to add a 'render' (both sound and graphics, why not) delay
-                // inside OnWriteEvent() or here?
-
 
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
-                sfxFunction = AsyncSfx(loopDelayChunkSize, loopPeriodMs, loopIter);
-                //StopCoroutine(sfxFunction);
-                StartCoroutine(sfxFunction);
-                
-                loopIter++;
+                StartCoroutine(AsyncSfx(loopDelayChunkSize, loopPeriodMs));
             }
-            StopCoroutine(sfxFunction);
-            PauseSfx();
         }
 
         /// <summary>
@@ -210,37 +182,25 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx(int charactersWritten, float typingCadence, int loopIter)
+        IEnumerator AsyncSfx(int charactersWritten, float typingCadence)
         {
             if (typingSfx)
             {
-                PauseSfx();
-                float randoVal = UnityEngine.Random.Range(-sfxTimeRandomRange, sfxTimeRandomRange);
-                float derivedTimePoint = typingSfx.time + randoVal;//sfxTimePoint + randoVal;
-                Debug.Log("Unclamped randomized derived sfx timepoint timepoint " + derivedTimePoint + ", from saved timepoint " + typingSfx.time + " plus random generated float " + randoVal);
-                // this will sometimes produce illegal seek values, presumably at the clip.length extrema.
-                // we can't really do anything about that AFAIK since using an upper bound less than
-                // clip.length causes loop mode to never reset time, and we get stuck at some note
-                // close to the end past the artificial max forever with or without loop.
-                derivedTimePoint = Math.Clamp(derivedTimePoint, 0, typingSfx.clip.length);
-                Debug.Log("Setting sfx timepoint from saved timepoint " + typingSfx.time + " to rando derived timepoint " + derivedTimePoint);
-                
-                typingSfx.time = derivedTimePoint;
-                typingSfx.Play();
-                
-                typingSfx2.time = derivedTimePoint;
-                typingSfx2.Play();
-                
 
+
+                /*
                 float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
                 sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, keyHammerStrikeTimeMilliseconds + typingCadence);
                 yield return new WaitForSeconds(sfxDurationMs / 1000.0F);
+                */
+                /*
+                yield return new WaitForSeconds(typingSfx.clip.length);
+                */
 
-                
-                    typingSfx.Pause();
-                
-                    typingSfx2.Pause();
-                
+                AudioSource source = gameObject.AddComponent<AudioSource>();
+                source.resource = typingSfx;
+                source.Play();
+                yield return new WaitForSeconds(typingSfx.length);
             }
         }
 
@@ -248,9 +208,10 @@ namespace WildsAdv
         {
             if (typingSfx)
             {
+                /*
                 if (typingSfx.isPlaying)
                 {
-                    /*
+                    
                     if (typingSfx.time >= typingSfx.clip.length)
                     {
                         sfxTimePoint = 0.0F;
@@ -260,9 +221,10 @@ namespace WildsAdv
                         sfxTimePoint = typingSfx.time;
                         Debug.Log("SFX timepoint saved as " + sfxTimePoint);
                     }
-                    */
-                    typingSfx.Pause();
+                    
+                typingSfx.Pause();
                 }
+                */
             }
         }
 
@@ -292,7 +254,9 @@ namespace WildsAdv
             }
             if (typingSfx)
             {
+                /*
                 typingSfx.Stop();
+                */
             }
             ResetState();
             return succesfulShutdown;
