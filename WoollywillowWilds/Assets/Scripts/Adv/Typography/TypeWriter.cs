@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
-using System.Threading;
+using System.Collections.Generic;
 using TMPro;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
-using UnityEngine.Events;
+using System.Text.RegularExpressions;
 
 namespace WildsAdv
 {
@@ -47,17 +46,18 @@ namespace WildsAdv
         /// </summary>
         public string TextToTypeWrite { get; set; }
         /// <summary>
-        /// Sound effect played during write events. By default, this will
-        /// begin at the beginning of the track and play unmodified until it
-        /// is instructed to stop; the write events' delay will be correlated
-        /// with the sfx playing, so normally the entire track will not get to play.
-        /// Thus, the parameters below allow for a degree of randomness in where
-        /// and how audio is played from the sfx source.
-        /// If sfxPivotPoint is set, each fresh play will occur at or around that time in the track. If sfxContinuous is set, each fresh play will pick up where the track left off last (modulo sfxTimeRandomRange) and sfxPivotPoint will be ignored.
-        /// EDIT: with a single AudioSource field I've found we run into a bottleneck of calling Play -> Play and then nothing playing at all. You have to Pause/Stop in between, which sounds bad. Instead, I'm going to try out
-        /// adding/removing AudioSource Components as needed at runtime and allowed each to play out in its own Coroutine.
+        /// Named sound effects played during write events. By default, this will
+        /// begin at the beginning of the track and play looping unmodified until it
+        /// is instructed to stop.
         /// </summary>
-        public AudioClip typingSfx;
+        public Dictionary<string, AudioClip> typingSfxSegmentMap;
+        /// <summary>
+        /// Short sound effects played 1:1 with write events. By default, this will
+        /// begin at the 0 index clip and proceed through until the end at which point it will
+        /// wrap around. Each clip will play to completion without looping, simulating a typewriter
+        /// key-hammer stroke or a single voice tone syllable.
+        /// </summary>
+        public AudioClip[] typingSfxBlipArray;
         /// <summary>
         /// Percentage amount +/- to change the default sfx volume.
         /// </summary>
@@ -74,19 +74,13 @@ namespace WildsAdv
         /// </summary>
         public float sfxTimePivot = 0.0F;
         /// <summary>
-        /// The current time point in seconds at which the next sfx AudioSource should play.
-        /// This should be tracked as sfxTimePivot modulo sfxTimeRandomRange plus whatever jump
-        /// or continuous tracking we may want.
-        /// </summary>
-        private float sfxTimePoint = 0.0F;
-        /// <summary>
         /// Amount of seconds +/- the sfxTimePivot point where the track will start playing next.
         /// </summary>
         public float sfxTimeRandomRange = 0.0F;
         /// <summary>
-        /// If true, the sfx time point will gradually progress per write event. It will still be subject to sfxTimeRandomRange, but sfxTimePivot will be ignored.
+        /// Amount of milliseconds to pause both typing and sfx at fullstops.
         /// </summary>
-        public bool sfxContinuous = true;
+        public float breathDelayMs = 1000.0F;
 
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
@@ -97,6 +91,23 @@ namespace WildsAdv
         /// by the hammer onto paper. The delay simulates human typing speed.
         /// </summary>
         private IEnumerator writeFunction;
+        /// <summary>
+        /// The function called by our sfx Coroutine, representing the cadence of a natural voice alongside the typing.
+        /// todo: do we need to overlap sfx at any point? If so, we'll need to map these to the relevant sfx and maybe cancel the looping on everyone
+        /// who isn't the primary sfx but then let them play out to completion? An event delegate might be the cleanest way to do that, and may avoid
+        /// the need to enmap everyone.
+        /// </summary>
+        private IEnumerator sfxFunction;
+        /// <summary>
+        /// The current time point in seconds at which the next sfx AudioSource should play.
+        /// This should be tracked as sfxTimePivot modulo sfxTimeRandomRange plus whatever jump
+        /// or continuous tracking we may want.
+        /// </summary>
+        private float sfxTimePoint = 0.0F;
+        /// <summary>
+        /// Tracks the current index into the typingSfxBlipArray.
+        /// </summary>
+        private int sfxBlipIndex = 0;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -105,6 +116,7 @@ namespace WildsAdv
         {
             textPosition = 0;
             sfxTimePoint = 0.0F;
+            sfxBlipIndex = 0;
         }
 
         /// <summary>
@@ -124,8 +136,8 @@ namespace WildsAdv
         IEnumerator AsyncWrite(float initDelayMs)
         {
             yield return new WaitForSeconds(initDelayMs / 1000.0F);
-            int initialDelayChunkSize = OnWriteEvent();
-            while (textPosition < TextToTypeWrite.Length && initialDelayChunkSize > 0)
+            string initStoryChunkWritten = OnWriteEvent();
+            while (textPosition < TextToTypeWrite.Length && initStoryChunkWritten.Length > 0)
             {
                 // calculate our writeevent period
                 float loopPeriodMs = typeWriterDelayMilliseconds;
@@ -138,19 +150,26 @@ namespace WildsAdv
                 Debug.Log("Write event period ms is " + loopPeriodMs);
                 Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
-                int loopDelayChunkSize = OnWriteEvent();
+                string storyChunkWritten = OnWriteEvent();
+                string fullStopPattern = "[.!?:;…]";
+                if (Regex.Matches(storyChunkWritten, fullStopPattern).Count > 0)
+                {
+                    yield return new WaitForSeconds(breathDelayMs / 1000.0F);
+                }
+
+                // todo: mod volume/pitch etc. based on punctuation e.g. louder for `!`
 
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
-                StartCoroutine(AsyncSfx(loopDelayChunkSize, loopPeriodMs));
+                StartCoroutine(AsyncSfx(storyChunkWritten.Length, loopPeriodMs));
             }
         }
 
         /// <summary>
         /// Executes write behavior, writing a chunk of characters to the text sink.
         /// </summary>
-        /// <returns>The number of characters written in this chunk.</returns>
-        public int OnWriteEvent()
+        /// <returns>The characters written in this chunk.</returns>
+        public string OnWriteEvent()
         {
             int derivedChunkSize = characterChunkSize;
             if (randomChunkSize)
@@ -173,21 +192,25 @@ namespace WildsAdv
                 Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
                 // update textPosition to the next unwritten segment.
                 textPosition += derivedChunkSize;
-                return derivedChunkSize;
+                return storyChunk;
             }
             else
             {
                 Debug.LogError("Target textview TMP_Text Component is unset");
-                return 0;
+                return "";
             }
         }
 
         IEnumerator AsyncSfx(int charactersWritten, float typingCadence)
         {
+            if (sfxBlipIndex >= typingSfxBlipArray.Length)
+            {
+                sfxBlipIndex = 0;
+            }
+            AudioClip typingSfx = typingSfxBlipArray[sfxBlipIndex];
+            sfxBlipIndex++;
             if (typingSfx)
             {
-
-
                 /*
                 float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
                 sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, keyHammerStrikeTimeMilliseconds + typingCadence);
@@ -209,9 +232,10 @@ namespace WildsAdv
 
         protected void PauseSfx()
         {
+            /*
             if (typingSfx)
             {
-                /*
+                
                 if (typingSfx.isPlaying)
                 {
                     
@@ -227,8 +251,9 @@ namespace WildsAdv
                     
                 typingSfx.Pause();
                 }
-                */
+                
             }
+            */
         }
 
         public bool Shutdown(bool clear)
@@ -255,12 +280,14 @@ namespace WildsAdv
                 Debug.LogError("Shutdown; target textview is unset, so we cannot clear its text.");
                 succesfulShutdown = false;
             }
+            /*
             if (typingSfx)
             {
-                /*
+                
                 typingSfx.Stop();
-                */
+                
             }
+            */
             ResetState();
             return succesfulShutdown;
         }
