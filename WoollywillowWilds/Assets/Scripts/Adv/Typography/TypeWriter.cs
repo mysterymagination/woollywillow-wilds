@@ -81,6 +81,14 @@ namespace WildsAdv
         /// Amount of milliseconds to pause both typing and sfx at fullstops.
         /// </summary>
         public float breathDelayMs = 1000.0F;
+        /// <summary>
+        /// Amount of clip elements +/- the current index that will be selected to play next after a full stop breath.
+        /// </summary>
+        public int sfxClipIndexRange = 0;
+        /// <summary>
+        /// Whether or not we should set the sfx clip index to a random value around the current one within sfxClipIndexRange after a full stop breath.
+        /// </summary>
+        public bool randomSfxClipIndex = false;
 
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
@@ -152,16 +160,24 @@ namespace WildsAdv
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 string storyChunkWritten = OnWriteEvent();
                 string fullStopPattern = "[.!?:;…]";
-                if (Regex.Matches(storyChunkWritten, fullStopPattern).Count > 0)
-                {
-                    yield return new WaitForSeconds(breathDelayMs / 1000.0F);
-                }
-
                 // todo: mod volume/pitch etc. based on punctuation e.g. louder for `!`
 
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
                 StartCoroutine(AsyncSfx(storyChunkWritten.Length, loopPeriodMs));
+                if (Regex.Matches(storyChunkWritten, fullStopPattern).Count > 0)
+                {
+                    if (randomSfxClipIndex)
+                    {
+                        int cachedBlipIndex = sfxBlipIndex;
+                        System.Random rnd = new System.Random();
+                        int indexModifier = rnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
+                        sfxBlipIndex += indexModifier;
+                        sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length-1);
+                        Debug.Log("Randomizing blip index from "+cachedBlipIndex+" to "+sfxBlipIndex+" based on index mod "+indexModifier);
+                    }
+                    yield return new WaitForSeconds(breathDelayMs / 1000.0F);
+                }
             }
         }
 
