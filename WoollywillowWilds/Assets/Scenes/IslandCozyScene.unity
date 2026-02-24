@@ -685,43 +685,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.TypeWriter
   targetTextViewComponent: {fileID: 452892845}
-  typeWriterDelayMilliseconds: 100
+  typeWriterDelayMilliseconds: 50
   randomDelay: 1
-  randomDelayRangeMilliseconds: 200
+  randomDelayRangeMilliseconds: 100
   characterChunkSize: 1
   randomChunkSize: 1
   randomChunkSizeRange: 2
   typingSfxBlipArray:
   - {fileID: 8300000, guid: 9de5b7ba9f601b04898c13a459f09f21, type: 3}
-  - {fileID: 8300000, guid: 60bc335ef54c71d4b8ac1887773e97a1, type: 3}
-  - {fileID: 8300000, guid: 51b884ec8a9f5cf4da20545e1e365d92, type: 3}
-  - {fileID: 8300000, guid: 9d1e69d44feb0444b9a21d0b34ef8898, type: 3}
-  - {fileID: 8300000, guid: 6a076bb2bb72b59419af8087c269c399, type: 3}
   - {fileID: 8300000, guid: 749f3fb1a3e1c254bafc61646b5c91ee, type: 3}
-  - {fileID: 8300000, guid: dc3bf7d8bf523894abdff82e72675a4b, type: 3}
+  - {fileID: 8300000, guid: 9d1e69d44feb0444b9a21d0b34ef8898, type: 3}
   - {fileID: 8300000, guid: 76c8c68ff50d99a46b6c86f45ac86e1e, type: 3}
-  - {fileID: 8300000, guid: 5a017cec04aacfb4c9ae85310f0524cc, type: 3}
-  - {fileID: 8300000, guid: 52045821f05c07843a946ecc53075f41, type: 3}
-  - {fileID: 8300000, guid: 4880e0690cc91714e9077331f0b8c6e0, type: 3}
-  - {fileID: 8300000, guid: 9b249cad21eee714796d47d8f3448cd7, type: 3}
-  - {fileID: 8300000, guid: 58b120784cd67ee4a8db37dc7319475f, type: 3}
-  - {fileID: 8300000, guid: 93221634735617d40ad215b442a12d33, type: 3}
-  - {fileID: 8300000, guid: 101fe085c4424b8469273388a1a09823, type: 3}
-  - {fileID: 8300000, guid: 7cce18a4de39e5848a4afbf21bc494e4, type: 3}
-  - {fileID: 8300000, guid: e8b6e882e1f404b4fb398eb10445c70f, type: 3}
-  - {fileID: 8300000, guid: c25b817452145824eb08c8762b216a3b, type: 3}
-  - {fileID: 8300000, guid: f8fe2f58e17b5294ebb7838fe7902369, type: 3}
-  - {fileID: 8300000, guid: 350ca5b09dc900342882af89a14a2f28, type: 3}
-  - {fileID: 8300000, guid: 4499ec7055214ce4bb347497250c3d19, type: 3}
-  - {fileID: 8300000, guid: cb4690620d6c9884bb5a7ef3ed2d6170, type: 3}
-  - {fileID: 8300000, guid: 52f5a38bc74243946887938f1f7dcd17, type: 3}
-  - {fileID: 8300000, guid: ccd752ffb4cc52b4b9574431e7cfc7cd, type: 3}
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
   sfxTimePivot: 2
   sfxTimeRandomRange: 0
   breathDelayMs: 1000
-  sfxClipIndexRange: 3
+  sfxClipIndexRange: 1
   randomSfxClipIndex: 1
 --- !u!114 &452892848
 MonoBehaviour:

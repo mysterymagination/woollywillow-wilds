@@ -116,6 +116,7 @@ namespace WildsAdv
         /// Tracks the current index into the typingSfxBlipArray.
         /// </summary>
         private int sfxBlipIndex = 0;
+        private AudioSource singleSfx;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -125,6 +126,7 @@ namespace WildsAdv
             textPosition = 0;
             sfxTimePoint = 0.0F;
             sfxBlipIndex = 0;
+            Destroy(singleSfx);
         }
 
         /// <summary>
@@ -134,6 +136,8 @@ namespace WildsAdv
         public void TypeWrite()
         {
             writeFunction = AsyncWrite(0.0F);
+            sfxFunction = AsyncSfx(0, 0);
+            singleSfx = gameObject.AddComponent<AudioSource>();
             Debug.Log("WriteThing IEnumerator about to start is " + writeFunction + ", and a second call preparing that function gives us IEnumerator " + AsyncWrite(1.0F));
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
@@ -157,14 +161,22 @@ namespace WildsAdv
                 }
                 Debug.Log("Write event period ms is " + loopPeriodMs);
                 Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
+                if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                {
+                    sfxBlipIndex = 0;
+                }
+                singleSfx.resource = typingSfxBlipArray[sfxBlipIndex];
+                singleSfx.Play();
+                sfxBlipIndex++;
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 string storyChunkWritten = OnWriteEvent();
+                singleSfx.Pause();
                 string fullStopPattern = "[.!?:;…]";
                 // todo: mod volume/pitch etc. based on punctuation e.g. louder for `!`
 
                 // The time it takes for the key-hammer sound to occur should not
                 // affect the typing cadence, only vice-versa.
-                StartCoroutine(AsyncSfx(storyChunkWritten.Length, loopPeriodMs));
+
                 if (Regex.Matches(storyChunkWritten, fullStopPattern).Count > 0)
                 {
                     if (randomSfxClipIndex)
@@ -173,8 +185,8 @@ namespace WildsAdv
                         System.Random rnd = new System.Random();
                         int indexModifier = rnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
                         sfxBlipIndex += indexModifier;
-                        sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length-1);
-                        Debug.Log("Randomizing blip index from "+cachedBlipIndex+" to "+sfxBlipIndex+" based on index mod "+indexModifier);
+                        sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
+                        Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
                     }
                     yield return new WaitForSeconds(breathDelayMs / 1000.0F);
                 }
