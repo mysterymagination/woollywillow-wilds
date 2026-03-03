@@ -7,6 +7,24 @@ using System.Text.RegularExpressions;
 
 namespace WildsAdv
 {
+    public enum SfxMode
+    {
+        /**
+         * This mode plays sfx per write event, mimicking the sound of a typewriter key press and hammer stamp on paper.
+         * In theory this mode might make the most technically accurate bond between the rendering of the text and
+         * the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
+         * include sounding like indistinct speech.
+         */
+        KeyHammer,
+        /**
+         * This mode steps through the typingSfxSegmentMap, optionally jumping to named segments, in accordance
+         * with completed sentences in the text. Any fullstop character will stop the current sfx and there will
+         * be a pause before the next sentence picks up either where we left off or at an optionally randomized new
+         * track position and/or track. Optional emote tags in the text can also direct which track should play
+         * for a particular sentence.
+         */
+        VoicedSentence,
+    }
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
     /// </summary>
@@ -45,6 +63,7 @@ namespace WildsAdv
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
         public string TextToTypeWrite { get; set; }
+        public SfxMode sfxMode = SfxMode.VoicedSentence;
         /// <summary>
         /// Named sound effects played during write events. By default, this will
         /// begin at the beginning of the track and play looping unmodified until it
