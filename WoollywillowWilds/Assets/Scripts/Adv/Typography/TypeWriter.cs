@@ -16,6 +16,10 @@ namespace WildsAdv
          * include sounding like indistinct speech.
          */
         KeyHammer,
+        /// <summary>
+        /// A mix of keyhammer and voice tone, we use a singular AudioSource to plau through a large array of short AudioClips.
+        /// </summary>
+        BlipArray,
         /**
          * This mode steps through the typingSfxSegmentMap, optionally jumping to named segments, in accordance
          * with completed sentences in the text. Any fullstop character will stop the current sfx and there will
@@ -135,7 +139,14 @@ namespace WildsAdv
         /// Tracks the current index into the typingSfxBlipArray.
         /// </summary>
         private int sfxBlipIndex = 0;
-        private AudioSource singleSfx;
+        /// <summary>
+        /// Used for the VoicedSentence sfx mode, where we only have one sfx playing at any given time. We'll pause, seek, and play this same AudioSource as necessary in that mode.
+        /// </summary>
+        private AudioSource singularSfx;
+        /// <summary>
+        /// Mapping of text mood associations to an array of suitable sfx clips.
+        /// </summary>
+        public Dictionary<Mood, AudioClip[]> voiceSfxSegmentMap;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -145,7 +156,7 @@ namespace WildsAdv
             textPosition = 0;
             sfxTimePoint = 0.0F;
             sfxBlipIndex = 0;
-            Destroy(singleSfx);
+            Destroy(singularSfx);
         }
 
         /// <summary>
@@ -155,8 +166,11 @@ namespace WildsAdv
         public void TypeWrite()
         {
             writeFunction = AsyncWrite(0.0F);
+            if (sfxMode == SfxMode.VoicedSentence || sfxMode == SfxMode.BlipArray)
+            {
+                singularSfx = gameObject.AddComponent<AudioSource>();
+            }
             sfxFunction = AsyncSfx(0, 0);
-            singleSfx = gameObject.AddComponent<AudioSource>();
             Debug.Log("WriteThing IEnumerator about to start is " + writeFunction + ", and a second call preparing that function gives us IEnumerator " + AsyncWrite(1.0F));
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
@@ -180,16 +194,21 @@ namespace WildsAdv
                 }
                 Debug.Log("Write event period ms is " + loopPeriodMs);
                 Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
+
+                //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer.
                 if (sfxBlipIndex >= typingSfxBlipArray.Length)
                 {
                     sfxBlipIndex = 0;
                 }
-                singleSfx.resource = typingSfxBlipArray[sfxBlipIndex];
-                singleSfx.Play();
+                if (sfxMode == SfxMode.BlipArray)
+                {
+                    singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
+                    singularSfx.Play();
+                }
                 sfxBlipIndex++;
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 string storyChunkWritten = OnWriteEvent();
-                singleSfx.Pause();
+                singularSfx.Pause();
                 string fullStopPattern = "[.!?:;…]";
                 // todo: mod volume/pitch etc. based on punctuation e.g. louder for `!`
 
