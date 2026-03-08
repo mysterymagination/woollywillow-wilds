@@ -196,16 +196,16 @@ namespace WildsAdv
                 Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
 
                 //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer.
-                if (sfxBlipIndex >= typingSfxBlipArray.Length)
-                {
-                    sfxBlipIndex = 0;
-                }
                 if (sfxMode == SfxMode.BlipArray)
                 {
+                    if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                    {
+                        sfxBlipIndex = 0;
+                    }
                     singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
                     singularSfx.Play();
+                    sfxBlipIndex++;
                 }
-                sfxBlipIndex++;
                 yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
                 string storyChunkWritten = OnWriteEvent();
                 singularSfx.Pause();
