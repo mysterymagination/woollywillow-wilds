@@ -10,10 +10,12 @@ namespace WildsAdv
     public enum SfxMode
     {
         /**
-         * This mode plays sfx per write event, mimicking the sound of a typewriter key press and hammer stamp on paper.
+         * This mode plays sfx per write event, mimicking the sound of a typewriter key press and hammer stamp on paper. Each sfx clip plays on its own AudioSource spawned at runtime in a Coroutine and despawned when the Coroutine functor e.g. AsyncSfx() exits.
          * In theory this mode might make the most technically accurate bond between the rendering of the text and
          * the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
          * include sounding like indistinct speech.
+
+         todo: AsyncSfx() uses are not currently installed.
          */
         KeyHammer,
         /// <summary>
@@ -66,7 +68,7 @@ namespace WildsAdv
         /// <summary>
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
-        public string TextToTypeWrite { get; set; }
+        public TreasureText TextToTypeWrite { get; set; }
         public SfxMode sfxMode = SfxMode.VoicedSentence;
         /// <summary>
         /// Named sound effects played during write events. By default, this will
@@ -180,55 +182,72 @@ namespace WildsAdv
 
         IEnumerator AsyncWrite(float initDelayMs)
         {
+            // todo: VoicedSentence mode works by starting up an appropriate clip for the upcoming sentence's mood and running it until a fullstop event occurs. We may want to progress on to other clips in the same mood cat to keep variety up if the first clip finished before the sentence. So how should that work here? We're looping over chunks of a sentence, so we don't want to call play at each loop iter. Maybe have the first play up here and then react in fullstops for the rest of the loop?
+            // todo: convert textposition progression to use TreasureText. Maybe a nested loop `for each TreasureSentence { choose rack to play and play it; while sentenceTextPos < sentence.length{...}}
             yield return new WaitForSeconds(initDelayMs / 1000.0F);
             string initStoryChunkWritten = OnWriteEvent();
-            while (textPosition < TextToTypeWrite.Length && initStoryChunkWritten.Length > 0)
+            foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
             {
-                // calculate our writeevent period
-                float loopPeriodMs = typeWriterDelayMilliseconds;
-                if (randomDelay)
-                {
-                    System.Random rnd = new System.Random();
-                    loopPeriodMs += rnd.Next(0, randomDelayRangeMilliseconds);
-                    loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
-                }
-                Debug.Log("Write event period ms is " + loopPeriodMs);
-                Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
-
-                //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer.
-                if (sfxMode == SfxMode.BlipArray)
-                {
-                    if (sfxBlipIndex >= typingSfxBlipArray.Length)
-                    {
-                        sfxBlipIndex = 0;
-                    }
-                    singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
-                    singularSfx.Play();
-                    sfxBlipIndex++;
-                }
-                yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
-                string storyChunkWritten = OnWriteEvent();
                 singularSfx.Pause();
-                string fullStopPattern = "[.!?:;…]";
-                // todo: mod volume/pitch etc. based on punctuation e.g. louder for `!`
-
-                // The time it takes for the key-hammer sound to occur should not
-                // affect the typing cadence, only vice-versa.
-
-                if (Regex.Matches(storyChunkWritten, fullStopPattern).Count > 0)
+                textPosition = 0;
+                AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.mood];
+                System.Random rnd = new System.Random();
+                int clipIndex = rnd.Next(0, moodTracks.Length - 1);
+                AudioClip currentTrack = moodTracks[clipIndex];
+                singularSfx.resource = currentTrack;
+                singularSfx.Play();
+                // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
+                singularSfx.loop = true;
+                // todo: how would we go about looping our way through the moodtracks array instead of looping the current track only?
+                //  Since we're headed into a while loop that blockingly processes the whole sentence, an event handler for the end of track reached
+                //  may be required.
+                //  EDIT: looks like there's no clean way to do that. Copilot suggests a jank coroutine that polls while(clip.isPlaying()) and yields if
+                //  true, and if false iterates forward in a forearch clip loop. I suppose that's fine, if bizarre, since we can stop that coroutine and
+                //  pause the singularSfx AudioSource as necessary at this level.
+                while (textPosition < currentTreasureSentence.text.Length)
                 {
-                    if (randomSfxClipIndex)
+                    // calculate our writeevent period
+                    float loopPeriodMs = typeWriterDelayMilliseconds;
+                    if (randomDelay)
                     {
-                        int cachedBlipIndex = sfxBlipIndex;
-                        System.Random rnd = new System.Random();
-                        int indexModifier = rnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
-                        sfxBlipIndex += indexModifier;
-                        sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
-                        Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
+                        System.Random blipRnd = new System.Random();
+                        loopPeriodMs += blipRnd.Next(0, randomDelayRangeMilliseconds);
+                        loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
                     }
-                    yield return new WaitForSeconds(breathDelayMs / 1000.0F);
-                }
-            }
+                    Debug.Log("Write event period ms is " + loopPeriodMs);
+                    Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
+
+                    //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer, though not at the same time. Add back AsyncSfx() functor usage in Coroutine for KeyHammer mode around here.
+                    if (sfxMode == SfxMode.BlipArray)
+                    {
+                        if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                        {
+                            sfxBlipIndex = 0;
+                        }
+                        singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
+                        singularSfx.Play();
+                        sfxBlipIndex++;
+                    }
+                    yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
+                    string storyChunkWritten = OnWriteEvent();
+                    if (sfxMode == SfxMode.BlipArray)
+                    {
+                        singularSfx.Pause();
+                        if (randomSfxClipIndex)
+                        {
+                            int cachedBlipIndex = sfxBlipIndex;
+                            System.Random blipRnd = new System.Random();
+                            int indexModifier = blipRnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
+                            sfxBlipIndex += indexModifier;
+                            sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
+                            Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
+                        }
+                    }
+                    // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
+                } // end sentence
+                // take a breath after sentence completion.
+                yield return new WaitForSeconds(breathDelayMs / 1000.0F);
+            } // end text
         }
 
         /// <summary>
