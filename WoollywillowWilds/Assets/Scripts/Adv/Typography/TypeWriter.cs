@@ -182,22 +182,24 @@ namespace WildsAdv
 
         IEnumerator AsyncWrite(float initDelayMs)
         {
-            // todo: VoicedSentence mode works by starting up an appropriate clip for the upcoming sentence's mood and running it until a fullstop event occurs. We may want to progress on to other clips in the same mood cat to keep variety up if the first clip finished before the sentence. So how should that work here? We're looping over chunks of a sentence, so we don't want to call play at each loop iter. Maybe have the first play up here and then react in fullstops for the rest of the loop?
-            // todo: convert textposition progression to use TreasureText. Maybe a nested loop `for each TreasureSentence { choose rack to play and play it; while sentenceTextPos < sentence.length{...}}
             yield return new WaitForSeconds(initDelayMs / 1000.0F);
             string initStoryChunkWritten = OnWriteEvent();
             foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
             {
-                singularSfx.Pause();
                 textPosition = 0;
-                AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.mood];
-                System.Random rnd = new System.Random();
-                int clipIndex = rnd.Next(0, moodTracks.Length - 1);
-                AudioClip currentTrack = moodTracks[clipIndex];
-                singularSfx.resource = currentTrack;
-                singularSfx.Play();
-                // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
-                singularSfx.loop = true;
+                if (sfxMode == SfxMode.VoicedSentence)
+                {
+                    singularSfx.Pause();
+                    AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.mood];
+                    System.Random rnd = new System.Random();
+                    int clipIndex = rnd.Next(0, moodTracks.Length - 1);
+                    AudioClip currentTrack = moodTracks[clipIndex];
+                    singularSfx.resource = currentTrack;
+                    singularSfx.Play();
+                    // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
+                    singularSfx.loop = true;
+                }
+
                 // todo: how would we go about looping our way through the moodtracks array instead of looping the current track only?
                 //  Since we're headed into a while loop that blockingly processes the whole sentence, an event handler for the end of track reached
                 //  may be required.
@@ -245,6 +247,10 @@ namespace WildsAdv
                     }
                     // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 } // end sentence
+                if (sfxMode == SfxMode.VoicedSentence)
+                {
+                    singularSfx.Pause();
+                }
                 // take a breath after sentence completion.
                 yield return new WaitForSeconds(breathDelayMs / 1000.0F);
             } // end text
