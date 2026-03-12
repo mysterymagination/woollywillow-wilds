@@ -14,7 +14,7 @@ namespace WildsAdv
         /**
          * Starting description.
          */
-        public string defaultDescription;
+        public TreasureText defaultDescription;
         /**
          * Simple no-arg UnityEvent that will Invoke() in OnInteract(), allowing any registered display handling that does not rely on input data to run.
          */
@@ -34,7 +34,7 @@ namespace WildsAdv
             DisplayHandler.Invoke();
 
             // Load the GenerateItemDescription() result into StoryText.
-            string desc = GenerateDescription();
+            TreasureText desc = GenerateDescription();
             GameObject storyTextObject = GameObject.FindWithTag("StoryText");
             TMP_Text storyText = storyTextObject.GetComponent<TMP_Text>();
             TypeWriter writer = storyTextObject.GetComponent<TypeWriter>();
@@ -49,7 +49,7 @@ namespace WildsAdv
                 }
                 else
                 {
-                    storyText.text = desc;
+                    storyText.text = desc.ToString();
                 }
             }
             else
@@ -57,7 +57,7 @@ namespace WildsAdv
                 Debug.LogError("Missing TMP_Text Component expected to display item description.");
             }
         }
-        public string GenerateDescription()
+        public TreasureText GenerateDescription()
         {
             return defaultDescription;
         }

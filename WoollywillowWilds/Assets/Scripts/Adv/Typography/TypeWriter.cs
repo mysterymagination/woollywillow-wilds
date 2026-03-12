@@ -180,6 +180,11 @@ namespace WildsAdv
             StartCoroutine(writeFunction);
         }
 
+        /// <summary>
+        /// Yields WaitForSeconds() for the configured period while looping over character chunks to type out for each sentence in the TextToTypeWrite TreasureText.
+        /// </summary>
+        /// <param name="initDelayMs">The number of ms to wait before running the first write event.</param>
+        /// <returns></returns>
         IEnumerator AsyncWrite(float initDelayMs)
         {
             yield return new WaitForSeconds(initDelayMs / 1000.0F);
@@ -231,7 +236,11 @@ namespace WildsAdv
                         sfxBlipIndex++;
                     }
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
+
+                    // write and update pos.
                     string storyChunkWritten = OnWriteEvent();
+                    textPosition += storyChunkWritten.Length;
+
                     if (sfxMode == SfxMode.BlipArray)
                     {
                         singularSfx.Pause();
@@ -259,8 +268,10 @@ namespace WildsAdv
         /// <summary>
         /// Executes write behavior, writing a chunk of characters to the text sink.
         /// </summary>
+        /// <param name="currentTextPosition">The current 0-based index into the current TreasureSentence's text property.</param>
+        /// <param name="currentSentence">The current TreasureSentence we're typing out.</param>
         /// <returns>The characters written in this chunk.</returns>
-        public string OnWriteEvent()
+        public string OnWriteEvent(int currentTextPosition, TreasureSentence currentSentence)
         {
             int derivedChunkSize = characterChunkSize;
             if (randomChunkSize)

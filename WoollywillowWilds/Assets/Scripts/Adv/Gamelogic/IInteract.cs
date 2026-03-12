@@ -1,6 +1,6 @@
 using UnityEngine.EventSystems;
 
-namespace WildsAdv 
+namespace WildsAdv
 {
     /// <summary>
     ///     Handles user interaction story progression e.g. via mouse click.
@@ -17,7 +17,7 @@ namespace WildsAdv
         /// <summary>
         ///     Method <c>GenerateDescription</c> generates and returns a string describing what happens when the player interacts with the implementing object.
         /// </summary>
-        /// <returns>A string describing what happens when the player interacted with this object, suitable for display in the story text view.</returns>
-        string GenerateDescription();
+        /// <returns>A TreasureText describing what happens when the player interacted with this object and the mood for context, with its ToString() suitable for display in the story text view.</returns>
+        TreasureText GenerateDescription();
     }
 }

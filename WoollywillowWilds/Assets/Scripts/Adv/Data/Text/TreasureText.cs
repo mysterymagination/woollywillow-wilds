@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace WildsAdv
 {
     public enum Mood
@@ -75,6 +77,22 @@ namespace WildsAdv
                     },
                 ]
             */
+        }
+
+        /// <summary>
+        /// Dumps the raw text of the TreasureText.Contents array into a basic string.
+        /// </summary>
+        /// <returns>string containing the text data only.</returns>
+        override public string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (TreasureSentence sentence in Contents)
+            {
+                sb.Append(sentence);
+                sb.Append(" ");
+            }
+            sb.Remove(sb.Length - 1, 1);
+            return sb.ToString();
         }
     }
 }
