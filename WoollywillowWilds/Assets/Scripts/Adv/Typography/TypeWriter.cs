@@ -167,13 +167,12 @@ namespace WildsAdv
         /// </summary>
         public void TypeWrite()
         {
-            writeFunction = AsyncWrite(0.0F);
+            writeFunction = AsyncWrite();
             if (sfxMode == SfxMode.VoicedSentence || sfxMode == SfxMode.BlipArray)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
             }
             sfxFunction = AsyncSfx(0, 0);
-            Debug.Log("WriteThing IEnumerator about to start is " + writeFunction + ", and a second call preparing that function gives us IEnumerator " + AsyncWrite(1.0F));
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
@@ -183,12 +182,9 @@ namespace WildsAdv
         /// <summary>
         /// Yields WaitForSeconds() for the configured period while looping over character chunks to type out for each sentence in the TextToTypeWrite TreasureText.
         /// </summary>
-        /// <param name="initDelayMs">The number of ms to wait before running the first write event.</param>
         /// <returns></returns>
-        IEnumerator AsyncWrite(float initDelayMs)
+        IEnumerator AsyncWrite()
         {
-            yield return new WaitForSeconds(initDelayMs / 1000.0F);
-            string initStoryChunkWritten = OnWriteEvent();
             foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
             {
                 textPosition = 0;
@@ -238,7 +234,7 @@ namespace WildsAdv
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
                     // write and update pos.
-                    string storyChunkWritten = OnWriteEvent();
+                    string storyChunkWritten = OnWriteEvent(textPosition, currentTreasureSentence);
                     textPosition += storyChunkWritten.Length;
 
                     if (sfxMode == SfxMode.BlipArray)
@@ -281,19 +277,16 @@ namespace WildsAdv
                 derivedChunkSize = Math.Clamp(derivedChunkSize, 1, int.MaxValue);
             }
             // check that we have derivedChunkSize characters left. If not, send the last of what we have.
-            if (textPosition + derivedChunkSize > TextToTypeWrite.Length)
+            if (currentTextPosition + derivedChunkSize > currentSentence.text.Length)
             {
-                derivedChunkSize = TextToTypeWrite.Length - textPosition;
+                derivedChunkSize = currentSentence.text.Length - currentTextPosition;
             }
             Debug.Log("Story chunk size: " + derivedChunkSize);
-            string storyChunk = TextToTypeWrite.Substring(textPosition, derivedChunkSize);
+            string storyChunk = currentSentence.text.Substring(currentTextPosition, derivedChunkSize);
             Debug.Log("Writing story chunk: " + storyChunk);
             if (targetTextViewComponent)
             {
                 targetTextViewComponent.text += storyChunk;
-                Debug.Log("Full story text is now: {" + targetTextViewComponent.text + "}.");
-                // update textPosition to the next unwritten segment.
-                textPosition += derivedChunkSize;
                 return storyChunk;
             }
             else
@@ -405,7 +398,7 @@ namespace WildsAdv
             {
                 if (targetTextViewComponent)
                 {
-                    targetTextViewComponent.text = TextToTypeWrite;
+                    targetTextViewComponent.text = TextToTypeWrite.ToString();
                 }
                 else
                 {
