@@ -691,6 +691,7 @@ MonoBehaviour:
   characterChunkSize: 1
   randomChunkSize: 1
   randomChunkSizeRange: 2
+  sfxMode: 2
   typingSfxBlipArray:
   - {fileID: 8300000, guid: 9de5b7ba9f601b04898c13a459f09f21, type: 3}
   - {fileID: 8300000, guid: 749f3fb1a3e1c254bafc61646b5c91ee, type: 3}
@@ -1724,8 +1725,45 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
+      propertyPath: defaultDescription.Contents.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[0].mood
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[0].text
+      value: She's so pretty!
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[1].text
+      value: Her name's Lily Littlebush.
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[2].text
+      value: 'Let''s take a look at her story:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[3].text
+      value: she sits in the center of the garden, keeping good and gentle watch,
+        patting puppies as they play.
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: defaultDescription.Contents.Array.data[4].text
+      value: she sits in the center of the garden, keeping good and gentle watch,
+        patting puppies as they play.
       objectReference: {fileID: 0}
     - target: {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
@@ -2096,7 +2134,8 @@ PrefabInstance:
       propertyPath: m_ReferenceResolution.x
       value: 256
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2007129098454255646, guid: b9cd15040409ab648ab5d444cc8dfb6c, type: 3}
     m_RemovedGameObjects:
     - {fileID: 2830048177972175123, guid: b9cd15040409ab648ab5d444cc8dfb6c, type: 3}
     m_AddedGameObjects:
@@ -2129,6 +2168,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 6388059958434242667}
+    - targetCorrespondingSourceObject: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6388059958434242670}
     - targetCorrespondingSourceObject: {fileID: 3164335655978825420, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       insertIndex: -1
@@ -2184,6 +2227,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.CameraZoomControl
   zoomRate: 50
   magnificationFactor: 2
+--- !u!114 &6388059958434242670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6388059958434242666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a4bf9a441f5894c84b48d1c669f1f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.RoomInteraction
+  objectID: LillyLittlebush
+  defaultDescription:
+    Contents:
+    - text: She's so pretty!
+      mood: 1
+    - text: Her name's Lily Littlebush.
+      mood: 0
+    - text: 'Let''s take a look at her story:'
+      mood: 0
+    - text: she sits in the center of the garden, keeping good and gentle watch,
+        patting puppies as they play.
+      mood: 0
+  DisplayHandler:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6388059958434242667}
+        m_TargetAssemblyTypeName: WildsAdv.ItemCanvasLoader, Assembly-CSharp
+        m_MethodName: CanvasLoadHandler
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

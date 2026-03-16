@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 namespace WildsAdv
@@ -12,6 +13,8 @@ namespace WildsAdv
         Serious,
         Neutral
     }
+
+    [Serializable]
     public class TreasureSentence
     {
         public string text = "";
@@ -21,6 +24,7 @@ namespace WildsAdv
     /// A text string in which each sentence can be associated with a mood; these will help inform
     /// which voice sfx track/segment should play for that sentence.
     /// </summary>
+    [Serializable]
     public class TreasureText
     {
         /**
