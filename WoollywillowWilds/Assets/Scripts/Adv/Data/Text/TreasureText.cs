@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace WildsAdv
 {
@@ -17,8 +22,13 @@ namespace WildsAdv
     [Serializable]
     public class TreasureSentence
     {
-        public string text = "";
-        public Mood mood = Mood.Neutral;
+        public TreasureSentence(string text, Mood mood)
+        {
+            SentenceText = text;
+            SentenceMood = mood;
+        }
+        public string SentenceText { get; set; }
+        public Mood SentenceMood { get; set; } = Mood.Neutral;
     }
     /// <summary>
     /// A text string in which each sentence can be associated with a mood; these will help inform
@@ -31,23 +41,82 @@ namespace WildsAdv
          * An ordered array of TreasureSentences, each associated with relevant Mood and presented in the
          * desired sequence for the final text rendering.
          */
-        public TreasureSentence[] Contents;
+        public List<TreasureSentence> Contents;
 
         public void ParseAnnotatedText(string annotatedText)
         {
-            // todo: parse a mood annotated string into the Contents array.
+            Mood currentMood = Mood.Neutral;
+            int currentTextPosition = 0;
+            int nextAnnotationPosition = 0;
+            string annotationTokenOpener = "[@";
+            string annotationTokenCloser = "@]";
+            string fullstopPattern = "[.!?:;…]";
+
+            while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) > 0)
+            {
+                int textProcessed = 0;
+                Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+                if (nextFullstop.Index < nextAnnotationPosition)
+                {
+                    // mood continuation case, append next sentence substring to current mood bucket.
+                    string currentMoodSentences = annotatedText.Substring(currentTextPosition, nextAnnotationPosition);
+                    string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
+                    foreach (string sentence in currentMoodSentencesArray)
+                    {
+                        Contents.Add(new TreasureSentence(sentence, currentMood));
+                        textProcessed += sentence.Length;
+                    }
+                }
+                else
+                {
+                    // new mood case; parse it out and reset currentMood.
+                    int nextCloseTokenPosition = annotatedText.IndexOf(annotationTokenCloser, currentTextPosition);
+                    int moodTokenLength = nextCloseTokenPosition - currentTextPosition;
+                    string moodString = annotatedText.Substring(nextAnnotationPosition + 1, moodTokenLength);
+                    currentMood = moodString.ToLower() switch
+                    {
+                        "happy" => Mood.Happy,
+                        "enthusiastic" => Mood.Enthusiastic,
+                        "angry" => Mood.Angry,
+                        "sad" => Mood.Sad,
+                        "sultry" => Mood.Sultry,
+                        "serious" => Mood.Serious,
+                        "neutral" => Mood.Neutral,
+                        _ => Mood.Happy
+                    };
+                    textProcessed += annotationTokenOpener.Length + annotationTokenCloser.Length + moodString.Length;
+                }
+
+                // update currentTextPosition
+                currentTextPosition += textProcessed;
+                Math.Clamp(currentTextPosition, 0, annotatedText.Length - 1);
+            }
+            // catch the last set of current mood sentence(s), since above loop will exit once we run out of annotations and will therefore leave the last annotated substring.
+            if (currentTextPosition < annotatedText.Length - 1)
+            {
+                string currentMoodSentences = annotatedText.Substring(currentTextPosition, annotatedText.Length - currentTextPosition);
+                string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
+                foreach (string sentence in currentMoodSentencesArray)
+                {
+                    Contents.Add(new TreasureSentence(sentence, currentMood));
+                }
+            }
+
+            // parse a mood annotated string into the Contents array.
+            /// Algo:
+            /// 1. Assume current mood of neutral and current text position P that begins at 0.
+            /// 2. Find next `[@` token position A.
+            /// 3. If A != NPOS: working case
+            ///     4. Find the next fullstop token position S after P.
+            ///     5. If S < A: mood continuation case
+            ///         a. Take the text from P..A and split it over fullstop characters.
+            ///         b. Add each sentence array element to the current mood bucket.
+            ///     6. Else:
+            ///         a. Match the text between `[@` token and `]` token to a mood and set that as the current mood.
+            ///     7. Loop 2
             /*
                 e.g.
-                "
-                @neutral
-                hello. I am fine. How are you?
-
-                @enthusiastic
-                whaaaaaat's good, bb?
-
-                @sultry
-                oooooh my~! That's what she said. That's what he said.
-                "
+                "[@neutral]hello. I am fine. How are you? [@happy]The day, she is warm! I wonder if the chipmunks will return? Godsend it so! [@enthusiastic]whaaaaaat's good, bb? [@sultry]oooooh my~! That's what she said. That's what he said."
 
                 would produce the Contents:
                 [
