@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,6 +44,43 @@ namespace WildsAdv
          */
         public List<TreasureSentence> Contents;
 
+        public static Mood StringToMood(string moodString)
+        {
+            if (moodString.Equals(Mood.Happy.ToString().ToLower()))
+            {
+                return Mood.Happy;
+            }
+            else if (moodString.Equals(Mood.Enthusiastic.ToString().ToLower()))
+            {
+                return Mood.Enthusiastic;
+            }
+            else if (moodString.Equals(Mood.Angry.ToString().ToLower()))
+            {
+                return Mood.Angry;
+            }
+            else if (moodString.Equals(Mood.Neutral.ToString().ToLower()))
+            {
+                return Mood.Neutral;
+            }
+            else if (moodString.Equals(Mood.Sad.ToString().ToLower()))
+            {
+                return Mood.Sad;
+            }
+            else if (moodString.Equals(Mood.Serious.ToString().ToLower()))
+            {
+                return Mood.Serious;
+            }
+            else if (moodString.Equals(Mood.Sultry.ToString().ToLower()))
+            {
+                return Mood.Sultry;
+            }
+            else
+            {
+                Debug.LogWarning("Input string " + moodString + " does not match any known moods. Happy by default!");
+                return Mood.Happy;
+            }
+        }
+
         public void ParseAnnotatedText(string annotatedText)
         {
             Mood currentMood = Mood.Neutral;
@@ -72,18 +110,8 @@ namespace WildsAdv
                     // new mood case; parse it out and reset currentMood.
                     int nextCloseTokenPosition = annotatedText.IndexOf(annotationTokenCloser, currentTextPosition);
                     int moodTokenLength = nextCloseTokenPosition - currentTextPosition;
-                    string moodString = annotatedText.Substring(nextAnnotationPosition + 1, moodTokenLength);
-                    currentMood = moodString.ToLower() switch
-                    {
-                        "happy" => Mood.Happy,
-                        "enthusiastic" => Mood.Enthusiastic,
-                        "angry" => Mood.Angry,
-                        "sad" => Mood.Sad,
-                        "sultry" => Mood.Sultry,
-                        "serious" => Mood.Serious,
-                        "neutral" => Mood.Neutral,
-                        _ => Mood.Happy
-                    };
+                    string moodString = annotatedText.Substring(nextAnnotationPosition + 1, moodTokenLength).ToLower();
+                    currentMood = StringToMood(moodString);
                     textProcessed += annotationTokenOpener.Length + annotationTokenCloser.Length + moodString.Length;
                 }
 
