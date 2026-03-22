@@ -191,7 +191,7 @@ namespace WildsAdv
                 if (sfxMode == SfxMode.VoicedSentence)
                 {
                     singularSfx.Pause();
-                    AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.mood];
+                    AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
                     System.Random rnd = new System.Random();
                     int clipIndex = rnd.Next(0, moodTracks.Length - 1);
                     AudioClip currentTrack = moodTracks[clipIndex];
@@ -207,7 +207,7 @@ namespace WildsAdv
                 //  EDIT: looks like there's no clean way to do that. Copilot suggests a jank coroutine that polls while(clip.isPlaying()) and yields if
                 //  true, and if false iterates forward in a forearch clip loop. I suppose that's fine, if bizarre, since we can stop that coroutine and
                 //  pause the singularSfx AudioSource as necessary at this level.
-                while (textPosition < currentTreasureSentence.text.Length)
+                while (textPosition < currentTreasureSentence.SentenceText.Length)
                 {
                     // calculate our writeevent period
                     float loopPeriodMs = typeWriterDelayMilliseconds;
@@ -277,12 +277,12 @@ namespace WildsAdv
                 derivedChunkSize = Math.Clamp(derivedChunkSize, 1, int.MaxValue);
             }
             // check that we have derivedChunkSize characters left. If not, send the last of what we have.
-            if (currentTextPosition + derivedChunkSize > currentSentence.text.Length)
+            if (currentTextPosition + derivedChunkSize > currentSentence.SentenceText.Length)
             {
-                derivedChunkSize = currentSentence.text.Length - currentTextPosition;
+                derivedChunkSize = currentSentence.SentenceText.Length - currentTextPosition;
             }
             Debug.Log("Story chunk size: " + derivedChunkSize);
-            string storyChunk = currentSentence.text.Substring(currentTextPosition, derivedChunkSize);
+            string storyChunk = currentSentence.SentenceText.Substring(currentTextPosition, derivedChunkSize);
             Debug.Log("Writing story chunk: " + storyChunk);
             if (targetTextViewComponent)
             {

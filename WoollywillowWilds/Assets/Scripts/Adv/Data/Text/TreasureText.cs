@@ -28,7 +28,9 @@ namespace WildsAdv
             SentenceText = text;
             SentenceMood = mood;
         }
+        [field: SerializeField]
         public string SentenceText { get; set; }
+        [field: SerializeField]
         public Mood SentenceMood { get; set; } = Mood.Neutral;
     }
     /// <summary>
