@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Tutorials.Core.Editor;
 using UnityEngine;
-using System.Text.RegularExpressions;
 
 namespace WildsAdv
 {
@@ -65,6 +65,10 @@ namespace WildsAdv
         /// An amount of characters more or less than characterChunkSize (clamped at 0 floor) to pull from the source TextToTypeWrite per OnWriteEvent().
         /// </summary>
         public int randomChunkSizeRange = 0;
+        /// <summary>
+        /// An annotated script to be parsed by TreasureText.ParseAnnotatedText() which will be used in OnStart() to populate TextToTypeWrite.Contents if Contents is empty.
+        /// </summary>
+        public TextAsset treasureTextAsset;
         /// <summary>
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
@@ -149,6 +153,15 @@ namespace WildsAdv
         /// Mapping of text mood associations to an array of suitable sfx clips.
         /// </summary>
         public Dictionary<Mood, AudioClip[]> voiceSfxSegmentMap;
+
+        void Start()
+        {
+            if (TextToTypeWrite.Contents.Count == 0 && !String.IsNullOrEmpty(treasureTextAsset.text))
+            {
+                Debug.Log("Parsing " + treasureTextAsset.name + " for our treasuretext contents.");
+                TextToTypeWrite.ParseAnnotatedText(treasureTextAsset.text);
+            }
+        }
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.

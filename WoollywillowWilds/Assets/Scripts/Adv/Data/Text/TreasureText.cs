@@ -32,6 +32,11 @@ namespace WildsAdv
         public string SentenceText { get; set; }
         [field: SerializeField]
         public Mood SentenceMood { get; set; } = Mood.Neutral;
+
+        override public string ToString()
+        {
+            return "{\n  \"text\": \"" + SentenceText + "\",\n  \"mood\": \"" + SentenceMood + "\"\n}";
+        }
     }
     /// <summary>
     /// A text string in which each sentence can be associated with a mood; these will help inform
@@ -130,6 +135,11 @@ namespace WildsAdv
                 {
                     Contents.Add(new TreasureSentence(sentence, currentMood));
                 }
+            }
+
+            foreach (TreasureSentence sentence in Contents)
+            {
+                Debug.Log("Parsed treasure sentence: " + sentence.ToString());
             }
 
             // parse a mood annotated string into the Contents array.
