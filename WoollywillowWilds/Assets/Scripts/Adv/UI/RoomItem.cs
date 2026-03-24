@@ -15,6 +15,10 @@ namespace WildsAdv
          * Starting description.
          */
         public TreasureText defaultDescription;
+        /// <summary>
+        /// An annotated script to be parsed by TreasureText.ParseAnnotatedText() which will be used in OnStart() to populate TextToTypeWrite.Contents if Contents is empty.
+        /// </summary>
+        public TextAsset descriptionTextAsset;
         /**
          * Simple no-arg UnityEvent that will Invoke() in OnInteract(), allowing any registered display handling that does not rely on input data to run.
          */
@@ -59,6 +63,11 @@ namespace WildsAdv
         }
         public TreasureText GenerateDescription()
         {
+            if (defaultDescription.Contents.Count == 0 && !System.String.IsNullOrEmpty(descriptionTextAsset.text))
+            {
+                Debug.Log("Parsing " + descriptionTextAsset.name + " for our treasuretext contents.");
+                defaultDescription.ParseAnnotatedText(descriptionTextAsset.text);
+            }
             return defaultDescription;
         }
     }

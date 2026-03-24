@@ -88,6 +88,12 @@ namespace WildsAdv
             }
         }
 
+        /// <summary>
+        /// Parses the given string for mood annotations and then populates this instance's Contents array with sentence(s) and associated mood in the required sequence to have
+        /// the complete text passage make sense.
+        /// todo: support multi-mooded sentences?
+        /// </summary>
+        /// <param name="annotatedText">A text string annotated with mood e.g. [@happy@]</param>
         public void ParseAnnotatedText(string annotatedText)
         {
             Mood currentMood = Mood.Neutral;
