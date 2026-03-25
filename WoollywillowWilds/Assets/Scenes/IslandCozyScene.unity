@@ -2119,6 +2119,23 @@ PrefabInstance:
         thus begins the tale!And thus begins the tale!And thus begins the tale! Dragons
         and fishes and so forth and so on cthulhus galore, why not?"
       objectReference: {fileID: 0}
+    - target: {fileID: 8268417133129711484, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 88003508be39e449cb51c48494e680cf,
+        type: 2}
+    - target: {fileID: 8268417133129711484, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 21699584260080902, guid: 88003508be39e449cb51c48494e680cf,
+        type: 2}
+    - target: {fileID: 8268417133129711484, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8990173718042625424, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       propertyPath: m_Sprite
