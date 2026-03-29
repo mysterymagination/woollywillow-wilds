@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEditor;
 using WildsAdv;
 
 public class TreasureTextTestScript
@@ -10,7 +11,7 @@ public class TreasureTextTestScript
     [Test]
     public void ParseMoodAnnotationHappyPath()
     {
-        string testText = Resources.Load<TextAsset>("LillyLittlebush_TestDesc.txt").text;
+        string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/LillyLittlebush_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
         systemUnderText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(4));
