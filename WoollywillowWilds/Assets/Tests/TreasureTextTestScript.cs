@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
-//using WildsAdv;
+using WildsAdv;
 
 public class TreasureTextTestScript
 {
@@ -11,7 +11,17 @@ public class TreasureTextTestScript
     public void ParseMoodAnnotationHappyPath()
     {
         string testText = Resources.Load<TextAsset>("LillyLittlebush_TestDesc.txt").text;
-        //TreasureText systemUnderText = new TreasureText();
+        TreasureText systemUnderText = new TreasureText();
+        systemUnderText.ParseAnnotatedText(testText);
+        Assert.That(systemUnderText.Contents.Count, Is.EqualTo(4));
+        TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "She's so pretty!");
+        TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Sultry, "Her name's Lily Littlebush.");
+        TreasureSentence expectedSentence3 = new TreasureSentence(Mood.Happy, "Let's take a look at her story:");
+        TreasureSentence expectedSentence4 = new TreasureSentence(Mood.Happy, "she sits in the center of the garden, keeping good and gentle watch, patting puppies as they play.");
+        Assert.That(systemUnderText.Contents[0], Is.EqualTo(expectedSentence1));
+        Assert.That(systemUnderText.Contents[1], Is.EqualTo(expectedSentence2));
+        Assert.That(systemUnderText.Contents[2], Is.EqualTo(expectedSentence3));
+        Assert.That(systemUnderText.Contents[3], Is.EqualTo(expectedSentence4));
     }
 
     /// <summary>

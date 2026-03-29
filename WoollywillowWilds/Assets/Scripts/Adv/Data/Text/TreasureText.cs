@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using Palmmedia.ReportGenerator.Core.Common;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,19 +25,30 @@ namespace WildsAdv
     [Serializable]
     public class TreasureSentence
     {
-        public TreasureSentence(string text, Mood mood)
+        public TreasureSentence(Mood mood, string text)
         {
             SentenceText = text;
             SentenceMood = mood;
         }
         [field: SerializeField]
-        public string SentenceText { get; set; }
+        public string SentenceText { get; }
         [field: SerializeField]
-        public Mood SentenceMood { get; set; } = Mood.Neutral;
+        public Mood SentenceMood { get; } = Mood.Neutral;
 
         override public string ToString()
         {
             return "{\n  \"text\": \"" + SentenceText + "\",\n  \"mood\": \"" + SentenceMood + "\"\n}";
+        }
+
+        public override bool Equals(object obj)
+        {
+            TreasureSentence otherSentence = (TreasureSentence)obj;
+            return otherSentence.SentenceMood == this.SentenceMood
+            && otherSentence.SentenceText.Equals(this.SentenceText);
+        }
+        public override int GetHashCode()
+        {
+            return JsonUtility.ToJson(this).GetHashCode();
         }
     }
     /// <summary>
@@ -114,7 +127,7 @@ namespace WildsAdv
                     string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                     foreach (string sentence in currentMoodSentencesArray)
                     {
-                        Contents.Add(new TreasureSentence(sentence, currentMood));
+                        Contents.Add(new TreasureSentence(currentMood, sentence));
                         textProcessed += sentence.Length;
                     }
                 }
@@ -139,7 +152,7 @@ namespace WildsAdv
                 string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                 foreach (string sentence in currentMoodSentencesArray)
                 {
-                    Contents.Add(new TreasureSentence(sentence, currentMood));
+                    Contents.Add(new TreasureSentence(currentMood, sentence));
                 }
             }
 

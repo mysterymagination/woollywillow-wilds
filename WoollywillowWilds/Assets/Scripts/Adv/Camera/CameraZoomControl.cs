@@ -4,7 +4,6 @@ using UnityEngine.EventSystems;
 using System.Text;
 using System.Linq;
 using System;
-using Microsoft.Unity.VisualStudio.Editor;
 
 
 namespace WildsAdv
