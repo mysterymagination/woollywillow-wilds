@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Mono.Cecil.Cil;
 using Palmmedia.ReportGenerator.Core.Common;
 using Unity.Collections;
 using UnityEngine;
@@ -62,7 +63,7 @@ namespace WildsAdv
          * An ordered array of TreasureSentences, each associated with relevant Mood and presented in the
          * desired sequence for the final text rendering.
          */
-        public List<TreasureSentence> Contents;
+        public List<TreasureSentence> Contents = new List<TreasureSentence>();
 
         public static Mood StringToMood(string moodString)
         {
@@ -111,15 +112,19 @@ namespace WildsAdv
         {
             Mood currentMood = Mood.Neutral;
             int currentTextPosition = 0;
-            int nextAnnotationPosition = 0;
+            int nextAnnotationPosition;
             string annotationTokenOpener = "[@";
             string annotationTokenCloser = "@]";
             string fullstopPattern = "[.!?:;…]";
 
-            while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) > 0)
+            nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition);
+            Debug.Log("nextannotationpos is " + nextAnnotationPosition);
+
+            while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
                 int textProcessed = 0;
                 Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+                Debug.Log("nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop occurs at " + nextFullstop.Index);
                 if (nextFullstop.Index < nextAnnotationPosition)
                 {
                     // mood continuation case, append next sentence substring to current mood bucket.
@@ -135,8 +140,9 @@ namespace WildsAdv
                 {
                     // new mood case; parse it out and reset currentMood.
                     int nextCloseTokenPosition = annotatedText.IndexOf(annotationTokenCloser, currentTextPosition);
-                    int moodTokenLength = nextCloseTokenPosition - currentTextPosition;
-                    string moodString = annotatedText.Substring(nextAnnotationPosition + 1, moodTokenLength).ToLower();
+                    int firstMoodCharacterPosition = nextAnnotationPosition + annotationTokenOpener.Length;
+                    int moodTokenLength = nextCloseTokenPosition - firstMoodCharacterPosition;
+                    string moodString = annotatedText.Substring(firstMoodCharacterPosition, moodTokenLength).ToLower();
                     currentMood = StringToMood(moodString);
                     textProcessed += annotationTokenOpener.Length + annotationTokenCloser.Length + moodString.Length;
                 }
@@ -149,10 +155,21 @@ namespace WildsAdv
             if (currentTextPosition < annotatedText.Length - 1)
             {
                 string currentMoodSentences = annotatedText.Substring(currentTextPosition, annotatedText.Length - currentTextPosition);
+                Debug.Log("currentMoodSentences in the sweep is: " + currentMoodSentences);
                 string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
+                // todo: we lose the fullstop pattern itself using this method; might need to use a lookahead instead of split so we don't toss the match out the window.
                 foreach (string sentence in currentMoodSentencesArray)
                 {
-                    Contents.Add(new TreasureSentence(currentMood, sentence));
+                    Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+                    string trimmedSentence = sentence.Trim() + nextFullstop;
+                    // If there's a fullstop pattern at the end of the text, we get a bogus empty string
+                    // as an extra array element.
+                    if (trimmedSentence.Length > 0)
+                    {
+                        Debug.Log("sweep sentence split over fullstop: " + trimmedSentence);
+                        Contents.Add(new TreasureSentence(currentMood, trimmedSentence));
+                    }
+                    currentTextPosition += sentence.Length + nextFullstop.Length;
                 }
             }
 
