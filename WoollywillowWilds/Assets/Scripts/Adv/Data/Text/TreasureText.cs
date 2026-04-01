@@ -124,16 +124,31 @@ namespace WildsAdv
             {
                 int textProcessed = 0;
                 Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
-                Debug.Log("nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop occurs at " + nextFullstop.Index);
-                if (nextFullstop.Index < nextAnnotationPosition)
+                int absoluteMatchPosition = nextFullstop.Index + currentTextPosition;
+                Debug.Log("nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop " + nextFullstop + " occurs at " + absoluteMatchPosition);
+                if (absoluteMatchPosition < nextAnnotationPosition)
                 {
                     // mood continuation case, append next sentence substring to current mood bucket.
-                    string currentMoodSentences = annotatedText.Substring(currentTextPosition, nextAnnotationPosition);
+                    int currentMoodTextSpan = nextAnnotationPosition - currentTextPosition;
+                    string currentMoodSentences = annotatedText.Substring(currentTextPosition, currentMoodTextSpan);
                     string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                     foreach (string sentence in currentMoodSentencesArray)
                     {
-                        Contents.Add(new TreasureSentence(currentMood, sentence));
-                        textProcessed += sentence.Length;
+                        Match nextFullstopInContinuation = Regex.Match(annotatedText.Substring(currentTextPosition + textProcessed, currentMoodTextSpan - textProcessed), fullstopPattern);
+                        string reconstructedSentence = sentence.Trim() + nextFullstopInContinuation;
+                        // Split will give us an empty string on the far side of the final real split element.
+                        if (reconstructedSentence.Length > 0)
+                        {
+                            TreasureSentence treasureSentence = new TreasureSentence(currentMood, reconstructedSentence);
+                            Debug.Log("Mood continuation case; adding treasuresentence " + treasureSentence.ToString());
+                            Contents.Add(treasureSentence);
+                            textProcessed += reconstructedSentence.Length;
+                            Debug.Log("Mood continuation case; text processed this frame: " + textProcessed);
+                        }
+                        else
+                        {
+                            Debug.Log("Mood continuation case; ignoring everything else split text \"" + reconstructedSentence + "\"");
+                        }
                     }
                 }
                 else
@@ -144,12 +159,15 @@ namespace WildsAdv
                     int moodTokenLength = nextCloseTokenPosition - firstMoodCharacterPosition;
                     string moodString = annotatedText.Substring(firstMoodCharacterPosition, moodTokenLength).ToLower();
                     currentMood = StringToMood(moodString);
+                    Debug.Log("New mood case; current mood set to: " + currentMood);
                     textProcessed += annotationTokenOpener.Length + annotationTokenCloser.Length + moodString.Length;
+                    Debug.Log("New mood case; text processed this frame: " + textProcessed);
                 }
 
                 // update currentTextPosition
                 currentTextPosition += textProcessed;
                 Math.Clamp(currentTextPosition, 0, annotatedText.Length - 1);
+                Debug.Log("Current text pos is: " + currentTextPosition);
             }
             // catch the last set of current mood sentence(s), since above loop will exit once we run out of annotations and will therefore leave the last annotated substring.
             if (currentTextPosition < annotatedText.Length - 1)
@@ -161,13 +179,13 @@ namespace WildsAdv
                 foreach (string sentence in currentMoodSentencesArray)
                 {
                     Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
-                    string trimmedSentence = sentence.Trim() + nextFullstop;
+                    string reconstructedSentence = sentence.Trim() + nextFullstop;
                     // If there's a fullstop pattern at the end of the text, we get a bogus empty string
                     // as an extra array element.
-                    if (trimmedSentence.Length > 0)
+                    if (reconstructedSentence.Length > 0)
                     {
-                        Debug.Log("sweep sentence split over fullstop: " + trimmedSentence);
-                        Contents.Add(new TreasureSentence(currentMood, trimmedSentence));
+                        Debug.Log("sweep sentence split over fullstop: " + reconstructedSentence);
+                        Contents.Add(new TreasureSentence(currentMood, reconstructedSentence));
                     }
                     currentTextPosition += sentence.Length + nextFullstop.Length;
                 }
