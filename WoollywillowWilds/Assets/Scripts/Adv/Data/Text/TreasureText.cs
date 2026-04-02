@@ -150,6 +150,8 @@ namespace WildsAdv
                             Debug.Log("Mood continuation case; ignoring everything else split text \"" + reconstructedSentence + "\"");
                         }
                     }
+                    // jump to opening of next annotation.
+                    currentTextPosition = nextAnnotationPosition;
                 }
                 else
                 {
@@ -175,7 +177,6 @@ namespace WildsAdv
                 string currentMoodSentences = annotatedText.Substring(currentTextPosition, annotatedText.Length - currentTextPosition);
                 Debug.Log("currentMoodSentences in the sweep is: " + currentMoodSentences);
                 string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
-                // todo: we lose the fullstop pattern itself using this method; might need to use a lookahead instead of split so we don't toss the match out the window.
                 foreach (string sentence in currentMoodSentencesArray)
                 {
                     Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
