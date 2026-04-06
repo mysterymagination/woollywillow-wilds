@@ -112,9 +112,10 @@ namespace WildsAdv
         /// the complete text passage make sense.
         /// todo: support multi-mooded sentences?
         /// </summary>
-        /// <param name="annotatedText">A text string annotated with mood e.g. [@happy@]</param>
-        public void ParseAnnotatedText(string annotatedText)
+        /// <param name="rawAnnotatedText">A text string annotated with mood e.g. [@happy@]</param>
+        public void ParseAnnotatedText(string rawAnnotatedText)
         {
+            string annotatedText = rawAnnotatedText.Trim();
             Mood currentMood = Mood.Neutral;
             int currentTextPosition = 0;
             int nextAnnotationPosition;
