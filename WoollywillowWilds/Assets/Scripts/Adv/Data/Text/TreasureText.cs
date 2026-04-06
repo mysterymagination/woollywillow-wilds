@@ -20,6 +20,7 @@ namespace WildsAdv
         Sad,
         Sultry,
         Serious,
+        Curious,
         Neutral
     }
 
@@ -95,6 +96,10 @@ namespace WildsAdv
             {
                 return Mood.Sultry;
             }
+            else if (moodString.Equals(Mood.Curious.ToString().ToLower()))
+            {
+                return Mood.Curious;
+            }
             else
             {
                 Debug.LogWarning("Input string " + moodString + " does not match any known moods. Happy by default!");
@@ -116,9 +121,6 @@ namespace WildsAdv
             string annotationTokenOpener = "[@";
             string annotationTokenCloser = "@]";
             string fullstopPattern = "[.!?:;…]";
-
-            nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition);
-            Debug.Log("nextannotationpos is " + nextAnnotationPosition);
 
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
@@ -152,6 +154,7 @@ namespace WildsAdv
                     }
                     // jump to opening of next annotation.
                     currentTextPosition = nextAnnotationPosition;
+                    Debug.Log("Mood continuation case; jumped currentTextPosition to " + currentTextPosition);
                 }
                 else
                 {
@@ -164,18 +167,18 @@ namespace WildsAdv
                     Debug.Log("New mood case; current mood set to: " + currentMood);
                     textProcessed += annotationTokenOpener.Length + annotationTokenCloser.Length + moodString.Length;
                     Debug.Log("New mood case; text processed this frame: " + textProcessed);
-                }
 
-                // update currentTextPosition
-                currentTextPosition += textProcessed;
-                Math.Clamp(currentTextPosition, 0, annotatedText.Length - 1);
-                Debug.Log("Current text pos is: " + currentTextPosition);
+                    // update currentTextPosition
+                    currentTextPosition += textProcessed;
+                    Math.Clamp(currentTextPosition, 0, annotatedText.Length - 1);
+                    Debug.Log("Current text pos incremented by textProcessed (" + textProcessed + ") is: " + currentTextPosition);
+                }
             }
             // catch the last set of current mood sentence(s), since above loop will exit once we run out of annotations and will therefore leave the last annotated substring.
             if (currentTextPosition < annotatedText.Length - 1)
             {
                 string currentMoodSentences = annotatedText.Substring(currentTextPosition, annotatedText.Length - currentTextPosition);
-                Debug.Log("currentMoodSentences in the sweep is: " + currentMoodSentences);
+                Debug.Log("currentMoodSentences in the sweep is: " + currentMoodSentences + ", and currenttextpos landed at " + currentTextPosition);
                 string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                 foreach (string sentence in currentMoodSentencesArray)
                 {
