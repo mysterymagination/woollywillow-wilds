@@ -121,7 +121,7 @@ namespace WildsAdv
             int nextAnnotationPosition;
             string annotationTokenOpener = "[@";
             string annotationTokenCloser = "@]";
-            string fullstopPattern = "[.!?:;…]";
+            string fullstopPattern = "[.!?:;…]+";
 
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
@@ -134,6 +134,7 @@ namespace WildsAdv
                     // mood continuation case, append next sentence substring to current mood bucket.
                     int currentMoodTextSpan = nextAnnotationPosition - currentTextPosition;
                     string currentMoodSentences = annotatedText.Substring(currentTextPosition, currentMoodTextSpan);
+                    Debug.Log("Mood continuation case; current mood sentences are: " + currentMoodSentences);
                     string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                     foreach (string sentence in currentMoodSentencesArray)
                     {
@@ -145,7 +146,7 @@ namespace WildsAdv
                             TreasureSentence treasureSentence = new TreasureSentence(currentMood, reconstructedSentence);
                             Debug.Log("Mood continuation case; adding treasuresentence " + treasureSentence.ToString());
                             Contents.Add(treasureSentence);
-                            textProcessed += reconstructedSentence.Length;
+                            textProcessed += sentence.Length + nextFullstopInContinuation.Length;
                             Debug.Log("Mood continuation case; text processed this frame: " + textProcessed);
                         }
                         else
