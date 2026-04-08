@@ -63,7 +63,7 @@ namespace WildsAdv
         }
         public TreasureText GenerateDescription()
         {
-            if (defaultDescription.Contents.Count == 0 && !string.IsNullOrEmpty(descriptionTextAsset.text))
+            if (defaultDescription.Contents.Count == 0 && descriptionTextAsset != null && !string.IsNullOrEmpty(descriptionTextAsset.text))
             {
                 Debug.Log("Parsing " + descriptionTextAsset.name + " for our treasuretext contents.");
                 defaultDescription.ParseAnnotatedText(descriptionTextAsset.text);

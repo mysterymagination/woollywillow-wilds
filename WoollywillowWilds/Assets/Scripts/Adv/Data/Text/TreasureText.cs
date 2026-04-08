@@ -24,6 +24,11 @@ namespace WildsAdv
         Neutral
     }
 
+    /// <summary>
+    /// A sentence containing associated mood and text. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
+    /// based on the property values; it can be dangerous to have runtime-mutable values used to derive a hashcode since that could lead to the hashcode changing while the
+    /// object is stored in a hashtable in-memory.
+    /// </summary>
     [Serializable]
     public class TreasureSentence
     {
@@ -33,9 +38,9 @@ namespace WildsAdv
             SentenceMood = mood;
         }
         [field: SerializeField]
-        public string SentenceText { get; }
+        public string SentenceText { get; private set; }
         [field: SerializeField]
-        public Mood SentenceMood { get; } = Mood.Neutral;
+        public Mood SentenceMood { get; private set; } = Mood.Neutral;
 
         override public string ToString()
         {

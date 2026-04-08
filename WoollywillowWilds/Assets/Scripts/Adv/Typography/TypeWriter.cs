@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PlasticGui.WorkspaceWindow;
 using TMPro;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ namespace WildsAdv
          */
         KeyHammer,
         /// <summary>
-        /// A mix of keyhammer and voice tone, we use a singular AudioSource to plau through a large array of short AudioClips.
+        /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips.
         /// </summary>
         BlipArray,
         /**
@@ -145,9 +146,16 @@ namespace WildsAdv
         /// </summary>
         private AudioSource singularSfx;
         /// <summary>
-        /// Mapping of text mood associations to an array of suitable sfx clips.
+        /// Default mapping of text mood associations to an array of suitable sfx clips; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
+        /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
         /// </summary>
-        public Dictionary<Mood, AudioClip[]> voiceSfxSegmentMap;
+        // todo: Unity can't serialize a Dictionary (hashing, buckets, all that sweet sweet O(1) stuff), and doesn't bother to provide a data abstraction that simply lista KV associations and then only hashes etc. when compiling. Nay, we must do this ourselves apparently.
+        //  So some sort of Inspector friendly KV associative something would be ideal, then build the actual Dictionary from same. Maybe something like the TreasureSentence thing in TreasureText?
+        public Dictionary<Mood, AudioClip[]> defaultVoiceSfxSegmentMap;
+        /// <summary>
+        /// Mapping of text mood associations to an array of suitable sfx clips; can be set by the Component calling TypeWrite() if a specific voice is desired, e.g. if a character is speaking.
+        /// </summary>
+        public Dictionary<Mood, AudioClip[]> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, AudioClip[]>();
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -166,6 +174,14 @@ namespace WildsAdv
         /// </summary>
         public void TypeWrite()
         {
+            if (VoiceSfxSegmentMap.Count == 0)
+            {
+                if (defaultVoiceSfxSegmentMap != null)
+                {
+                    VoiceSfxSegmentMap = new Dictionary<Mood, AudioClip[]>(defaultVoiceSfxSegmentMap);
+                }
+            }
+
             writeFunction = AsyncWrite();
             if (sfxMode == SfxMode.VoicedSentence || sfxMode == SfxMode.BlipArray)
             {
@@ -190,11 +206,18 @@ namespace WildsAdv
                 if (sfxMode == SfxMode.VoicedSentence)
                 {
                     singularSfx.Pause();
-                    AudioClip[] moodTracks = voiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
-                    System.Random rnd = new System.Random();
-                    int clipIndex = rnd.Next(0, moodTracks.Length - 1);
-                    AudioClip currentTrack = moodTracks[clipIndex];
-                    singularSfx.resource = currentTrack;
+                    if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
+                    {
+                        AudioClip[] moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, moodTracks.Length - 1);
+                        AudioClip currentTrack = moodTracks[clipIndex];
+                        singularSfx.resource = currentTrack;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("In VoicedSentence SFX mode, but the VoiceSfxSegmentMap does not have an entry for key " + currentTreasureSentence.SentenceMood + ". Please add voice SFX clips!");
+                    }
                     singularSfx.Play();
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
@@ -251,6 +274,11 @@ namespace WildsAdv
                     }
                     // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 } // end sentence
+                // single whitespace after fullstop.
+                if (targetTextViewComponent)
+                {
+                    targetTextViewComponent.text += " ";
+                }
                 if (sfxMode == SfxMode.VoicedSentence)
                 {
                     singularSfx.Pause();
