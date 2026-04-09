@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using PlasticGui.WorkspaceWindow;
 using TMPro;
 using UnityEngine;
@@ -154,6 +155,10 @@ namespace WildsAdv
         /// Mapping of text mood associations to an array of suitable sfx clips; can be set by the Component calling TypeWrite() if a specific voice is desired, e.g. if a character is speaking.
         /// </summary>
         public Dictionary<Mood, List<AudioClip>> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
+        /// <summary>
+        /// Tracks our progress through flat enumeration of sfx irrespective of mood, for cases where there is no mood match.
+        /// </summary>
+        private int SfxCacheMissIndex = 0;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -222,6 +227,7 @@ namespace WildsAdv
                     else
                     {
                         // todo: enumerate keys in vfxsegmentmap and choose randomly (or in a tracked sequence?) from whatever it does have.
+                        List<Mood> rawMoods = VoiceSfxSegmentMap.Keys.ToList();
                         Debug.LogWarning("In VoicedSentence SFX mode, but the VoiceSfxSegmentMap does not have an entry for key " + currentTreasureSentence.SentenceMood + ". Please add voice SFX clips!");
                     }
                     singularSfx.Play();
