@@ -146,16 +146,14 @@ namespace WildsAdv
         /// </summary>
         private AudioSource singularSfx;
         /// <summary>
-        /// Default mapping of text mood associations to an array of suitable sfx clips; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
+        /// Default list of AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
         /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
         /// </summary>
-        // todo: Unity can't serialize a Dictionary (hashing, buckets, all that sweet sweet O(1) stuff), and doesn't bother to provide a data abstraction that simply lista KV associations and then only hashes etc. when compiling. Nay, we must do this ourselves apparently.
-        //  So some sort of Inspector friendly KV associative something would be ideal, then build the actual Dictionary from same. Maybe something like the TreasureSentence thing in TreasureText?
-        public Dictionary<Mood, AudioClip[]> defaultVoiceSfxSegmentMap;
+        public MoodTrax defaultVoiceSfxSegments;
         /// <summary>
         /// Mapping of text mood associations to an array of suitable sfx clips; can be set by the Component calling TypeWrite() if a specific voice is desired, e.g. if a character is speaking.
         /// </summary>
-        public Dictionary<Mood, AudioClip[]> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, AudioClip[]>();
+        public Dictionary<Mood, List<AudioClip>> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -176,9 +174,16 @@ namespace WildsAdv
         {
             if (VoiceSfxSegmentMap.Count == 0)
             {
-                if (defaultVoiceSfxSegmentMap != null)
+                if (defaultVoiceSfxSegments != null && defaultVoiceSfxSegments.Vibes.Count > 0)
                 {
-                    VoiceSfxSegmentMap = new Dictionary<Mood, AudioClip[]>(defaultVoiceSfxSegmentMap);
+                    foreach (VibeTrack vibe in defaultVoiceSfxSegments.Vibes)
+                    {
+                        if (!VoiceSfxSegmentMap.ContainsKey(vibe.TrackMood))
+                        {
+                            VoiceSfxSegmentMap.Add(vibe.TrackMood, new List<AudioClip>());
+                        }
+                        VoiceSfxSegmentMap[vibe.TrackMood].Add(vibe.TrackClip);
+                    }
                 }
             }
 
@@ -208,14 +213,15 @@ namespace WildsAdv
                     singularSfx.Pause();
                     if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
-                        AudioClip[] moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
+                        List<AudioClip> moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
                         System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Length - 1);
+                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                         AudioClip currentTrack = moodTracks[clipIndex];
                         singularSfx.resource = currentTrack;
                     }
                     else
                     {
+                        // todo: enumerate keys in vfxsegmentmap and choose randomly from whatever it does have.
                         Debug.LogWarning("In VoicedSentence SFX mode, but the VoiceSfxSegmentMap does not have an entry for key " + currentTreasureSentence.SentenceMood + ". Please add voice SFX clips!");
                     }
                     singularSfx.Play();

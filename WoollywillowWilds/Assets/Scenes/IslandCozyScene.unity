@@ -705,6 +705,20 @@ MonoBehaviour:
   breathDelayMs: 1000
   sfxClipIndexRange: 1
   randomSfxClipIndex: 1
+  defaultVoiceSfxSegments:
+    Vibes:
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 6caa5a257387f0b46baa4a4b5cf3818d,
+        type: 3}
+      <TrackMood>k__BackingField: 0
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 2d71f27e46bf2f0459d06761fa4dbe8a,
+        type: 3}
+      <TrackMood>k__BackingField: 1
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 52045821f05c07843a946ecc53075f41,
+        type: 3}
+      <TrackMood>k__BackingField: 4
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 5a017cec04aacfb4c9ae85310f0524cc,
+        type: 3}
+      <TrackMood>k__BackingField: 6
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
