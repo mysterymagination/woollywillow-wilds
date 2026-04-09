@@ -221,7 +221,7 @@ namespace WildsAdv
                     }
                     else
                     {
-                        // todo: enumerate keys in vfxsegmentmap and choose randomly from whatever it does have.
+                        // todo: enumerate keys in vfxsegmentmap and choose randomly (or in a tracked sequence?) from whatever it does have.
                         Debug.LogWarning("In VoicedSentence SFX mode, but the VoiceSfxSegmentMap does not have an entry for key " + currentTreasureSentence.SentenceMood + ". Please add voice SFX clips!");
                     }
                     singularSfx.Play();
