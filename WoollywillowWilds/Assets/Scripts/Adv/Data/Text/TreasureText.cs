@@ -258,15 +258,31 @@ namespace WildsAdv
         }
 
         /// <summary>
-        /// Dumps the raw text of the TreasureText.Contents array into a basic string.
+        /// Dumps the JSON string representation of each TreasureSentence in the TreasureText.Contents array.
         /// </summary>
-        /// <returns>string containing the text data only.</returns>
+        /// <returns>string containing the JSON rep of Contents.</returns>
         override public string ToString()
         {
             StringBuilder sb = new StringBuilder();
             foreach (TreasureSentence sentence in Contents)
             {
                 sb.Append(sentence);
+                sb.Append(" ");
+            }
+            sb.Remove(sb.Length - 1, 1);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Pulls out the text only from the TreasureSentences in the TreasureText.Contents array.
+        /// </summary>
+        /// <returns>string containing the text data only extracted from Contents.</returns>
+        public string ExtractText()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (TreasureSentence sentence in Contents)
+            {
+                sb.Append(sentence.SentenceText);
                 sb.Append(" ");
             }
             sb.Remove(sb.Length - 1, 1);

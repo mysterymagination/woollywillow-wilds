@@ -156,9 +156,15 @@ namespace WildsAdv
         /// </summary>
         public Dictionary<Mood, List<AudioClip>> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
         /// <summary>
-        /// Tracks our progress through flat enumeration of sfx irrespective of mood, for cases where there is no mood match.
+        /// Tracks our progress through flat array of sfx irrespective of mood, for cases where there is no mood match or the designer
+        /// didn't populate sfx by mood.
         /// </summary>
-        private int SfxCacheMissIndex = 0;
+        private int moodlessSfxTrackIndex = 0;
+        /// <summary>
+        /// List of SFX Voiced Sentence tracks to play through without needing mood associations.
+        /// </summary>
+        [field: SerializeField]
+        public List<AudioClip> VoiceSfxSegmentArray { get; set; } = new List<AudioClip>();
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -168,6 +174,7 @@ namespace WildsAdv
             textPosition = 0;
             sfxTimePoint = 0.0F;
             sfxBlipIndex = 0;
+            moodlessSfxTrackIndex = 0;
             Destroy(singularSfx);
         }
 
@@ -216,19 +223,37 @@ namespace WildsAdv
                 if (sfxMode == SfxMode.VoicedSentence)
                 {
                     singularSfx.Pause();
+                    AudioClip currentTrack = null;
                     if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
                         List<AudioClip> moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
                         System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        AudioClip currentTrack = moodTracks[clipIndex];
-                        singularSfx.resource = currentTrack;
+                        currentTrack = moodTracks[clipIndex];
                     }
                     else
                     {
-                        // todo: enumerate keys in vfxsegmentmap and choose randomly (or in a tracked sequence?) from whatever it does have.
-                        List<Mood> rawMoods = VoiceSfxSegmentMap.Keys.ToList();
-                        Debug.LogWarning("In VoicedSentence SFX mode, but the VoiceSfxSegmentMap does not have an entry for key " + currentTreasureSentence.SentenceMood + ". Please add voice SFX clips!");
+                        if (VoiceSfxSegmentArray.Count >= moodlessSfxTrackIndex)
+                        {
+                            currentTrack = VoiceSfxSegmentArray[moodlessSfxTrackIndex];
+                        }
+                        else
+                        {
+                            Debug.LogError("Current moodless track index " + moodlessSfxTrackIndex + " is beyond the count of the sfxsegmentarray " + VoiceSfxSegmentArray.Count);
+                        }
+
+                        if (moodlessSfxTrackIndex < VoiceSfxSegmentArray.Count - 1)
+                        {
+                            moodlessSfxTrackIndex++;
+                        }
+                        else
+                        {
+                            moodlessSfxTrackIndex = 0;
+                        }
+                    }
+                    if (currentTrack != null)
+                    {
+                        singularSfx.resource = currentTrack;
                     }
                     singularSfx.Play();
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
@@ -437,7 +462,7 @@ namespace WildsAdv
             {
                 if (targetTextViewComponent)
                 {
-                    targetTextViewComponent.text = TextToTypeWrite.ToString();
+                    targetTextViewComponent.text = TextToTypeWrite.ExtractText();
                 }
                 else
                 {
