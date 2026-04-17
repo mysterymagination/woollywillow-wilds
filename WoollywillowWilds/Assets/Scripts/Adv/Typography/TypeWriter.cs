@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PlasticGui.WorkspaceWindow;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
 
 namespace WildsAdv
@@ -23,14 +24,23 @@ namespace WildsAdv
         /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips.
         /// </summary>
         BlipArray,
-        /**
-         * This mode steps through the typingSfxSegmentMap, optionally jumping to named segments, in accordance
-         * with completed sentences in the text. Any fullstop character will stop the current sfx and there will
-         * be a pause before the next sentence picks up either where we left off or at an optionally randomized new
-         * track position and/or track. Optional emote tags in the text can also direct which track should play
-         * for a particular sentence.
-         */
-        VoicedSentence,
+        /// <summary>
+        /// This mode steps through the VoiceSfxSegmentMap mood-mapped array or the general VoiceSfxSegmentArray, running through the
+        /// arrays at random or iterative indices (based on voicedSentenceArrayRandomization) for the duration of a given sentence.
+        /// Coroutines with timed yields based on track length are used to determine when a track ends, since there are no callbacks.
+        /// Each sentence either selects a new array based on mood, or jumps to another general index per the above. The idea here is to
+        /// produce a pseudo-procedurally generated set of voice tones that are tied to the sentence structure of the text.
+        /// </summary>
+        VoicedSentenceArray,
+        /// <summary>
+        /// This mode steps through the VoiceSfxSegmentMap, jumping to VoiceSfxSegmentArray if the annotated mood is not found, in accordance
+        /// with completed sentences in the text. Any fullstop character will stop the current sfx and there will
+        /// be a pause before the next sentence picks up either where we left off or at an optionally randomized new
+        /// track position and / or track.Optional emote tags in the text can also direct which track should play
+        /// for a particular sentence.
+        /// todo: support named sfx for specific lines?
+        /// </summary>
+        VoicedSentencePrefab,
     }
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
@@ -70,7 +80,7 @@ namespace WildsAdv
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
         public TreasureText TextToTypeWrite { get; set; }
-        public SfxMode sfxMode = SfxMode.VoicedSentence;
+        public SfxMode sfxMode = SfxMode.VoicedSentencePrefab;
         /// <summary>
         /// Named sound effects played during write events. By default, this will
         /// begin at the beginning of the track and play looping unmodified until it
@@ -165,6 +175,10 @@ namespace WildsAdv
         /// </summary>
         [field: SerializeField]
         public List<AudioClip> VoiceSfxSegmentArray { get; set; } = new List<AudioClip>();
+        /// <summary>
+        /// Determines whether our progression through a voice sfx array is iterative or random.
+        /// </summary>
+        public bool voicedSentenceArrayRandomization = true;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -200,7 +214,7 @@ namespace WildsAdv
             }
 
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentence || sfxMode == SfxMode.BlipArray)
+            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.BlipArray)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
             }
@@ -220,7 +234,7 @@ namespace WildsAdv
             foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
             {
                 textPosition = 0;
-                if (sfxMode == SfxMode.VoicedSentence)
+                if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
                     AudioClip currentTrack = null;
@@ -316,7 +330,7 @@ namespace WildsAdv
                 {
                     targetTextViewComponent.text += " ";
                 }
-                if (sfxMode == SfxMode.VoicedSentence)
+                if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
                 }
@@ -360,7 +374,70 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx(int charactersWritten, float typingCadence)
+        IEnumerator AsyncSfx_VoicedSentence(TreasureSentence sentence)
+        {
+            // todo: choose randomly or iterate between indices of voiceSfxSegments and wait for the clip duration
+
+            int iterativeSfxIndex = 0;
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
+            {
+                singularSfx.Pause();
+                AudioClip currentTrack;
+                if (VoiceSfxSegmentMap.ContainsKey(sentence.SentenceMood))
+                {
+                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[sentence.SentenceMood];
+                    if (voicedSentenceArrayRandomization)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                        currentTrack = moodTracks[clipIndex];
+                    }
+                    else
+                    {
+                        currentTrack = moodTracks[iterativeSfxIndex];
+                        if (iterativeSfxIndex >= moodTracks.Count)
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex++;
+                        }
+                    }
+                }
+                else
+                {
+                    if (voicedSentenceArrayRandomization)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count - 1);
+                        currentTrack = VoiceSfxSegmentArray[clipIndex];
+                    }
+                    else
+                    {
+                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
+                        if (iterativeSfxIndex >= VoiceSfxSegmentArray.Count)
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex++;
+                        }
+                    }
+                }
+                if (currentTrack != null)
+                {
+                    singularSfx.resource = currentTrack;
+                }
+                singularSfx.Play();
+
+                yield return new WaitForSeconds(currentTrack.length);
+            }
+        }
+
+        IEnumerator AsyncSfx_KeyHammer(int charactersWritten, float typingCadence)
         {
             if (sfxBlipIndex >= typingSfxBlipArray.Length)
             {
