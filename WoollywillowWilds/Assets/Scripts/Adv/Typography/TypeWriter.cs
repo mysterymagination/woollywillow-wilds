@@ -214,11 +214,10 @@ namespace WildsAdv
             }
 
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.BlipArray)
+            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
             }
-            sfxFunction = AsyncSfx(0, 0);
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
@@ -233,6 +232,7 @@ namespace WildsAdv
         {
             foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
             {
+                // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
@@ -272,6 +272,11 @@ namespace WildsAdv
                     singularSfx.Play();
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
+                }
+                else if (sfxMode == SfxMode.VoicedSentenceArray)
+                {
+                    sfxFunction = AsyncSfx_VoicedSentence(currentTreasureSentence);
+                    StartCoroutine(sfxFunction);
                 }
 
                 // todo: how would we go about looping our way through the moodtracks array instead of looping the current track only?
@@ -323,7 +328,10 @@ namespace WildsAdv
                             Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
                         }
                     }
-                    // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
+                    if (sfxMode == SfxMode.VoicedSentenceArray)
+                    {
+                        StopCoroutine(sfxFunction);
+                    }
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
