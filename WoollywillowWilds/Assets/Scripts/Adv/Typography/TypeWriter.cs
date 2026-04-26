@@ -279,12 +279,6 @@ namespace WildsAdv
                     StartCoroutine(sfxFunction);
                 }
 
-                // todo: how would we go about looping our way through the moodtracks array instead of looping the current track only?
-                //  Since we're headed into a while loop that blockingly processes the whole sentence, an event handler for the end of track reached
-                //  may be required.
-                //  EDIT: looks like there's no clean way to do that. Copilot suggests a jank coroutine that polls while(clip.isPlaying()) and yields if
-                //  true, and if false iterates forward in a forearch clip loop. I suppose that's fine, if bizarre, since we can stop that coroutine and
-                //  pause the singularSfx AudioSource as necessary at this level.
                 while (textPosition < currentTreasureSentence.SentenceText.Length)
                 {
                     // calculate our writeevent period
@@ -328,10 +322,6 @@ namespace WildsAdv
                             Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
                         }
                     }
-                    if (sfxMode == SfxMode.VoicedSentenceArray)
-                    {
-                        StopCoroutine(sfxFunction);
-                    }
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
@@ -341,6 +331,10 @@ namespace WildsAdv
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
+                }
+                if (sfxMode == SfxMode.VoicedSentenceArray)
+                {
+                    StopCoroutine(sfxFunction);
                 }
                 // take a breath after sentence completion.
                 yield return new WaitForSeconds(breathDelayMs / 1000.0F);
@@ -384,8 +378,6 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_VoicedSentence(TreasureSentence sentence)
         {
-            // todo: choose randomly or iterate between indices of voiceSfxSegments and wait for the clip duration
-
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
