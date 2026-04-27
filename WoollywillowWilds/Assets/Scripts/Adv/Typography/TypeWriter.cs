@@ -336,6 +336,7 @@ namespace WildsAdv
                 {
                     StopCoroutine(sfxFunction);
                 }
+
                 // take a breath after sentence completion.
                 yield return new WaitForSeconds(breathDelayMs / 1000.0F);
             } // end text
@@ -384,7 +385,7 @@ namespace WildsAdv
             {
                 singularSfx.Pause();
                 AudioClip currentTrack;
-                if (VoiceSfxSegmentMap.ContainsKey(sentence.SentenceMood))
+                if (sentence != null && VoiceSfxSegmentMap.ContainsKey(sentence.SentenceMood))
                 {
                     List<AudioClip> moodTracks = VoiceSfxSegmentMap[sentence.SentenceMood];
                     if (voicedSentenceArrayRandomization)
@@ -395,15 +396,15 @@ namespace WildsAdv
                     }
                     else
                     {
-                        currentTrack = moodTracks[iterativeSfxIndex];
-                        if (iterativeSfxIndex >= moodTracks.Count)
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        else
+                        if (iterativeSfxIndex < moodTracks.Count - 1)
                         {
                             iterativeSfxIndex++;
                         }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = moodTracks[iterativeSfxIndex];
                     }
                 }
                 else
@@ -416,15 +417,16 @@ namespace WildsAdv
                     }
                     else
                     {
-                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
-                        if (iterativeSfxIndex >= VoiceSfxSegmentArray.Count)
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        else
+                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
                         {
                             iterativeSfxIndex++;
                         }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
                     }
                 }
                 if (currentTrack != null)
@@ -503,6 +505,14 @@ namespace WildsAdv
             {
                 Debug.LogError("Shutdown; writeFunction is null so we cannot stop the write Coroutine.");
                 succesfulShutdown = false;
+            }
+            if (sfxFunction != null)
+            {
+                StopCoroutine(sfxFunction);
+            }
+            else
+            {
+                Debug.LogWarning("Shutdown; sfxFunction is null so we cannot stop the sfx Coroutine if it's running.");
             }
             if (targetTextViewComponent)
             {
