@@ -412,8 +412,9 @@ namespace WildsAdv
                     if (voicedSentenceArrayRandomization)
                     {
                         System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count - 1);
+                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
                         currentTrack = VoiceSfxSegmentArray[clipIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
