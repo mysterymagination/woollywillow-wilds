@@ -334,6 +334,7 @@ namespace WildsAdv
                 }
                 if (sfxMode == SfxMode.VoicedSentenceArray)
                 {
+                    singularSfx.Pause();
                     StopCoroutine(sfxFunction);
                 }
 
@@ -434,9 +435,10 @@ namespace WildsAdv
                 {
                     singularSfx.resource = currentTrack;
                 }
+                singularSfx.loop = true;
                 singularSfx.Play();
-
-                yield return new WaitForSeconds(currentTrack.length);
+                //Debug.Log("About to wait for " + currentTrack.length / Time.timeScale + "timescaled seconds. Timescale is " + Time.timeScale);
+                yield return new WaitForSecondsRealtime(currentTrack.length);
             }
         }
 
@@ -514,6 +516,14 @@ namespace WildsAdv
             else
             {
                 Debug.LogWarning("Shutdown; sfxFunction is null so we cannot stop the sfx Coroutine if it's running.");
+            }
+            if (singularSfx != null)
+            {
+                singularSfx.Stop();
+            }
+            else
+            {
+                Debug.LogWarning("Shutdown; singularSfx is null so we cannot stop it if it's playing.");
             }
             if (targetTextViewComponent)
             {
