@@ -41,6 +41,10 @@ namespace WildsAdv
         /// todo: support named sfx for specific lines?
         /// </summary>
         VoicedSentencePrefab,
+        /// <summary>
+        /// None of the behavior of the other SfxModes will apply; this is useful for trying out new techniques right in TypeWrite() without other sound interfering.
+        /// </summary>
+        Experimental,
     }
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
@@ -434,6 +438,7 @@ namespace WildsAdv
                 if (currentTrack != null)
                 {
                     singularSfx.resource = currentTrack;
+                    singularSfx.volume = 0.5F;
                 }
                 singularSfx.loop = true;
                 singularSfx.Play();

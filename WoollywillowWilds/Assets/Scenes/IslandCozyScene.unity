@@ -704,7 +704,6 @@ MonoBehaviour:
   defaultVoiceSfxSegments:
     Vibes: []
   <VoiceSfxSegmentArray>k__BackingField:
-  - {fileID: 8300000, guid: 1ac85e855cb8323df9a9ee0f3cce2112, type: 3}
   - {fileID: 8300000, guid: 4cce6e55e18345a99a77eee13c4fc28a, type: 3}
   voicedSentenceArrayRandomization: 1
 --- !u!114 &452892848
