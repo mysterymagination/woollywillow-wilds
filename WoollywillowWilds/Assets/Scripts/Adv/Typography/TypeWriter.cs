@@ -42,6 +42,14 @@ namespace WildsAdv
         /// </summary>
         VoicedSentencePrefab,
         /// <summary>
+        /// This mode runs a base chirp (either mapped from mood or just going down a default list)
+        /// with variants on it injected conditionally, periodically, or randomly to simulate the
+        /// variance in a voice speaking without running into the annoying discordance you get with
+        /// too much variance in the chirps contiguously. This seems to be the pattern used in the 
+        /// Shining games as far as my ear can hear.
+        /// </summary>
+        ChirpSentenceAlgoVariance,
+        /// <summary>
         /// None of the behavior of the other SfxModes will apply; this is useful for trying out new techniques right in TypeWrite() without other sound interfering.
         /// </summary>
         Experimental,
