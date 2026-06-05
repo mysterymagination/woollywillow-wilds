@@ -191,6 +191,28 @@ namespace WildsAdv
         /// Determines whether our progression through a voice sfx array is iterative or random.
         /// </summary>
         public bool voicedSentenceArrayRandomization = true;
+        /// <summary>
+        /// Mapping of text mood associations to an array of chirp sfx clips intended for steady-state looping during a given sentence rendering; can be set by the Component calling TypeWrite() if a specific
+        /// voice chirp is desired, e.g. if a character is speaking.
+        /// </summary>
+        public Dictionary<Mood, List<AudioClip>> ChirpSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
+        /// <summary>
+        /// List of SFX chirp tracks to play through without needing mood associations.
+        /// </summary>
+        [field: SerializeField]
+        public List<AudioClip> ChirpSfxArray { get; set; } = new List<AudioClip>();
+        public bool chirpArrayRandomization = true;
+        /// <summary>
+        /// Mapping of text mood associations to an array of chirp sfx clips intended to inject variance into steady-state chirps; can be set by the Component calling TypeWrite() if a specific
+        /// voice chirp interrupt is desired, e.g. if a character is speaking.
+        /// </summary>
+        public Dictionary<Mood, List<AudioClip>> ChirpVariantSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
+        /// <summary>
+        /// List of SFX chirp interrupt tracks to play through without needing mood associations when injecting variant chirps.
+        /// </summary>
+        [field: SerializeField]
+        public List<AudioClip> ChirpVariantSfxArray { get; set; } = new List<AudioClip>();
+        public bool chirpVariantInjectionRandomization = true;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -226,7 +248,7 @@ namespace WildsAdv
             }
 
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray)
+            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
             }
@@ -285,6 +307,47 @@ namespace WildsAdv
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
                 }
+                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+                {
+                    singularSfx.Pause();
+                    AudioClip currentTrack = null;
+                    if (ChirpSfxMap.ContainsKey(currentTreasureSentence.SentenceMood))
+                    {
+                        List<AudioClip> moodTracks = ChirpSfxMap[currentTreasureSentence.SentenceMood];
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                        currentTrack = moodTracks[clipIndex];
+                    }
+                    else
+                    {
+                        if (ChirpSfxArray.Count >= moodlessSfxTrackIndex)
+                        {
+                            currentTrack = ChirpSfxArray[moodlessSfxTrackIndex];
+                        }
+                        else
+                        {
+                            Debug.LogError("Current moodless chirp track index " + moodlessSfxTrackIndex + " is beyond the count of the chirpsfxarray " + ChirpSfxArray.Count);
+                        }
+
+                        if (moodlessSfxTrackIndex < ChirpSfxArray.Count - 1)
+                        {
+                            moodlessSfxTrackIndex++;
+                        }
+                        else
+                        {
+                            moodlessSfxTrackIndex = 0;
+                        }
+                    }
+                    if (currentTrack != null)
+                    {
+                        singularSfx.resource = currentTrack;
+                    }
+                    singularSfx.Play();
+                    // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
+                    singularSfx.loop = true;
+                    sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentTreasureSentence);
+                    StartCoroutine(sfxFunction);
+                }
                 else if (sfxMode == SfxMode.VoicedSentenceArray)
                 {
                     sfxFunction = AsyncSfx_VoicedSentence(currentTreasureSentence);
@@ -340,13 +403,12 @@ namespace WildsAdv
                 {
                     targetTextViewComponent.text += " ";
                 }
-                if (sfxMode == SfxMode.VoicedSentencePrefab)
+                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
                 {
                     singularSfx.Pause();
                 }
-                if (sfxMode == SfxMode.VoicedSentenceArray)
+                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
                 {
-                    singularSfx.Pause();
                     StopCoroutine(sfxFunction);
                 }
 
@@ -387,6 +449,78 @@ namespace WildsAdv
             {
                 Debug.LogError("Target textview TMP_Text Component is unset");
                 return "";
+            }
+        }
+
+        IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(TreasureSentence sentence)
+        {
+            int iterativeSfxIndex = 0;
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
+            {
+                int varianceInjectDelay = 0;
+                if (chirpVariantInjectionRandomization)
+                {
+                    System.Random rnd = new System.Random();
+                    varianceInjectDelay = rnd.Next(0, 5);
+                }
+                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting variant chirp.");
+                yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                singularSfx.Pause();
+                AudioClip currentTrack;
+                if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
+                {
+                    List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
+                    if (chirpVariantInjectionRandomization)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                        currentTrack = moodTracks[clipIndex];
+                    }
+                    else
+                    {
+                        if (iterativeSfxIndex < moodTracks.Count - 1)
+                        {
+                            iterativeSfxIndex++;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = moodTracks[iterativeSfxIndex];
+                    }
+                }
+                else
+                {
+                    if (chirpVariantInjectionRandomization)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
+                        currentTrack = ChirpVariantSfxArray[clipIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
+                    }
+                    else
+                    {
+                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                        {
+                            iterativeSfxIndex++;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = ChirpVariantSfxArray[iterativeSfxIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
+                    }
+                }
+                if (currentTrack != null)
+                {
+                    singularSfx.resource = currentTrack;
+                    singularSfx.volume = 0.5F;
+                }
+                singularSfx.loop = true;
+                singularSfx.Play();
             }
         }
 
