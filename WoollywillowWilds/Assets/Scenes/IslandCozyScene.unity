@@ -692,7 +692,8 @@ MonoBehaviour:
   characterChunkSize: 1
   randomChunkSize: 1
   randomChunkSizeRange: 2
-  sfxMode: 2
+  sfxMode: 4
+  sfxVolume: 0.544
   typingSfxBlipArray: []
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
@@ -708,6 +709,14 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4e3a2145bf10bde47be2ee077aa2d685, type: 3}
   - {fileID: 8300000, guid: 92c95236dba59fbc88e3e42cec3c1fc0, type: 3}
   voicedSentenceArrayRandomization: 1
+  defaultChirpSfxVibes:
+    Vibes: []
+  <ChirpSfxArray>k__BackingField:
+  - {fileID: 8300000, guid: 3f9e4d615911ce6ee80a85110ee22406, type: 3}
+  chirpArrayRandomization: 1
+  <ChirpVariantSfxArray>k__BackingField:
+  - {fileID: 8300000, guid: 70cab7c503f8c361abee6c63b02c2dbf, type: 3}
+  chirpVariantInjectionRandomization: 1
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0

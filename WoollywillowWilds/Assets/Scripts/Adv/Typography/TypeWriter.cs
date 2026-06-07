@@ -94,6 +94,11 @@ namespace WildsAdv
         public TreasureText TextToTypeWrite { get; set; }
         public SfxMode sfxMode = SfxMode.VoicedSentencePrefab;
         /// <summary>
+        /// Scale factor to apply to the typewriter sfx volume, between 0.0 and 1.0 inclusive.
+        /// </summary>
+        [Range(0.0F, 1.0F)]
+        public float sfxVolume = 1.0F;
+        /// <summary>
         /// Named sound effects played during write events. By default, this will
         /// begin at the beginning of the track and play looping unmodified until it
         /// is instructed to stop.
@@ -192,10 +197,15 @@ namespace WildsAdv
         /// </summary>
         public bool voicedSentenceArrayRandomization = true;
         /// <summary>
+        /// Default list of chirp sfx AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
+        /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
+        /// </summary>
+        public MoodTrax defaultChirpSfxVibes;
+        /// <summary>
         /// Mapping of text mood associations to an array of chirp sfx clips intended for steady-state looping during a given sentence rendering; can be set by the Component calling TypeWrite() if a specific
         /// voice chirp is desired, e.g. if a character is speaking.
         /// </summary>
-        public Dictionary<Mood, List<AudioClip>> ChirpSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
+        public Dictionary<Mood, List<AudioClip>> ChirpSfxVibeMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
         /// <summary>
         /// List of SFX chirp tracks to play through without needing mood associations.
         /// </summary>
@@ -247,10 +257,27 @@ namespace WildsAdv
                 }
             }
 
+            if (ChirpSfxVibeMap.Count == 0)
+            {
+                if (defaultChirpSfxVibes != null && defaultChirpSfxVibes.Vibes.Count > 0)
+                {
+                    foreach (VibeTrack vibe in defaultChirpSfxVibes.Vibes)
+                    {
+                        if (!ChirpSfxVibeMap.ContainsKey(vibe.TrackMood))
+                        {
+                            ChirpSfxVibeMap.Add(vibe.TrackMood, new List<AudioClip>());
+                        }
+                        ChirpSfxVibeMap[vibe.TrackMood].Add(vibe.TrackClip);
+                    }
+                }
+            }
+
             writeFunction = AsyncWrite();
             if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
+                singularSfx.loop = true;
+                singularSfx.volume = sfxVolume;
             }
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
@@ -311,9 +338,9 @@ namespace WildsAdv
                 {
                     singularSfx.Pause();
                     AudioClip currentTrack = null;
-                    if (ChirpSfxMap.ContainsKey(currentTreasureSentence.SentenceMood))
+                    if (ChirpSfxVibeMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
-                        List<AudioClip> moodTracks = ChirpSfxMap[currentTreasureSentence.SentenceMood];
+                        List<AudioClip> moodTracks = ChirpSfxVibeMap[currentTreasureSentence.SentenceMood];
                         System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                         currentTrack = moodTracks[clipIndex];
@@ -458,17 +485,18 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                int varianceInjectDelay = 0;
+                float maxDelay = 2.5F;
+                float minDelay = 0.5F;
+                float varianceInjectDelay = (maxDelay - minDelay) / 2 + minDelay;
                 if (chirpVariantInjectionRandomization)
                 {
-                    System.Random rnd = new System.Random();
-                    varianceInjectDelay = rnd.Next(0, 5);
+                    varianceInjectDelay = UnityEngine.Random.Range(minDelay, maxDelay);
                 }
                 Debug.Log("About to wait for " + varianceInjectDelay + " before injecting variant chirp.");
                 yield return new WaitForSecondsRealtime(varianceInjectDelay);
 
                 singularSfx.Pause();
-                AudioClip currentTrack;
+                AudioClip interruptTrack;
                 if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
                 {
                     List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
@@ -476,7 +504,7 @@ namespace WildsAdv
                     {
                         System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
+                        interruptTrack = moodTracks[clipIndex];
                     }
                     else
                     {
@@ -488,7 +516,7 @@ namespace WildsAdv
                         {
                             iterativeSfxIndex = 0;
                         }
-                        currentTrack = moodTracks[iterativeSfxIndex];
+                        interruptTrack = moodTracks[iterativeSfxIndex];
                     }
                 }
                 else
@@ -497,8 +525,8 @@ namespace WildsAdv
                     {
                         System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
-                        currentTrack = ChirpVariantSfxArray[clipIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
+                        interruptTrack = ChirpVariantSfxArray[clipIndex];
+                        Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
@@ -510,16 +538,21 @@ namespace WildsAdv
                         {
                             iterativeSfxIndex = 0;
                         }
-                        currentTrack = ChirpVariantSfxArray[iterativeSfxIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
+                        interruptTrack = ChirpVariantSfxArray[iterativeSfxIndex];
+                        Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
                     }
                 }
-                if (currentTrack != null)
+
+                // cache the steady-state track so we can resume it after the interrupt completes.
+                UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                if (interruptTrack != null)
                 {
-                    singularSfx.resource = currentTrack;
-                    singularSfx.volume = 0.5F;
+                    singularSfx.resource = interruptTrack;
                 }
-                singularSfx.loop = true;
+                singularSfx.Play();
+                yield return new WaitForSecondsRealtime(interruptTrack.length);
+                singularSfx.Pause();
+                singularSfx.resource = mainTrack;
                 singularSfx.Play();
             }
         }
