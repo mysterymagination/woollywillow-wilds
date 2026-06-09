@@ -223,6 +223,10 @@ namespace WildsAdv
         [field: SerializeField]
         public List<AudioClip> ChirpVariantSfxArray { get; set; } = new List<AudioClip>();
         public bool chirpVariantInjectionRandomization = true;
+        public float chirpVariantInjectionDelayMin = 0.1F;
+        public float chirpVariantInjectionDelayMax = 1.0F;
+        public float chirpVariantInjectionLacunaDurationMin = 0.001F;
+        public float chirpVariantInjectionLacunaDurationMax = 0.02F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -485,12 +489,10 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                float maxDelay = 2.5F;
-                float minDelay = 0.5F;
-                float varianceInjectDelay = (maxDelay - minDelay) / 2 + minDelay;
+                float varianceInjectDelay = (chirpVariantInjectionDelayMax - chirpVariantInjectionDelayMin) / 2 + chirpVariantInjectionDelayMin;
                 if (chirpVariantInjectionRandomization)
                 {
-                    varianceInjectDelay = UnityEngine.Random.Range(minDelay, maxDelay);
+                    varianceInjectDelay = UnityEngine.Random.Range(chirpVariantInjectionDelayMin, chirpVariantInjectionDelayMax);
                 }
                 Debug.Log("About to wait for " + varianceInjectDelay + " before injecting variant chirp.");
                 yield return new WaitForSecondsRealtime(varianceInjectDelay);
@@ -547,12 +549,12 @@ namespace WildsAdv
                 UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
                 if (interruptTrack != null)
                 {
-                    singularSfx.resource = interruptTrack;
+                    //singularSfx.resource = interruptTrack;
                 }
-                singularSfx.Play();
-                yield return new WaitForSecondsRealtime(interruptTrack.length);
-                singularSfx.Pause();
-                singularSfx.resource = mainTrack;
+                //singularSfx.Play();
+                yield return new WaitForSecondsRealtime(UnityEngine.Random.Range(chirpVariantInjectionLacunaDurationMin, chirpVariantInjectionLacunaDurationMax));//(interruptTrack.length);
+                //singularSfx.Pause();
+                //singularSfx.resource = mainTrack;
                 singularSfx.Play();
             }
         }

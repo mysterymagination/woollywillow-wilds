@@ -693,7 +693,7 @@ MonoBehaviour:
   randomChunkSize: 1
   randomChunkSizeRange: 2
   sfxMode: 4
-  sfxVolume: 0.544
+  sfxVolume: 0.038
   typingSfxBlipArray: []
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
@@ -716,6 +716,8 @@ MonoBehaviour:
   chirpArrayRandomization: 1
   <ChirpVariantSfxArray>k__BackingField:
   - {fileID: 8300000, guid: 70cab7c503f8c361abee6c63b02c2dbf, type: 3}
+  - {fileID: 8300000, guid: 0c58a3c7d9dc16444b917189ad327c4f, type: 3}
+  - {fileID: 8300000, guid: 2e2584a74971ff88f898f4987f0c0e4e, type: 3}
   chirpVariantInjectionRandomization: 1
 --- !u!114 &452892848
 MonoBehaviour:
