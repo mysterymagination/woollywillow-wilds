@@ -222,11 +222,35 @@ namespace WildsAdv
         /// </summary>
         [field: SerializeField]
         public List<AudioClip> ChirpVariantSfxArray { get; set; } = new List<AudioClip>();
-        public bool chirpVariantInjectionRandomization = true;
-        public float chirpVariantInjectionDelayMin = 0.1F;
-        public float chirpVariantInjectionDelayMax = 1.0F;
-        public float chirpVariantInjectionLacunaDurationMin = 0.001F;
-        public float chirpVariantInjectionLacunaDurationMax = 0.02F;
+        /// <summary>
+        /// Randomizes the delay between chirp sfx injections (variant chirp, which will have an intrinsic duration or lacuna
+        /// whose duration is defined as a range between chirpLacunaDurationMin and chirpLacunaDurationMax) into the steady-state
+        /// chirp stream, and also the particular chirp variant injected if
+        /// we have variants enabled and we roll a variant if we have both variants and lacunae enabled.
+        /// </summary>
+        public bool chirpInjectionRandomization = true;
+        /// <summary>
+        /// The min delay between chirp injection events.
+        /// </summary>
+        public float chirpInjectionDelayMin = 0.1F;
+        /// <summary>
+        /// The max delay between chirp injection events.
+        /// </summary>
+        public float chirpInjectionDelayMax = 1.0F;
+        /// <summary>
+        /// The min lacuna duration if we roll to inject a lacuna.
+        /// </summary>
+        public float chirpLacunaDurationMin = 0.001F;
+        /// <summary>
+        /// The max lacuna duration if we roll to inject a lacuna.
+        /// </summary>
+        public float chirpLacunaDurationMax = 0.02F;
+        /// <summary>
+        /// Percentage chance that a lacuna will be injected instead of a variant chirp.
+        /// </summary>
+        public float chirpLacunaChance = 0.5F;
+        public bool chirpInjectLacunae = true;
+        public bool chirpInjectVariants = true;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -489,72 +513,101 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                float varianceInjectDelay = (chirpVariantInjectionDelayMax - chirpVariantInjectionDelayMin) / 2 + chirpVariantInjectionDelayMin;
-                if (chirpVariantInjectionRandomization)
+                float varianceInjectDelay = (chirpInjectionDelayMax - chirpInjectionDelayMin) / 2 + chirpInjectionDelayMin;
+                if (chirpInjectionRandomization)
                 {
-                    varianceInjectDelay = UnityEngine.Random.Range(chirpVariantInjectionDelayMin, chirpVariantInjectionDelayMax);
+                    varianceInjectDelay = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
                 }
-                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting variant chirp.");
+                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
                 yield return new WaitForSecondsRealtime(varianceInjectDelay);
 
+                // pause the steady-state chirp stream.
                 singularSfx.Pause();
-                AudioClip interruptTrack;
-                if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
+
+                // figure out what we're injecting.
+                bool injectingVariants = chirpInjectVariants;
+                bool injectingLacunae = chirpInjectLacunae;
+                // we can only inject one type of mod at a time between silence or something,
+                // so pick one.
+                if (injectingVariants && injectingLacunae)
                 {
-                    List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
-                    if (chirpVariantInjectionRandomization)
+                    // roll between 0 and percentage lacuna chance to pick lacuna, else variant.
+                    if (UnityEngine.Random.Range(0.0F, chirpLacunaChance) < chirpLacunaChance)
                     {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        interruptTrack = moodTracks[clipIndex];
+                        injectingVariants = false;
                     }
                     else
                     {
-                        if (iterativeSfxIndex < moodTracks.Count - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        interruptTrack = moodTracks[iterativeSfxIndex];
-                    }
-                }
-                else
-                {
-                    if (chirpVariantInjectionRandomization)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
-                        interruptTrack = ChirpVariantSfxArray[clipIndex];
-                        Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        interruptTrack = ChirpVariantSfxArray[iterativeSfxIndex];
-                        Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
+                        injectingLacunae = false;
                     }
                 }
 
-                // cache the steady-state track so we can resume it after the interrupt completes.
-                UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                if (interruptTrack != null)
+                if (injectingVariants)
                 {
-                    //singularSfx.resource = interruptTrack;
+                    AudioClip interruptTrack;
+                    if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
+                    {
+                        List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
+                        if (chirpInjectionRandomization)
+                        {
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                            interruptTrack = moodTracks[clipIndex];
+                        }
+                        else
+                        {
+                            if (iterativeSfxIndex < moodTracks.Count - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            interruptTrack = moodTracks[iterativeSfxIndex];
+                        }
+                    }
+                    else
+                    {
+                        if (chirpInjectionRandomization)
+                        {
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
+                            interruptTrack = ChirpVariantSfxArray[clipIndex];
+                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
+                        }
+                        else
+                        {
+                            if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            interruptTrack = ChirpVariantSfxArray[iterativeSfxIndex];
+                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
+                        }
+                    }
+                    // cache the steady-state track so we can resume it after the interrupt completes.
+                    UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                    if (interruptTrack != null)
+                    {
+                        singularSfx.resource = interruptTrack;
+                    }
+                    singularSfx.Play();
+                    yield return new WaitForSecondsRealtime(interruptTrack.length);
+                    singularSfx.Pause();
+                    singularSfx.resource = mainTrack;
+
                 }
-                //singularSfx.Play();
-                yield return new WaitForSecondsRealtime(UnityEngine.Random.Range(chirpVariantInjectionLacunaDurationMin, chirpVariantInjectionLacunaDurationMax));//(interruptTrack.length);
-                //singularSfx.Pause();
-                //singularSfx.resource = mainTrack;
+                else if (injectingLacunae)
+                {
+                    yield return new WaitForSecondsRealtime(UnityEngine.Random.Range(chirpLacunaDurationMin, chirpLacunaDurationMax));
+                }
+
+                // regardless of injection type, resume playing steady-state chirp stream.
                 singularSfx.Play();
             }
         }
