@@ -60,7 +60,7 @@ namespace WildsAdv
         public List<VibeTrack> Vibes = new List<VibeTrack>();
 
         /// <summary>
-        /// Dumps the raw text of the TreasureText.Contents array into a basic string.
+        /// Dumps the raw text of the Vibes array into a basic string.
         /// </summary>
         /// <returns>string containing the text data only.</returns>
         override public string ToString()

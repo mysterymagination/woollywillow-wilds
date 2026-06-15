@@ -50,6 +50,25 @@ namespace WildsAdv
         /// </summary>
         ChirpSentenceAlgoVariance,
         /// <summary>
+        /// This mode runs a base chirp (either mapped from mood or just going down a default list)
+        /// with variants on it injected at predetermined time offsets to simulate the
+        /// variance in a voice speaking without running into the annoying discordance you get with
+        /// too much variance in the chirps contiguously.
+        /// TODO: need to check how the editor handles SfxInterrupts; may need an interface with 
+        /// specialized implementers instead of abstract class.
+        /// </summary>
+        ChirpSentencePrefabVariance,
+        /// <summary>
+        /// This mode runs only one chirp per sentence (either mapped from mood or just going down a default list)
+        /// but purposefully clips the AudioClip short on each playback save the last one before some event,
+        /// e.g. the end of a sentence or some percentage of the sentence?
+        /// TODO: since we're talking about subsecond sfx, this would presumably call for rapid pause/play;
+        /// AudioSource tends to flatten that scenario out into just not playing at all ever.
+        /// Not sure how else to implement this other than clipping off the ends of the prefab audio assets themselves
+        /// or maybe using the procedural audio filter callback API to snip off the last few PCM bytes coming through?
+        /// </summary>
+        ChirpSentenceAlgoClipped,
+        /// <summary>
         /// None of the behavior of the other SfxModes will apply; this is useful for trying out new techniques right in TypeWrite() without other sound interfering.
         /// </summary>
         Experimental,
@@ -509,6 +528,7 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(TreasureSentence sentence)
         {
+            // TODO: add support for prefab patterns of variant chirps andor lacunae
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
