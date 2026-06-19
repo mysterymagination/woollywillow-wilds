@@ -270,6 +270,10 @@ namespace WildsAdv
         public float chirpLacunaChance = 0.5F;
         public bool chirpInjectLacunae = true;
         public bool chirpInjectVariants = true;
+        /// <summary>
+        /// The fraction of the chirp clip in ChirpSentenceAlgoClipped sfxMode that will play repeatedly until the sentence ends. 
+        /// </summary>
+        public float chirpClipFraction = 0.5F;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -320,7 +324,8 @@ namespace WildsAdv
             }
 
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
+                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
                 singularSfx.loop = true;
@@ -342,6 +347,11 @@ namespace WildsAdv
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
+                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
+                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                {
+                    singularSfx.loop = true;
+                }
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
@@ -381,7 +391,7 @@ namespace WildsAdv
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
                 }
-                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                 {
                     singularSfx.Pause();
                     AudioClip currentTrack = null;
@@ -419,7 +429,14 @@ namespace WildsAdv
                     singularSfx.Play();
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
-                    sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentTreasureSentence);
+                    if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+                    {
+                        sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentTreasureSentence);
+                    }
+                    else if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                    {
+                        sfxFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTreasureSentence, currentTrack);
+                    }
                     StartCoroutine(sfxFunction);
                 }
                 else if (sfxMode == SfxMode.VoicedSentenceArray)
@@ -481,9 +498,20 @@ namespace WildsAdv
                 {
                     singularSfx.Pause();
                 }
-                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                 {
                     StopCoroutine(sfxFunction);
+                }
+                if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                {
+                    // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
+                    // and allow the last clip to play through.
+                    // we'll reset loop to true at the top of the sentence loop for relevant sfx modes.
+                    singularSfx.time = 0.0F;
+                    singularSfx.loop = false;
+                    AudioClip currentTrack = (AudioClip)singularSfx.resource;
+                    // ensure we allow enough time for the chirp to play through.
+                    yield return new WaitForSeconds(currentTrack.length);
                 }
 
                 // take a breath after sentence completion.
@@ -528,7 +556,6 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(TreasureSentence sentence)
         {
-            // TODO: add support for prefab patterns of variant chirps andor lacunae
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
@@ -629,6 +656,18 @@ namespace WildsAdv
 
                 // regardless of injection type, resume playing steady-state chirp stream.
                 singularSfx.Play();
+            }
+        }
+
+        IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(TreasureSentence sentence, AudioClip currentTrack)
+        {
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(currentTrack.length / chirpClipFraction);
+
+                // seek the steady-state chirp stream playhead back to start.
+                singularSfx.time = 0.0F;
             }
         }
 
