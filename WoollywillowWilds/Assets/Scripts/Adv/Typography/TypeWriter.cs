@@ -347,11 +347,6 @@ namespace WildsAdv
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
-                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
-                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
-                {
-                    singularSfx.loop = true;
-                }
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
@@ -506,12 +501,14 @@ namespace WildsAdv
                 {
                     // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
                     // and allow the last clip to play through.
-                    // we'll reset loop to true at the top of the sentence loop for relevant sfx modes.
                     singularSfx.time = 0.0F;
                     singularSfx.loop = false;
                     AudioClip currentTrack = (AudioClip)singularSfx.resource;
                     // ensure we allow enough time for the chirp to play through.
                     yield return new WaitForSeconds(currentTrack.length);
+                    singularSfx.Pause();
+                    // reset loop to true now that we've finished the unclipped chirp.
+                    singularSfx.loop = true;
                 }
 
                 // take a breath after sentence completion.
@@ -664,7 +661,7 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                yield return new WaitForSecondsRealtime(currentTrack.length / chirpClipFraction);
+                yield return new WaitForSecondsRealtime(currentTrack.length * chirpClipFraction);
 
                 // seek the steady-state chirp stream playhead back to start.
                 singularSfx.time = 0.0F;

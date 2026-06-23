@@ -692,8 +692,8 @@ MonoBehaviour:
   characterChunkSize: 1
   randomChunkSize: 1
   randomChunkSizeRange: 2
-  sfxMode: 4
-  sfxVolume: 0.038
+  sfxMode: 6
+  sfxVolume: 0.451
   typingSfxBlipArray: []
   sfxVolumeRandomRange: 0.1
   sfxPitchRandomRange: 0.1
@@ -712,13 +712,18 @@ MonoBehaviour:
   defaultChirpSfxVibes:
     Vibes: []
   <ChirpSfxArray>k__BackingField:
-  - {fileID: 8300000, guid: 3f9e4d615911ce6ee80a85110ee22406, type: 3}
-  chirpArrayRandomization: 1
-  <ChirpVariantSfxArray>k__BackingField:
-  - {fileID: 8300000, guid: 70cab7c503f8c361abee6c63b02c2dbf, type: 3}
-  - {fileID: 8300000, guid: 0c58a3c7d9dc16444b917189ad327c4f, type: 3}
-  - {fileID: 8300000, guid: 2e2584a74971ff88f898f4987f0c0e4e, type: 3}
-  chirpVariantInjectionRandomization: 1
+  - {fileID: 8300000, guid: af1fb6f7a1130c278910590344c4b6dc, type: 3}
+  chirpArrayRandomization: 0
+  <ChirpVariantSfxArray>k__BackingField: []
+  chirpInjectionRandomization: 0
+  chirpInjectionDelayMin: 0.1
+  chirpInjectionDelayMax: 1
+  chirpLacunaDurationMin: 0.001
+  chirpLacunaDurationMax: 0.02
+  chirpLacunaChance: 0.5
+  chirpInjectLacunae: 1
+  chirpInjectVariants: 1
+  chirpClipFraction: 0.01
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0

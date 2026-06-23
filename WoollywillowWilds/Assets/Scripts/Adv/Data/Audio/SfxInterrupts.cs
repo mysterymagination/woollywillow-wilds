@@ -64,7 +64,7 @@ namespace WildsAdv
     [Serializable]
     public class LacunaInterrupt : SfxInterrupt
     {
-        public AudioClipInterrupt(float timeOffset, float duration) : base(timeOffset)
+        public LacunaInterrupt(float timeOffset, float duration) : base(timeOffset)
         {
             Duration = duration;
         }
