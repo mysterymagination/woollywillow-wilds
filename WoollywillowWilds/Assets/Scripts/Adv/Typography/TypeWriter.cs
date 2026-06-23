@@ -62,10 +62,22 @@ namespace WildsAdv
         /// This mode runs only one chirp per sentence (either mapped from mood or just going down a default list)
         /// but purposefully clips the AudioClip short on each playback save the last one before some event,
         /// e.g. the end of a sentence or some percentage of the sentence?
+        ///
         /// TODO: since we're talking about subsecond sfx, this would presumably call for rapid pause/play;
         /// AudioSource tends to flatten that scenario out into just not playing at all ever.
         /// Not sure how else to implement this other than clipping off the ends of the prefab audio assets themselves
         /// or maybe using the procedural audio filter callback API to snip off the last few PCM bytes coming through?
+        ///  UPDATE: I found the time property of AudioSource which lets me reset the playhead; this works pretty well,
+        ///  but introduces artifacts (clicking and popping) at high frequencies. I found that this seemed to go away if
+        ///  I clicked focus out of the Unity sim, but the stats screen revealed this was only because Unity's CPU latency
+        ///  increases by a factor of 10 when focus is elsewhere and render thread latency increased by about 50%. Point being,
+        ///  I think clicking away only smoothed out the sound because Unity could no longer even try to reset the playhead
+        ///  and trill as fast as I wanted. Anyway, I think I also hit a bit of a ceiling with the coroutine turnaround
+        ///  frequency since 0.1, 0.01, and 0.001 chirp fractions sounded pretty much the same (at least while I had focus
+        ///  somewhere else; the artifacts were too rough to tell when I had focus in Unity).
+        ///  TODO2: worker threads or something to avoid the supposed coroutine ceiling? No idea how to fix the artifacts.
+        ///  TODO3: get some prefabs with trills built in to circumvent Unity (or any engine) audio API issues.
+        ///
         /// </summary>
         ChirpSentenceAlgoClipped,
         /// <summary>
