@@ -433,12 +433,12 @@ namespace WildsAdv
                     {
                         singularSfx.resource = currentTrack;
                     }
-                    singularSfx.Play();
-                    // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
+
                     singularSfx.loop = true;
                     if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
                     {
                         sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentTreasureSentence);
+                        singularSfx.Play();
                     }
                     else if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                     {
@@ -513,8 +513,9 @@ namespace WildsAdv
                 {
                     // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
                     // and allow the last clip to play through.
-                    singularSfx.time = 0.0F;
+                    singularSfx.Stop();
                     singularSfx.loop = false;
+                    singularSfx.Play();
                     AudioClip currentTrack = (AudioClip)singularSfx.resource;
                     // ensure we allow enough time for the chirp to play through.
                     yield return new WaitForSeconds(currentTrack.length);
@@ -673,10 +674,11 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                yield return new WaitForSecondsRealtime(currentTrack.length * chirpClipFraction);
+                singularSfx.Play();
+                yield return new WaitUntil(() => singularSfx.time >= currentTrack.length * chirpClipFraction);
 
-                // seek the steady-state chirp stream playhead back to start.
-                singularSfx.time = 0.0F;
+                // stop playback and seek playhead back to start.
+                singularSfx.Stop();
             }
         }
 
