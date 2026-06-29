@@ -712,7 +712,7 @@ MonoBehaviour:
   defaultChirpSfxVibes:
     Vibes: []
   <ChirpSfxArray>k__BackingField:
-  - {fileID: 8300000, guid: b5f239a94947541f4a16432863d47311, type: 3}
+  - {fileID: 8300000, guid: f026d7015875946978a048d8aab6814e, type: 3}
   chirpArrayRandomization: 0
   <ChirpVariantSfxArray>k__BackingField: []
   chirpInjectionRandomization: 0
@@ -723,7 +723,7 @@ MonoBehaviour:
   chirpLacunaChance: 0.5
   chirpInjectLacunae: 1
   chirpInjectVariants: 1
-  chirpClipFraction: 0.1
+  chirpClipFraction: 0.3
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
