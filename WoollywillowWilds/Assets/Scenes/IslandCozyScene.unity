@@ -703,14 +703,38 @@ MonoBehaviour:
   sfxClipIndexRange: 1
   randomSfxClipIndex: 0
   defaultVoiceSfxSegments:
-    Vibes: []
+    Vibes:
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: c8bb1a5d8f1491400acf59f24b16d83b,
+        type: 3}
+      <TrackMood>k__BackingField: 0
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
+        type: 3}
+      <TrackMood>k__BackingField: 1
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 8b92d8f62026cb459a7d6ac470a3a153,
+        type: 3}
+      <TrackMood>k__BackingField: 6
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 852b78a6941c36fc1821133aafcc3e28,
+        type: 3}
+      <TrackMood>k__BackingField: 7
   <VoiceSfxSegmentArray>k__BackingField:
   - {fileID: 8300000, guid: db63ab54bc7fc9a489163ac0c322b0aa, type: 3}
   - {fileID: 8300000, guid: 4e3a2145bf10bde47be2ee077aa2d685, type: 3}
   - {fileID: 8300000, guid: 92c95236dba59fbc88e3e42cec3c1fc0, type: 3}
   voicedSentenceArrayRandomization: 1
   defaultChirpSfxVibes:
-    Vibes: []
+    Vibes:
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
+        type: 3}
+      <TrackMood>k__BackingField: 0
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
+        type: 3}
+      <TrackMood>k__BackingField: 1
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 9e06cbf982f21aecfb374e1daeab4f28,
+        type: 3}
+      <TrackMood>k__BackingField: 6
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: ed6756e203a21956093a7ed2e5f17b1d,
+        type: 3}
+      <TrackMood>k__BackingField: 7
   <ChirpSfxArray>k__BackingField:
   - {fileID: 8300000, guid: f026d7015875946978a048d8aab6814e, type: 3}
   chirpArrayRandomization: 0
@@ -723,7 +747,7 @@ MonoBehaviour:
   chirpLacunaChance: 0.5
   chirpInjectLacunae: 1
   chirpInjectVariants: 1
-  chirpClipFraction: 0.3
+  chirpClipFraction: 0.2
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -53,7 +53,21 @@ namespace WildsAdv
         /// This mode runs a base chirp (either mapped from mood or just going down a default list)
         /// with variants on it injected at predetermined time offsets to simulate the
         /// variance in a voice speaking without running into the annoying discordance you get with
-        /// too much variance in the chirps contiguously.
+        /// too much variance in the chirps contiguously. We support the following interrupt types:
+        /// <list type="bullet">
+        ///     <item>
+        ///         <see cref="AudioClipInterrupt"/>
+        ///         <description>This interrupts the base chirp with a selected AudioClip prefab.</description>
+        ///     </item>
+        ///     <item>
+        ///         <see cref="LacunaInterrupt"/>
+        ///         <description>This interrupts the base chirp with silence for a given duration.</description>
+        ///     </item>
+        ///     <item>
+        ///         <see cref="FunctionalInterrupt"/>
+        ///         <description>This interrupts the base chirp with another <c>SfxMode</c> entirely for a given duration. The interrupt <c>SfxMode</c> will run according to its own configuration, as if it was the top level mode selection. </description>
+        ///     </item>
+        /// </list>
         /// TODO: need to check how the editor handles SfxInterrupts; may need an interface with 
         /// specialized implementers instead of abstract class.
         /// </summary>
@@ -61,23 +75,8 @@ namespace WildsAdv
         /// <summary>
         /// This mode runs only one chirp per sentence (either mapped from mood or just going down a default list)
         /// but purposefully clips the AudioClip short on each playback save the last one before some event,
-        /// e.g. the end of a sentence or some percentage of the sentence?
-        ///
-        /// TODO: since we're talking about subsecond sfx, this would presumably call for rapid pause/play;
-        /// AudioSource tends to flatten that scenario out into just not playing at all ever.
-        /// Not sure how else to implement this other than clipping off the ends of the prefab audio assets themselves
-        /// or maybe using the procedural audio filter callback API to snip off the last few PCM bytes coming through?
-        ///  UPDATE: I found the time property of AudioSource which lets me reset the playhead; this works pretty well,
-        ///  but introduces artifacts (clicking and popping) at high frequencies. I found that this seemed to go away if
-        ///  I clicked focus out of the Unity sim, but the stats screen revealed this was only because Unity's CPU latency
-        ///  increases by a factor of 10 when focus is elsewhere and render thread latency increased by about 50%. Point being,
-        ///  I think clicking away only smoothed out the sound because Unity could no longer even try to reset the playhead
-        ///  and trill as fast as I wanted. Anyway, I think I also hit a bit of a ceiling with the coroutine turnaround
-        ///  frequency since 0.1, 0.01, and 0.001 chirp fractions sounded pretty much the same (at least while I had focus
-        ///  somewhere else; the artifacts were too rough to tell when I had focus in Unity).
-        ///  TODO2: worker threads or something to avoid the supposed coroutine ceiling? No idea how to fix the artifacts.
-        ///  TODO3: get some prefabs with trills built in to circumvent Unity (or any engine) audio API issues.
-        ///
+        /// e.g. the end of a sentence or some percentage of the sentence. This creates a trilling effect similar to
+        /// the Shining Force dialogue SFX inspiration.
         /// </summary>
         ChirpSentenceAlgoClipped,
         /// <summary>
@@ -286,6 +285,12 @@ namespace WildsAdv
         /// The fraction of the chirp clip in ChirpSentenceAlgoClipped sfxMode that will play repeatedly until the sentence ends. 
         /// </summary>
         public float chirpClipFraction = 0.5F;
+        /// <summary>
+        /// Whether or not to slightly randomize the clip fraction actually used for chirp trills in SfxMode.ChirpSentenceAlgoClipped, using chirpClipFraction as a base.
+        /// If unset, chirpClipFraction will be used directly to determine the trill duration (although Coroutine yield function time fidelity means the actual duration
+        /// will likely vary anyway).
+        /// </summary>
+        public bool clipFractionRandomization = false;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -675,6 +680,11 @@ namespace WildsAdv
             while (true)
             {
                 singularSfx.Play();
+                float clipFraction = chirpClipFraction;
+                if (clipFractionRandomization)
+                {
+
+                }
                 yield return new WaitUntil(() => singularSfx.time >= currentTrack.length * chirpClipFraction);
 
                 // stop playback and seek playhead back to start.

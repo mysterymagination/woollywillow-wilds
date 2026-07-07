@@ -86,6 +86,39 @@ namespace WildsAdv
             return JsonUtility.ToJson(this).GetHashCode();
         }
     }
+    /// <summary>
+    /// An SFX interrupt that changes the entire SfxMode temporarily. This allows us to e.g. switch algorithmically between prefab chirps and algorithmically clipped chirps
+    /// for great variance and the best of both worlds.
+    /// </summary>
+    [Serializable]
+    public class FunctionalInterrupt : SfxInterrupt
+    {
+        public FunctionalInterrupt(float timeOffset, float duration, SfxMode mode) : base(timeOffset)
+        {
+            Duration = duration;
+            Mode = mode;
+        }
+        [field: SerializeField]
+        public float Duration { get; private set; }
+        [field: SerializeField]
+        public SfxMode Mode { get; private set; }
+        override public string ToString()
+        {
+            return "{\n  \"functional interrupt duration\": \"" + Duration + "\",\n  \"time offset\": \"" + TimeOffset + "\"\n \"sfxMode algo\": \"" + Mode + "\"\n}";
+        }
+
+        public override bool Equals(object obj)
+        {
+            FunctionalInterrupt otherInterrupt = (FunctionalInterrupt)obj;
+            return otherInterrupt.TimeOffset == TimeOffset
+            && otherInterrupt.Duration == Duration
+            && otherInterrupt.Mode == Mode;
+        }
+        public override int GetHashCode()
+        {
+            return JsonUtility.ToJson(this).GetHashCode();
+        }
+    }
 
     /// <summary>
     /// An array of SFX interrupts of various concrete types to be injected into a steady-state SFX stream.
