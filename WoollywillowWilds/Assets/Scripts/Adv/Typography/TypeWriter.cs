@@ -674,6 +674,109 @@ namespace WildsAdv
             }
         }
 
+        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(TreasureSentence sentence, SfxInterrupt[] interrupts)
+        {
+            int iterativeSfxIndex = 0;
+            int iterativeInterruptIndex = 0;
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
+            {
+                float varianceInjectDelay = (chirpInjectionDelayMax - chirpInjectionDelayMin) / 2 + chirpInjectionDelayMin;
+                if (chirpInjectionRandomization)
+                {
+                    varianceInjectDelay = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
+                }
+                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
+                yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                // pause the steady-state chirp stream.
+                singularSfx.Pause();
+
+                // figure out what we're injecting.
+                int interruptIndex = iterativeInterruptIndex;
+                if (randomInterrupt)
+                {
+                    System.Random rand = new System.Random();
+                    interruptIndex = rand.Next(0, interrupts.Length - 1);
+                }
+                SfxInterrupt interrupt = interrupts[interruptIndex];
+
+                switch (interrupt)
+                {
+                    case AudioClipInterrupt:
+                        break;
+                        // todo: eh, this switch is dumb. Instead, tell each SfxInterrupt how to Interrupt()
+                }
+
+                {
+                    AudioClip interruptTrack;
+                    if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
+                    {
+                        List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
+                        if (chirpInjectionRandomization)
+                        {
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                            interruptTrack = moodTracks[clipIndex];
+                        }
+                        else
+                        {
+                            if (iterativeSfxIndex < moodTracks.Count - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            interruptTrack = moodTracks[iterativeSfxIndex];
+                        }
+                    }
+                    else
+                    {
+                        if (chirpInjectionRandomization)
+                        {
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
+                            interruptTrack = ChirpVariantSfxArray[clipIndex];
+                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
+                        }
+                        else
+                        {
+                            if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            interruptTrack = ChirpVariantSfxArray[iterativeSfxIndex];
+                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
+                        }
+                    }
+                    // cache the steady-state track so we can resume it after the interrupt completes.
+                    UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                    if (interruptTrack != null)
+                    {
+                        singularSfx.resource = interruptTrack;
+                    }
+                    singularSfx.Play();
+                    yield return new WaitForSecondsRealtime(interruptTrack.length);
+                    singularSfx.Pause();
+                    singularSfx.resource = mainTrack;
+
+                }
+                else if (injectingLacunae)
+                {
+                    yield return new WaitForSecondsRealtime(UnityEngine.Random.Range(chirpLacunaDurationMin, chirpLacunaDurationMax));
+                }
+
+                // regardless of injection type, resume playing steady-state chirp stream.
+                singularSfx.Play();
+            }
+        }
+
         IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(TreasureSentence sentence, AudioClip currentTrack)
         {
             // loop forever, depending on the calling control flow to stop the host coroutine.

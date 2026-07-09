@@ -1,15 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Collections;
 using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Mono.Cecil.Cil;
-using Palmmedia.ReportGenerator.Core.Common;
-using Unity.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WildsAdv
 {
@@ -25,6 +17,7 @@ namespace WildsAdv
         }
         [field: SerializeField]
         public float TimeOffset { get; private set; }
+        public abstract IEnumerator Interrupt(float duration);
     }
     /// <summary>
     /// An SFX interrupt that plays an AudioClip. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
@@ -54,6 +47,11 @@ namespace WildsAdv
         public override int GetHashCode()
         {
             return JsonUtility.ToJson(this).GetHashCode();
+        }
+
+        public IEnumerator Interrupt(float duration)
+        {
+
         }
     }
     /// <summary>
