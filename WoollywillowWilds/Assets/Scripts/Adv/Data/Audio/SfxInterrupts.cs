@@ -59,7 +59,8 @@ namespace WildsAdv
             AudioClipInterrupt otherInterrupt = (AudioClipInterrupt)obj;
             return otherInterrupt.TimeOffset == TimeOffset
             && otherInterrupt.InterruptClip.Equals(InterruptClip)
-            && otherInterrupt.RandomizeClip == RandomizeClip;
+            && otherInterrupt.RandomizeClip == RandomizeClip
+            && otherInterrupt.AudioClips == AudioClips;
         }
         public override int GetHashCode()
         {
@@ -159,7 +160,7 @@ namespace WildsAdv
             return JsonUtility.ToJson(this).GetHashCode();
         }
 
-        override public IEnumerator Interrupt(AudioSource player, TreasureSentence _sentence)
+        override public IEnumerator Interrupt(AudioSource player, TreasureSentence _sentence, Dictionary<Mood, List<AudioClip>> _moodMap)
         {
             yield return new WaitForSecondsRealtime(Duration);
         }
