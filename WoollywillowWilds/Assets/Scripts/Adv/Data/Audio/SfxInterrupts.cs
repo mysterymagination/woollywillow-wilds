@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -17,7 +18,15 @@ namespace WildsAdv
         }
         [field: SerializeField]
         public float TimeOffset { get; private set; }
-        public abstract IEnumerator Interrupt(float duration);
+        /// <summary>
+        /// Interrupts the SFX currently being played by the input player for the input sentence.
+        /// The manner of this interruption depends on the particular <see cref="SfxInterrupt"/> subclass. 
+        /// </summary>
+        /// <param name="player">The <see cref="AudioSource"/> playing the main SFX stream for the current sentence.</param>
+        /// <param name="sentence">The current <see cref="TreasureSentence"/> to which the interrupting SFX applies.</param>
+        /// <param name="moodMap">A <see cref="Dictionary"/> mapping <see cref="Mood"/>s to a corresponding <see cref="List"/> of <see cref="AudioClip"/>s that are appropriate for that mood.</param>
+        /// <returns>An <see cref="IEnumerator"/> handle for Coroutine resume after suspend.</returns>
+        public abstract IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap);
     }
     /// <summary>
     /// An SFX interrupt that plays an AudioClip. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
@@ -27,31 +36,93 @@ namespace WildsAdv
     [Serializable]
     public class AudioClipInterrupt : SfxInterrupt
     {
-        public AudioClipInterrupt(float timeOffset, AudioClip clip) : base(timeOffset)
+        public AudioClipInterrupt(float timeOffset, AudioClip interruptClip, bool randomizeClip, List<AudioClip> audioClips) : base(timeOffset)
         {
-            TrackClip = clip;
+            InterruptClip = interruptClip;
+            RandomizeClip = randomizeClip;
+            AudioClips = audioClips;
         }
         [field: SerializeField]
-        public AudioClip TrackClip { get; private set; }
+        public AudioClip InterruptClip { get; private set; }
+        [field: SerializeField]
+        public bool RandomizeClip { get; private set; }
+        [field: SerializeField]
+        public List<AudioClip> AudioClips { get; private set; }
+        private int iterativeSfxIndex = 0;
         override public string ToString()
         {
-            return "{\n  \"clip name\": \"" + TrackClip.name + "\",\n  \"time offset\": \"" + TimeOffset + "\"\n}";
+            return "{\n  \"clip name\": \"" + InterruptClip.name + "\",\n  \"time offset\": \"" + TimeOffset + "\"\n  \"randomize clip\": \"" + RandomizeClip + "\"\n}";
         }
 
         public override bool Equals(object obj)
         {
             AudioClipInterrupt otherInterrupt = (AudioClipInterrupt)obj;
             return otherInterrupt.TimeOffset == TimeOffset
-            && otherInterrupt.TrackClip.Equals(TrackClip);
+            && otherInterrupt.InterruptClip.Equals(InterruptClip)
+            && otherInterrupt.RandomizeClip == RandomizeClip;
         }
         public override int GetHashCode()
         {
             return JsonUtility.ToJson(this).GetHashCode();
         }
 
-        public IEnumerator Interrupt(float duration)
+        override public IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap)
         {
-
+            AudioClip interruptTrack;
+            if (sentence != null && moodMap.ContainsKey(sentence.SentenceMood))
+            {
+                List<AudioClip> moodTracks = moodMap[sentence.SentenceMood];
+                if (RandomizeClip)
+                {
+                    System.Random rnd = new System.Random();
+                    int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                    interruptTrack = moodTracks[clipIndex];
+                }
+                else
+                {
+                    if (iterativeSfxIndex < moodTracks.Count - 1)
+                    {
+                        iterativeSfxIndex++;
+                    }
+                    else
+                    {
+                        iterativeSfxIndex = 0;
+                    }
+                    interruptTrack = moodTracks[iterativeSfxIndex];
+                }
+            }
+            else
+            {
+                if (RandomizeClip)
+                {
+                    System.Random rnd = new System.Random();
+                    int clipIndex = rnd.Next(0, AudioClips.Count);
+                    interruptTrack = AudioClips[clipIndex];
+                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
+                }
+                else
+                {
+                    if (iterativeSfxIndex < AudioClips.Count - 1)
+                    {
+                        iterativeSfxIndex++;
+                    }
+                    else
+                    {
+                        iterativeSfxIndex = 0;
+                    }
+                    interruptTrack = AudioClips[iterativeSfxIndex];
+                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
+                }
+            }
+            // cache the steady-state track so we can resume it after the interrupt completes.
+            UnityEngine.Audio.AudioResource mainTrack = player.resource;
+            if (interruptTrack != null)
+            {
+                player.resource = interruptTrack;
+            }
+            player.Play();
+            yield return new WaitUntil(() => player.time >= interruptTrack.length);
+            player.Stop();
         }
     }
     /// <summary>
@@ -65,6 +136,10 @@ namespace WildsAdv
         public LacunaInterrupt(float timeOffset, float duration) : base(timeOffset)
         {
             Duration = duration;
+        }
+        public LacunaInterrupt(float timeOffset, float durationMin, float durationMax) : base(timeOffset)
+        {
+            Duration = UnityEngine.Random.Range(durationMin, durationMax);
         }
         [field: SerializeField]
         public float Duration { get; private set; }
@@ -82,6 +157,11 @@ namespace WildsAdv
         public override int GetHashCode()
         {
             return JsonUtility.ToJson(this).GetHashCode();
+        }
+
+        override public IEnumerator Interrupt(AudioSource player, TreasureSentence _sentence)
+        {
+            yield return new WaitForSecondsRealtime(Duration);
         }
     }
     /// <summary>
