@@ -62,7 +62,7 @@ namespace WildsAdv
         ///     </item>
         ///     <item>
         ///         <see cref="FunctionalInterrupt"/>
-        ///         <description>This interrupts the base chirp with another <c>SfxMode</c> entirely for a given duration. The interrupt <c>SfxMode</c> will run according to its own configuration, as if it was the top level mode selection. </description>
+        ///         <description>This interrupts the base chirp with the async function at the heart of another <c>SfxMode</c> entirely for a given duration. The interrupt <c>SfxMode</c> async function will run according to its own configuration, as close to being the top level mode selection as possible.</description>
         ///     </item>
         /// </list>
         /// TODO: need to check how the editor handles SfxInterrupts; may need an interface with 
@@ -677,19 +677,10 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_ChirpSentencePrefabVariance(TreasureSentence sentence, SfxInterrupt[] interrupts)
         {
-            int iterativeSfxIndex = 0;
             int iterativeInterruptIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                float varianceInjectDelay = (chirpInjectionDelayMax - chirpInjectionDelayMin) / 2 + chirpInjectionDelayMin;
-                if (chirpInjectionRandomization)
-                {
-                    varianceInjectDelay = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
-                }
-                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                yield return new WaitForSecondsRealtime(varianceInjectDelay);
-
                 // figure out what we're injecting.
                 int interruptIndex = iterativeInterruptIndex;
                 if (randomInterrupt)
@@ -698,6 +689,18 @@ namespace WildsAdv
                     interruptIndex = rand.Next(0, interrupts.Length - 1);
                 }
                 SfxInterrupt interrupt = interrupts[interruptIndex];
+
+                float varianceInjectDelay = interrupt.TimeOffset;
+                if (chirpInjectionRandomization)
+                {
+                    float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
+                    float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                    delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                    varianceInjectDelay += delayModifier;
+                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
+                }
+                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
+                yield return new WaitForSecondsRealtime(varianceInjectDelay);
 
                 // pause the steady-state chirp stream.
                 singularSfx.Pause();
