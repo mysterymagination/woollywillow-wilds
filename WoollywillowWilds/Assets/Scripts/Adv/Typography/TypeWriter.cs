@@ -84,7 +84,7 @@ namespace WildsAdv
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
     /// </summary>
-    public class TypeWriter : MonoBehaviour
+    public class TypeWriter : MonoBehaviour, IInterruptableSfx
     {
         /// <summary>
         /// The TMP_Text textview Component we wish to write into.
@@ -292,6 +292,11 @@ namespace WildsAdv
         /// Whether prefabricated <see cref="SfxInterrupt"/>s should be randomized in <see cref="SfxMode.ChirpSentencePrefabVariance"/> or stepped through in sequence.
         /// </summary>
         public bool randomInterrupt = false;
+        private AudioClip currentTrack;
+        private AudioSource currentSfxPlayer;
+        private TreasureSentence currentSentence;
+        private Mood currentMood;
+        private Dictionary<Mood, List<AudioClip>> currentMoodMap;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -851,6 +856,37 @@ namespace WildsAdv
                 
             }
             */
+        }
+
+        IEnumerator OnFunctionalInterrupt(SfxMode mode)
+        {
+            switch (mode)
+            {
+                case SfxMode.ChirpSentenceAlgoClipped:
+                    yield return AsyncSfx_ChirpSentenceAlgoClipped(currentSentence, currentTrack);
+                    break;
+                case SfxMode.ChirpSentenceAlgoVariance:
+                    yield return AsyncSfx_ChirpSentenceAlgoVariance(currentSentence);
+                    break;
+                case SfxMode.VoicedSentenceArray:
+                    yield return AsyncSfx_VoicedSentence(currentSentence);
+                    break;
+            }
+        }
+
+        AudioSource QueryPlayer()
+        {
+            return currentSfxPlayer;
+        }
+
+        Mood QueryMood()
+        {
+            return currentMood;
+        }
+
+        Dictionary<Mood, List<AudioClip>> QueryMoodMap()
+        {
+            return currentMoodMap;
         }
 
         public bool Shutdown(bool clear)

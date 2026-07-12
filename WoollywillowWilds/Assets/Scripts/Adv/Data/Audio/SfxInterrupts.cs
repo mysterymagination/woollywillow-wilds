@@ -22,11 +22,9 @@ namespace WildsAdv
         /// Interrupts the SFX currently being played by the input player for the input sentence.
         /// The manner of this interruption depends on the particular <see cref="SfxInterrupt"/> subclass. 
         /// </summary>
-        /// <param name="player">The <see cref="AudioSource"/> playing the main SFX stream for the current sentence.</param>
-        /// <param name="sentence">The current <see cref="TreasureSentence"/> to which the interrupting SFX applies.</param>
-        /// <param name="moodMap">A <see cref="Dictionary"/> mapping <see cref="Mood"/>s to a corresponding <see cref="List"/> of <see cref="AudioClip"/>s that are appropriate for that mood.</param>
+        /// <param name="interruptableSfx">The <see cref="IInterruptableSfx"/> playing the main SFX stream which we wish to interrupt. It implements query functions that inform our interrupt details.</param>
         /// <returns>An <see cref="IEnumerator"/> handle for Coroutine resume after suspend.</returns>
-        public abstract IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap);
+        public abstract IEnumerator Interrupt(IInterruptableSfx interruptableSfx);
     }
     /// <summary>
     /// An SFX interrupt that plays an AudioClip. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
@@ -196,6 +194,10 @@ namespace WildsAdv
         public override int GetHashCode()
         {
             return JsonUtility.ToJson(this).GetHashCode();
+        }
+        public override IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap)
+        {
+            throw new NotImplementedException();
         }
     }
 
