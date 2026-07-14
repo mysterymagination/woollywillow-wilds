@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using MoodMap = System.Collections.Generic.Dictionary<WildsAdv.Mood, System.Collections.Generic.List<UnityEngine.AudioClip>>;
 
 namespace WildsAdv
 {
@@ -65,12 +66,14 @@ namespace WildsAdv
             return JsonUtility.ToJson(this).GetHashCode();
         }
 
-        override public IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap)
+        override public IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
             AudioClip interruptTrack;
-            if (sentence != null && moodMap.ContainsKey(sentence.SentenceMood))
+            Mood mood = interruptableSfx.QueryMood();
+            MoodMap moodMap = interruptableSfx.QueryMoodMap();
+            if (moodMap.ContainsKey(mood))
             {
-                List<AudioClip> moodTracks = moodMap[sentence.SentenceMood];
+                List<AudioClip> moodTracks = moodMap[mood];
                 if (RandomizeClip)
                 {
                     System.Random rnd = new System.Random();
@@ -114,6 +117,7 @@ namespace WildsAdv
                 }
             }
             // cache the steady-state track so we can resume it after the interrupt completes.
+            AudioSource player = interruptableSfx.QueryPlayer();
             UnityEngine.Audio.AudioResource mainTrack = player.resource;
             if (interruptTrack != null)
             {
@@ -158,7 +162,7 @@ namespace WildsAdv
             return JsonUtility.ToJson(this).GetHashCode();
         }
 
-        override public IEnumerator Interrupt(AudioSource player, TreasureSentence _sentence, Dictionary<Mood, List<AudioClip>> _moodMap)
+        override public IEnumerator Interrupt(IInterruptableSfx _interruptableSfx)
         {
             yield return new WaitForSecondsRealtime(Duration);
         }
@@ -195,9 +199,9 @@ namespace WildsAdv
         {
             return JsonUtility.ToJson(this).GetHashCode();
         }
-        public override IEnumerator Interrupt(AudioSource player, TreasureSentence sentence, Dictionary<Mood, List<AudioClip>> moodMap)
+        public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
-            throw new NotImplementedException();
+            yield return interruptableSfx.OnFunctionalInterrupt(Mode);
         }
     }
 
