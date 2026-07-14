@@ -736,7 +736,7 @@ namespace WildsAdv
 
                 // cache the steady-state track so we can resume it after the interrupt completes.
                 UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                yield return interrupt.Interrupt(singularSfx, sentence, ChirpVariantSfxMap);
+                yield return interrupt.Interrupt(this);
                 singularSfx.resource = mainTrack;
 
                 // resume playing steady-state chirp stream.
