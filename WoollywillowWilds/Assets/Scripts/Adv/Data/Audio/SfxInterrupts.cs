@@ -118,7 +118,6 @@ namespace WildsAdv
             }
             // cache the steady-state track so we can resume it after the interrupt completes.
             AudioSource player = interruptableSfx.QueryPlayer();
-            UnityEngine.Audio.AudioResource mainTrack = player.resource;
             if (interruptTrack != null)
             {
                 player.resource = interruptTrack;
@@ -201,6 +200,7 @@ namespace WildsAdv
         }
         public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
+            // TODO: many ofthe SfxMode async functions drop into forever loops that rely on the host coroutine being stopped from an external vantage; we don't have that here at the moment.
             yield return interruptableSfx.OnFunctionalInterrupt(Mode);
         }
     }
