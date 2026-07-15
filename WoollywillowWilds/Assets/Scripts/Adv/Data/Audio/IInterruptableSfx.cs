@@ -1,3 +1,7 @@
+using UnityEngine;
+using System.Collections;
+using MoodMap = System.Collections.Generic.Dictionary<WildsAdv.Mood, System.Collections.Generic.List<UnityEngine.AudioClip>>;
+
 namespace WildsAdv
 {
     /// <summary>
@@ -18,21 +22,21 @@ namespace WildsAdv
         /// <param name="mode">
         /// The <see cref="SfxMode" we wish to emulate during our interrupt.>.
         /// </param>
-        void OnFunctionalInterrupt(SfxMode mode);
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode);
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.
         /// </summary>
         /// <returns>The <see cref="AudioSource"/> playing the sfx we want to interrupt.</returns>
-        AudioSource QueryPlayer();
+        public AudioSource QueryPlayer();
         /// <summary>
         /// Asks the interruptable sfx manager for the current mood we're trying to evoke.
         /// </summary>
         /// <returns>The <see cref="Mood"/> our interruption should keep to if possible.</returns>
-        Mood QueryMood();
+        public Mood QueryMood();
         /// <summary>
         /// Asks the interruptable sfx manager for the mapping of moods to <see cref="List<AudioClip>" for the purposes of switching through potentially multiple premapped mood:track assocations during the interruption./> .
         /// </summary>
         /// <returns>The <see cref="Mood"/> our interruption should keep to if possible.</returns>
-        MoodMap QueryMoodMap();
+        public MoodMap QueryMoodMap();
     }
 }

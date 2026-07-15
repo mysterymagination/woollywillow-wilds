@@ -883,7 +883,7 @@ namespace WildsAdv
             */
         }
 
-        IEnumerator OnFunctionalInterrupt(SfxMode mode)
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode)
         {
             switch (mode)
             {
@@ -899,17 +899,17 @@ namespace WildsAdv
             }
         }
 
-        AudioSource QueryPlayer()
+        public AudioSource QueryPlayer()
         {
             return currentSfxPlayer;
         }
 
-        Mood QueryMood()
+        public Mood QueryMood()
         {
             return currentMood;
         }
 
-        Dictionary<Mood, List<AudioClip>> QueryMoodMap()
+        public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
         {
             return currentMoodMap;
         }

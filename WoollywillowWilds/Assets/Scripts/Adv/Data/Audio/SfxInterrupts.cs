@@ -201,6 +201,8 @@ namespace WildsAdv
         public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
             // TODO: many ofthe SfxMode async functions drop into forever loops that rely on the host coroutine being stopped from an external vantage; we don't have that here at the moment.
+            //  We can potentially work around that by launching a new coroutine here to run the interrupt function, then yield wait the current coroutine for the interrupt duration,
+            //  then when it wakes up have it stop the interrupt coroutine.
             yield return interruptableSfx.OnFunctionalInterrupt(Mode);
         }
     }
