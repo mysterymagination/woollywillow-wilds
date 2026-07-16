@@ -245,6 +245,11 @@ namespace WildsAdv
         /// </summary>
         public Dictionary<Mood, List<AudioClip>> ChirpVariantSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
         /// <summary>
+        /// <see cref="MoodTrax"/> collection of SFX chirp interrupt tracks associated with <see cref="Mood"/>s that we can use to populate the <see cref="ChirpVariantSfxMap"/> <see cref="Dictionary<Mood, List<AudioClip>>"/> at runtime.
+        /// </summary>
+        [field: SerializeField]
+        public MoodTrax ChirpVariantSfxVibes { get; set; }
+        /// <summary>
         /// List of SFX chirp interrupt tracks to play through without needing mood associations when injecting variant chirps.
         /// </summary>
         [field: SerializeField]
@@ -294,7 +299,6 @@ namespace WildsAdv
         public bool randomInterrupt = false;
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
-        private TreasureSentence currentSentence;
         private Mood currentMood;
         private Dictionary<Mood, List<AudioClip>> currentMoodMap;
 
@@ -308,6 +312,10 @@ namespace WildsAdv
             sfxBlipIndex = 0;
             moodlessSfxTrackIndex = 0;
             Destroy(singularSfx);
+            currentSfxPlayer = null;
+            currentTrack = null;
+            currentMoodMap = null;
+            currentMood = Mood.Neutral;
         }
 
         /// <summary>
@@ -346,11 +354,28 @@ namespace WildsAdv
                 }
             }
 
+            if (ChirpVariantSfxMap.Count == 0)
+            {
+                if (ChirpVariantSfxVibes != null && ChirpVariantSfxVibes.Vibes.Count > 0)
+                {
+                    foreach (VibeTrack vibe in ChirpVariantSfxVibes.Vibes)
+                    {
+                        if (!ChirpVariantSfxMap.ContainsKey(vibe.TrackMood))
+                        {
+                            ChirpVariantSfxMap.Add(vibe.TrackMood, new List<AudioClip>());
+                        }
+                        ChirpVariantSfxMap[vibe.TrackMood].Add(vibe.TrackClip);
+                    }
+                }
+            }
+
             writeFunction = AsyncWrite();
             if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
                 || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
+                // update field member for IInterruptableSfx queries.
+                currentSfxPlayer = singularSfx;
                 singularSfx.loop = true;
                 singularSfx.volume = sfxVolume;
             }
@@ -370,10 +395,10 @@ namespace WildsAdv
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
+                currentTrack = null;
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
                     singularSfx.Pause();
-                    AudioClip currentTrack = null;
                     if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
                         List<AudioClip> moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
@@ -412,7 +437,6 @@ namespace WildsAdv
                 else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                 {
                     singularSfx.Pause();
-                    AudioClip currentTrack = null;
                     if (ChirpSfxVibeMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
                         List<AudioClip> moodTracks = ChirpSfxVibeMap[currentTreasureSentence.SentenceMood];
@@ -448,18 +472,18 @@ namespace WildsAdv
                     singularSfx.loop = true;
                     if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
                     {
-                        sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentTreasureSentence);
+                        sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
                         singularSfx.Play();
                     }
                     else if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                     {
-                        sfxFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTreasureSentence, currentTrack);
+                        sfxFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
                     }
                     StartCoroutine(sfxFunction);
                 }
                 else if (sfxMode == SfxMode.VoicedSentenceArray)
                 {
-                    sfxFunction = AsyncSfx_VoicedSentence(currentTreasureSentence);
+                    sfxFunction = AsyncSfx_VoicedSentence(currentMood);
                     StartCoroutine(sfxFunction);
                 }
 
@@ -527,7 +551,7 @@ namespace WildsAdv
                     singularSfx.Stop();
                     singularSfx.loop = false;
                     singularSfx.Play();
-                    AudioClip currentTrack = (AudioClip)singularSfx.resource;
+                    currentTrack = (AudioClip)singularSfx.resource;
                     // ensure we allow enough time for the chirp to play through.
                     yield return new WaitForSeconds(currentTrack.length);
                     singularSfx.Pause();
@@ -575,7 +599,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(TreasureSentence sentence)
+        IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(Mood mood)
         {
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
@@ -613,9 +637,9 @@ namespace WildsAdv
                 if (injectingVariants)
                 {
                     AudioClip interruptTrack;
-                    if (sentence != null && ChirpVariantSfxMap.ContainsKey(sentence.SentenceMood))
+                    if (ChirpVariantSfxMap.ContainsKey(mood))
                     {
-                        List<AudioClip> moodTracks = ChirpVariantSfxMap[sentence.SentenceMood];
+                        List<AudioClip> moodTracks = ChirpVariantSfxMap[mood];
                         if (chirpInjectionRandomization)
                         {
                             System.Random rnd = new System.Random();
@@ -680,7 +704,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(TreasureSentence sentence, SfxInterrupt[] interrupts)
+        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterrupt[] interrupts)
         {
             int iterativeInterruptIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
@@ -712,7 +736,7 @@ namespace WildsAdv
 
                 // cache the steady-state track so we can resume it after the interrupt completes.
                 UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                yield return interrupt.Interrupt(singularSfx, sentence, ChirpVariantSfxMap);
+                yield return interrupt.Interrupt(this);
                 singularSfx.resource = mainTrack;
 
                 // resume playing steady-state chirp stream.
@@ -720,7 +744,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(TreasureSentence sentence, AudioClip currentTrack)
+        IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(AudioClip currentTrack)
         {
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
@@ -729,7 +753,8 @@ namespace WildsAdv
                 float clipFraction = chirpClipFraction;
                 if (clipFractionRandomization)
                 {
-
+                    float range = chirpClipFraction / 2.0F;
+                    clipFraction = UnityEngine.Random.Range(chirpClipFraction - range, chirpClipFraction + range);
                 }
                 yield return new WaitUntil(() => singularSfx.time >= currentTrack.length * chirpClipFraction);
 
@@ -738,7 +763,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_VoicedSentence(TreasureSentence sentence)
+        IEnumerator AsyncSfx_VoicedSentence(Mood mood)
         {
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
@@ -746,9 +771,9 @@ namespace WildsAdv
             {
                 singularSfx.Pause();
                 AudioClip currentTrack;
-                if (sentence != null && VoiceSfxSegmentMap.ContainsKey(sentence.SentenceMood))
+                if (VoiceSfxSegmentMap.ContainsKey(mood))
                 {
-                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[sentence.SentenceMood];
+                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
                     if (voicedSentenceArrayRandomization)
                     {
                         System.Random rnd = new System.Random();
@@ -858,33 +883,33 @@ namespace WildsAdv
             */
         }
 
-        IEnumerator OnFunctionalInterrupt(SfxMode mode)
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode)
         {
             switch (mode)
             {
                 case SfxMode.ChirpSentenceAlgoClipped:
-                    yield return AsyncSfx_ChirpSentenceAlgoClipped(currentSentence, currentTrack);
+                    yield return AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
                     break;
                 case SfxMode.ChirpSentenceAlgoVariance:
-                    yield return AsyncSfx_ChirpSentenceAlgoVariance(currentSentence);
+                    yield return AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
                     break;
                 case SfxMode.VoicedSentenceArray:
-                    yield return AsyncSfx_VoicedSentence(currentSentence);
+                    yield return AsyncSfx_VoicedSentence(currentMood);
                     break;
             }
         }
 
-        AudioSource QueryPlayer()
+        public AudioSource QueryPlayer()
         {
             return currentSfxPlayer;
         }
 
-        Mood QueryMood()
+        public Mood QueryMood()
         {
             return currentMood;
         }
 
-        Dictionary<Mood, List<AudioClip>> QueryMoodMap()
+        public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
         {
             return currentMoodMap;
         }
