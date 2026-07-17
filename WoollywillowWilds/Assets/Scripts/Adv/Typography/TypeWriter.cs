@@ -883,19 +883,27 @@ namespace WildsAdv
             */
         }
 
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode)
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
         {
+            IEnumerator interruptFunction = null;
             switch (mode)
             {
                 case SfxMode.ChirpSentenceAlgoClipped:
-                    yield return AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
+                    interruptFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
                     break;
                 case SfxMode.ChirpSentenceAlgoVariance:
-                    yield return AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
+                    interruptFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
                     break;
                 case SfxMode.VoicedSentenceArray:
-                    yield return AsyncSfx_VoicedSentence(currentMood);
+                    interruptFunction = AsyncSfx_VoicedSentence(currentMood);
                     break;
+            }
+
+            if (interruptFunction != null)
+            {
+                StartCoroutine(interruptFunction);
+                yield return new WaitForSeconds(duration);
+                StopCoroutine(interruptFunction);
             }
         }
 

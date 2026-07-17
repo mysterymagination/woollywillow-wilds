@@ -22,7 +22,10 @@ namespace WildsAdv
         /// <param name="mode">
         /// The <see cref="SfxMode" we wish to emulate during our interrupt.>.
         /// </param>
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode);
+        /// <param name="duration">
+        /// The duration of the interrupt in seconds.
+        /// </param>
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration);
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.
         /// </summary>
