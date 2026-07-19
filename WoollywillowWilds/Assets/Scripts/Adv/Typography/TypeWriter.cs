@@ -240,12 +240,12 @@ namespace WildsAdv
         public List<AudioClip> ChirpSfxArray { get; set; } = new List<AudioClip>();
         public bool chirpArrayRandomization = true;
         /// <summary>
-        /// Mapping of text mood associations to an array of chirp sfx clips intended to inject variance into steady-state chirps; can be set by the Component calling TypeWrite() if a specific
+        /// Mapping of text mood associations to an array of chirp sfx clips intended to interrupt and inject variance into steady-state chirps; can be set by the Component calling TypeWrite() if a specific
         /// voice chirp interrupt is desired, e.g. if a character is speaking.
         /// </summary>
-        public Dictionary<Mood, List<AudioClip>> ChirpVariantSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
+        public Dictionary<Mood, List<AudioClip>> ChirpInterruptSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
         /// <summary>
-        /// <see cref="MoodTrax"/> collection of SFX chirp interrupt tracks associated with <see cref="Mood"/>s that we can use to populate the <see cref="ChirpVariantSfxMap"/> <see cref="Dictionary<Mood, List<AudioClip>>"/> at runtime.
+        /// <see cref="MoodTrax"/> collection of SFX chirp interrupt tracks associated with <see cref="Mood"/>s that we can use to populate the <see cref="ChirpInterruptSfxMap"/> <see cref="Dictionary<Mood, List<AudioClip>>"/> at runtime.
         /// </summary>
         [field: SerializeField]
         public MoodTrax ChirpVariantSfxVibes { get; set; }
@@ -354,17 +354,17 @@ namespace WildsAdv
                 }
             }
 
-            if (ChirpVariantSfxMap.Count == 0)
+            if (ChirpInterruptSfxMap.Count == 0)
             {
                 if (ChirpVariantSfxVibes != null && ChirpVariantSfxVibes.Vibes.Count > 0)
                 {
                     foreach (VibeTrack vibe in ChirpVariantSfxVibes.Vibes)
                     {
-                        if (!ChirpVariantSfxMap.ContainsKey(vibe.TrackMood))
+                        if (!ChirpInterruptSfxMap.ContainsKey(vibe.TrackMood))
                         {
-                            ChirpVariantSfxMap.Add(vibe.TrackMood, new List<AudioClip>());
+                            ChirpInterruptSfxMap.Add(vibe.TrackMood, new List<AudioClip>());
                         }
-                        ChirpVariantSfxMap[vibe.TrackMood].Add(vibe.TrackClip);
+                        ChirpInterruptSfxMap[vibe.TrackMood].Add(vibe.TrackClip);
                     }
                 }
             }
@@ -398,6 +398,7 @@ namespace WildsAdv
                 currentTrack = null;
                 if (sfxMode == SfxMode.VoicedSentencePrefab)
                 {
+                    currentMoodMap = VoiceSfxSegmentMap;
                     singularSfx.Pause();
                     if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
@@ -436,6 +437,7 @@ namespace WildsAdv
                 }
                 else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
                 {
+                    currentMoodMap = ChirpSfxVibeMap;
                     singularSfx.Pause();
                     if (ChirpSfxVibeMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
@@ -472,6 +474,7 @@ namespace WildsAdv
                     singularSfx.loop = true;
                     if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
                     {
+                        currentMoodMap = ChirpInterruptSfxMap;
                         sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
                         singularSfx.Play();
                     }
@@ -637,9 +640,9 @@ namespace WildsAdv
                 if (injectingVariants)
                 {
                     AudioClip interruptTrack;
-                    if (ChirpVariantSfxMap.ContainsKey(mood))
+                    if (ChirpInterruptSfxMap.ContainsKey(mood))
                     {
-                        List<AudioClip> moodTracks = ChirpVariantSfxMap[mood];
+                        List<AudioClip> moodTracks = ChirpInterruptSfxMap[mood];
                         if (chirpInjectionRandomization)
                         {
                             System.Random rnd = new System.Random();
