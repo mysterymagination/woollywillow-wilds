@@ -65,8 +65,9 @@ namespace WildsAdv
         ///         <description>This interrupts the base chirp with the async function at the heart of another <c>SfxMode</c> entirely for a given duration. The interrupt <c>SfxMode</c> async function will run according to its own configuration, as close to being the top level mode selection as possible.</description>
         ///     </item>
         /// </list>
-        /// TODO: need to check how the editor handles SfxInterrupts; may need an interface with 
+        /// todo: need to check how the editor handles SfxInterrupts; may need an interface with 
         /// specialized implementers instead of abstract class.
+        /// todo: need to add sfxmode handling for this mode in setup functions.
         /// </summary>
         ChirpSentencePrefabVariance,
         /// <summary>
@@ -204,7 +205,7 @@ namespace WildsAdv
         /// Default list of AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
         /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
         /// </summary>
-        public MoodTrax defaultVoiceSfxSegments;
+        public MoodTrax defaultVoiceSfxSegmentArray;
         /// <summary>
         /// Mapping of text mood associations to an array of suitable sfx clips; can be set by the Component calling TypeWrite() if a specific voice is desired, e.g. if a character is speaking.
         /// </summary>
@@ -227,7 +228,7 @@ namespace WildsAdv
         /// Default list of chirp sfx AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
         /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
         /// </summary>
-        public MoodTrax defaultChirpSfxVibes;
+        public MoodTrax defaultChirpSfxVibeArray;
         /// <summary>
         /// Mapping of text mood associations to an array of chirp sfx clips intended for steady-state looping during a given sentence rendering; can be set by the Component calling TypeWrite() if a specific
         /// voice chirp is desired, e.g. if a character is speaking.
@@ -248,7 +249,7 @@ namespace WildsAdv
         /// <see cref="MoodTrax"/> collection of SFX chirp interrupt tracks associated with <see cref="Mood"/>s that we can use to populate the <see cref="ChirpInterruptSfxMap"/> <see cref="Dictionary<Mood, List<AudioClip>>"/> at runtime.
         /// </summary>
         [field: SerializeField]
-        public MoodTrax ChirpVariantSfxVibes { get; set; }
+        public MoodTrax ChirpInterruptSfxVibeArray { get; set; }
         /// <summary>
         /// List of SFX chirp interrupt tracks to play through without needing mood associations when injecting variant chirps.
         /// </summary>
@@ -297,6 +298,8 @@ namespace WildsAdv
         /// Whether prefabricated <see cref="SfxInterrupt"/>s should be randomized in <see cref="SfxMode.ChirpSentencePrefabVariance"/> or stepped through in sequence.
         /// </summary>
         public bool randomInterrupt = false;
+        [field: SerializeReference]
+        public List<SfxInterrupt> SfxInterruptsArray { get; set; } = new List<SfxInterrupt>();
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
         private Mood currentMood;
@@ -326,9 +329,9 @@ namespace WildsAdv
         {
             if (VoiceSfxSegmentMap.Count == 0)
             {
-                if (defaultVoiceSfxSegments != null && defaultVoiceSfxSegments.Vibes.Count > 0)
+                if (defaultVoiceSfxSegmentArray != null && defaultVoiceSfxSegmentArray.Vibes.Count > 0)
                 {
-                    foreach (VibeTrack vibe in defaultVoiceSfxSegments.Vibes)
+                    foreach (VibeTrack vibe in defaultVoiceSfxSegmentArray.Vibes)
                     {
                         if (!VoiceSfxSegmentMap.ContainsKey(vibe.TrackMood))
                         {
@@ -341,9 +344,9 @@ namespace WildsAdv
 
             if (ChirpSfxVibeMap.Count == 0)
             {
-                if (defaultChirpSfxVibes != null && defaultChirpSfxVibes.Vibes.Count > 0)
+                if (defaultChirpSfxVibeArray != null && defaultChirpSfxVibeArray.Vibes.Count > 0)
                 {
-                    foreach (VibeTrack vibe in defaultChirpSfxVibes.Vibes)
+                    foreach (VibeTrack vibe in defaultChirpSfxVibeArray.Vibes)
                     {
                         if (!ChirpSfxVibeMap.ContainsKey(vibe.TrackMood))
                         {
@@ -356,9 +359,9 @@ namespace WildsAdv
 
             if (ChirpInterruptSfxMap.Count == 0)
             {
-                if (ChirpVariantSfxVibes != null && ChirpVariantSfxVibes.Vibes.Count > 0)
+                if (ChirpInterruptSfxVibeArray != null && ChirpInterruptSfxVibeArray.Vibes.Count > 0)
                 {
-                    foreach (VibeTrack vibe in ChirpVariantSfxVibes.Vibes)
+                    foreach (VibeTrack vibe in ChirpInterruptSfxVibeArray.Vibes)
                     {
                         if (!ChirpInterruptSfxMap.ContainsKey(vibe.TrackMood))
                         {

@@ -702,44 +702,44 @@ MonoBehaviour:
   breathDelayMs: 1000
   sfxClipIndexRange: 1
   randomSfxClipIndex: 0
-  defaultVoiceSfxSegments:
-    Vibes:
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: c8bb1a5d8f1491400acf59f24b16d83b,
-        type: 3}
-      <TrackMood>k__BackingField: 0
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
-        type: 3}
-      <TrackMood>k__BackingField: 1
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 8b92d8f62026cb459a7d6ac470a3a153,
-        type: 3}
-      <TrackMood>k__BackingField: 6
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 852b78a6941c36fc1821133aafcc3e28,
-        type: 3}
-      <TrackMood>k__BackingField: 7
+  defaultVoiceSfxSegmentArray:
+    Vibes: []
   <VoiceSfxSegmentArray>k__BackingField:
   - {fileID: 8300000, guid: db63ab54bc7fc9a489163ac0c322b0aa, type: 3}
   - {fileID: 8300000, guid: 4e3a2145bf10bde47be2ee077aa2d685, type: 3}
   - {fileID: 8300000, guid: 92c95236dba59fbc88e3e42cec3c1fc0, type: 3}
   voicedSentenceArrayRandomization: 1
-  defaultChirpSfxVibes:
+  defaultChirpSfxVibeArray:
     Vibes:
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 94363e267047aa86185bead6b19fd061,
         type: 3}
       <TrackMood>k__BackingField: 0
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: f83e3e54e1c4e658d8a03a8cb56e8e49,
         type: 3}
       <TrackMood>k__BackingField: 1
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 9e06cbf982f21aecfb374e1daeab4f28,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 247433c18978b42b792f0a5245c5153e,
         type: 3}
       <TrackMood>k__BackingField: 6
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: ed6756e203a21956093a7ed2e5f17b1d,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 857136627c2dbde18a69531e062e40b7,
         type: 3}
       <TrackMood>k__BackingField: 7
   <ChirpSfxArray>k__BackingField:
   - {fileID: 8300000, guid: f026d7015875946978a048d8aab6814e, type: 3}
   chirpArrayRandomization: 0
-  <ChirpVariantSfxVibes>k__BackingField:
-    Vibes: []
+  <ChirpInterruptSfxVibeArray>k__BackingField:
+    Vibes:
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
+        type: 3}
+      <TrackMood>k__BackingField: 0
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 8b92d8f62026cb459a7d6ac470a3a153,
+        type: 3}
+      <TrackMood>k__BackingField: 1
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 9e06cbf982f21aecfb374e1daeab4f28,
+        type: 3}
+      <TrackMood>k__BackingField: 6
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
+        type: 3}
+      <TrackMood>k__BackingField: 7
   <ChirpVariantSfxArray>k__BackingField: []
   chirpInjectionRandomization: 1
   chirpInjectionDelayMin: 0.1
@@ -752,6 +752,14 @@ MonoBehaviour:
   chirpClipFraction: 0.2
   clipFractionRandomization: 1
   randomInterrupt: 1
+  <SfxInterruptsArray>k__BackingField:
+  - rid: -2
+  - rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
