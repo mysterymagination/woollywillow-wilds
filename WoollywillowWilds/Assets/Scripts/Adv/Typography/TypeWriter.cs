@@ -298,8 +298,8 @@ namespace WildsAdv
         /// Whether prefabricated <see cref="SfxInterrupt"/>s should be randomized in <see cref="SfxMode.ChirpSentencePrefabVariance"/> or stepped through in sequence.
         /// </summary>
         public bool randomInterrupt = false;
-        [field: SerializeReference]
-        public List<SfxInterrupt> SfxInterruptsArray { get; set; } = new List<SfxInterrupt>();
+        [field: SerializeField]
+        public List<SfxInterruptsWrapper> SfxInterruptsArray { get; set; } = new List<SfxInterruptsWrapper>();
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
         private Mood currentMood;
@@ -485,6 +485,10 @@ namespace WildsAdv
                     {
                         sfxFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
                     }
+                    else if (sfxMode == SfxMode.ChirpSentencePrefabVariance)
+                    {
+                        sfxFunction = AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptsArray.ToArray());
+                    }
                     StartCoroutine(sfxFunction);
                 }
                 else if (sfxMode == SfxMode.VoicedSentenceArray)
@@ -542,11 +546,11 @@ namespace WildsAdv
                 {
                     targetTextViewComponent.text += " ";
                 }
-                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance)
+                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentencePrefabVariance)
                 {
                     singularSfx.Pause();
                 }
-                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
                 {
                     StopCoroutine(sfxFunction);
                 }
@@ -710,8 +714,11 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterrupt[] interrupts)
+        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptsWrapper[] interrupts)
         {
+            // todo: add support for TimeOffset sorting alongside iterativeinterrupindex usage and a timer started outside
+            //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
+
             int iterativeInterruptIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
@@ -723,8 +730,11 @@ namespace WildsAdv
                     System.Random rand = new System.Random();
                     interruptIndex = rand.Next(0, interrupts.Length - 1);
                 }
-                SfxInterrupt interrupt = interrupts[interruptIndex];
 
+                // todo: how do we want to handle potentially looping through all concrete interrupts inside the wrapper? Another loop over field count or something?
+                SfxInterrupt interrupt = interrupts[interruptIndex].SilenceInterrupt;
+
+                // figure out when to inject it.
                 float varianceInjectDelay = interrupt.TimeOffset;
                 if (chirpInjectionRandomization)
                 {
@@ -905,6 +915,10 @@ namespace WildsAdv
                     break;
             }
 
+            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_ChirpSentencePrefabVariance(),
+            //  gets stopped before we have the chance to stop this 'child' sfx coroutine? Is there a callback Coroutines get when stopped?
+            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
+            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
             if (interruptFunction != null)
             {
                 StartCoroutine(interruptFunction);

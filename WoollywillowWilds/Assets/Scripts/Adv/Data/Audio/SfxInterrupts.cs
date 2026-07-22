@@ -8,6 +8,21 @@ using MoodMap = System.Collections.Generic.Dictionary<WildsAdv.Mood, System.Coll
 namespace WildsAdv
 {
     /// <summary>
+    /// Wraps concrete SfxInterrupt subclasses for Unity Inspector's benefit.
+    /// </summary>
+    [Serializable]
+    public class SfxInterruptsWrapper
+    {
+        [field: SerializeField]
+        public AudioClipInterrupt AudioInterrupt { get; set; }
+        [field: SerializeField]
+        public LacunaInterrupt SilenceInterrupt { get; set; }
+        [field: SerializeField]
+        public FunctionalInterrupt SfxModeInterrupt { get; set; }
+
+    }
+
+    /// <summary>
     /// SFX interrupt base class with common properties.
     /// </summary>
     [Serializable]
@@ -66,7 +81,7 @@ namespace WildsAdv
             return JsonUtility.ToJson(this).GetHashCode();
         }
 
-        override public IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
+        public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
             AudioClip interruptTrack;
             Mood mood = interruptableSfx.QueryMood();

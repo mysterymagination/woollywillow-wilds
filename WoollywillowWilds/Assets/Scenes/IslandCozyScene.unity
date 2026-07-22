@@ -753,13 +753,18 @@ MonoBehaviour:
   clipFractionRandomization: 1
   randomInterrupt: 1
   <SfxInterruptsArray>k__BackingField:
-  - rid: -2
-  - rid: -2
-  references:
-    version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+  - <AudioInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <InterruptClip>k__BackingField: {fileID: 0}
+      <RandomizeClip>k__BackingField: 0
+      <AudioClips>k__BackingField: []
+    <SilenceInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 5
+      <Duration>k__BackingField: 10
+    <SfxModeInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
+      <Mode>k__BackingField: 0
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
