@@ -732,31 +732,40 @@ namespace WildsAdv
                 }
 
                 // todo: how do we want to handle potentially looping through all concrete interrupts inside the wrapper? Another loop over field count or something?
-                SfxInterrupt interrupt = interrupts[interruptIndex].SilenceInterrupt;
-
-                // figure out when to inject it.
-                float varianceInjectDelay = interrupt.TimeOffset;
-                if (chirpInjectionRandomization)
+                SfxInterruptsWrapper wrapper = interrupts[interruptIndex];
+                Type wrapperType = wrapper.GetType();
+                System.Reflection.FieldInfo[] wrapperFields = wrapperType.GetFields(System.Reflection.BindingFlags.Public);
+                for (int interruptFieldIdx = 0; interruptFieldIdx < wrapperFields.Length; interruptFieldIdx++)
                 {
-                    float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
-                    float plusMinusRoll = UnityEngine.Random.Range(1, 100);
-                    delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
-                    varianceInjectDelay += delayModifier;
-                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
+                    SfxInterrupt interrupt = (SfxInterrupt)wrapperFields[interruptFieldIdx].GetValue(wrapper);
+
+                    if (interrupt != null)
+                    {
+                        // figure out when to inject it.
+                        float varianceInjectDelay = interrupt.TimeOffset;
+                        if (chirpInjectionRandomization)
+                        {
+                            float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
+                            float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                            delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                            varianceInjectDelay += delayModifier;
+                            varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
+                        }
+                        Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
+                        yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                        // pause the steady-state chirp stream.
+                        singularSfx.Pause();
+
+                        // cache the steady-state track so we can resume it after the interrupt completes.
+                        UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                        yield return interrupt.Interrupt(this);
+                        singularSfx.resource = mainTrack;
+
+                        // resume playing steady-state chirp stream.
+                        singularSfx.Play();
+                    }
                 }
-                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                yield return new WaitForSecondsRealtime(varianceInjectDelay);
-
-                // pause the steady-state chirp stream.
-                singularSfx.Pause();
-
-                // cache the steady-state track so we can resume it after the interrupt completes.
-                UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                yield return interrupt.Interrupt(this);
-                singularSfx.resource = mainTrack;
-
-                // resume playing steady-state chirp stream.
-                singularSfx.Play();
             }
         }
 
