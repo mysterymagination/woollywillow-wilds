@@ -687,10 +687,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildsAdv.TypeWriter
   targetTextViewComponent: {fileID: 452892845}
   typeWriterDelayMilliseconds: 50
-  randomDelay: 1
+  randomDelay: 0
   randomDelayRangeMilliseconds: 100
   characterChunkSize: 1
-  randomChunkSize: 1
+  randomChunkSize: 0
   randomChunkSizeRange: 2
   sfxMode: 5
   sfxVolume: 0.451
@@ -708,7 +708,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: db63ab54bc7fc9a489163ac0c322b0aa, type: 3}
   - {fileID: 8300000, guid: 4e3a2145bf10bde47be2ee077aa2d685, type: 3}
   - {fileID: 8300000, guid: 92c95236dba59fbc88e3e42cec3c1fc0, type: 3}
-  voicedSentenceArrayRandomization: 1
+  voicedSentenceArrayRandomization: 0
   defaultChirpSfxVibeArray:
     Vibes:
     - <TrackClip>k__BackingField: {fileID: 8300000, guid: 94363e267047aa86185bead6b19fd061,
@@ -750,8 +750,8 @@ MonoBehaviour:
   chirpInjectLacunae: 1
   chirpInjectVariants: 1
   chirpClipFraction: 0.2
-  clipFractionRandomization: 1
-  randomInterrupt: 1
+  clipFractionRandomization: 0
+  randomInterrupt: 0
   <SfxInterruptsArray>k__BackingField:
   - <AudioInterrupt>k__BackingField:
       <TimeOffset>k__BackingField: 0
@@ -759,8 +759,32 @@ MonoBehaviour:
       <RandomizeClip>k__BackingField: 0
       <AudioClips>k__BackingField: []
     <SilenceInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 5
-      <Duration>k__BackingField: 10
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
+    <SfxModeInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
+      <Mode>k__BackingField: 0
+  - <AudioInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <InterruptClip>k__BackingField: {fileID: 0}
+      <RandomizeClip>k__BackingField: 0
+      <AudioClips>k__BackingField: []
+    <SilenceInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
+    <SfxModeInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
+      <Mode>k__BackingField: 0
+  - <AudioInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <InterruptClip>k__BackingField: {fileID: 0}
+      <RandomizeClip>k__BackingField: 0
+      <AudioClips>k__BackingField: []
+    <SilenceInterrupt>k__BackingField:
+      <TimeOffset>k__BackingField: 0
+      <Duration>k__BackingField: 0
     <SfxModeInterrupt>k__BackingField:
       <TimeOffset>k__BackingField: 0
       <Duration>k__BackingField: 0

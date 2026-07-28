@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using System.Linq;
 
 namespace WildsAdv
 {
@@ -374,7 +375,7 @@ namespace WildsAdv
 
             writeFunction = AsyncWrite();
             if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
-                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
                 // update field member for IInterruptableSfx queries.
@@ -438,7 +439,7 @@ namespace WildsAdv
                     // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
                     singularSfx.loop = true;
                 }
-                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
                 {
                     currentMoodMap = ChirpSfxVibeMap;
                     singularSfx.Pause();
@@ -731,10 +732,10 @@ namespace WildsAdv
                     interruptIndex = rand.Next(0, interrupts.Length - 1);
                 }
 
-                // todo: how do we want to handle potentially looping through all concrete interrupts inside the wrapper? Another loop over field count or something?
                 SfxInterruptsWrapper wrapper = interrupts[interruptIndex];
                 Type wrapperType = wrapper.GetType();
                 System.Reflection.FieldInfo[] wrapperFields = wrapperType.GetFields(System.Reflection.BindingFlags.Public);
+                int misses = 0;
                 for (int interruptFieldIdx = 0; interruptFieldIdx < wrapperFields.Length; interruptFieldIdx++)
                 {
                     SfxInterrupt interrupt = (SfxInterrupt)wrapperFields[interruptFieldIdx].GetValue(wrapper);
@@ -765,6 +766,15 @@ namespace WildsAdv
                         // resume playing steady-state chirp stream.
                         singularSfx.Play();
                     }
+                    else
+                    {
+                        misses++;
+                    }
+                }
+                if (misses >= wrapperFields.Length)
+                {
+                    Debug.LogError("Failed to find any interrupts configured in interrupt array; cannot inject variance. Wrapper fields len is " + wrapperFields.Length + " and contains " + string.Join(", ", interrupts.Select(interrupt => interrupt.ToString())));
+                    yield return null;
                 }
             }
         }

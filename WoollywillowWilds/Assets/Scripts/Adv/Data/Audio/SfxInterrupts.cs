@@ -14,11 +14,11 @@ namespace WildsAdv
     public class SfxInterruptsWrapper
     {
         [field: SerializeField]
-        public AudioClipInterrupt AudioInterrupt { get; set; }
+        public AudioClipInterrupt AudioInterrupt { get; set; } = null;
         [field: SerializeField]
-        public LacunaInterrupt SilenceInterrupt { get; set; }
+        public LacunaInterrupt SilenceInterrupt { get; set; } = null;
         [field: SerializeField]
-        public FunctionalInterrupt SfxModeInterrupt { get; set; }
+        public FunctionalInterrupt SfxModeInterrupt { get; set; } = null;
 
     }
 
