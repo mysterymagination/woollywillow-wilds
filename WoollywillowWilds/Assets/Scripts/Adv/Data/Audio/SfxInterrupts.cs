@@ -19,7 +19,10 @@ namespace WildsAdv
         public LacunaInterrupt SilenceInterrupt { get; set; } = null;
         [field: SerializeField]
         public FunctionalInterrupt SfxModeInterrupt { get; set; } = null;
-
+        public override string ToString()
+        {
+            return JsonUtility.ToJson(this);
+        }
     }
 
     /// <summary>
@@ -41,6 +44,10 @@ namespace WildsAdv
         /// <param name="interruptableSfx">The <see cref="IInterruptableSfx"/> playing the main SFX stream which we wish to interrupt. It implements query functions that inform our interrupt details.</param>
         /// <returns>An <see cref="IEnumerator"/> handle for Coroutine resume after suspend.</returns>
         public abstract IEnumerator Interrupt(IInterruptableSfx interruptableSfx);
+        public override string ToString()
+        {
+            return JsonUtility.ToJson(this);
+        }
     }
     /// <summary>
     /// An SFX interrupt that plays an AudioClip. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed

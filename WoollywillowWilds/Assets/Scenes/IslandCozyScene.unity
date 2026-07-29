@@ -714,13 +714,13 @@ MonoBehaviour:
     - <TrackClip>k__BackingField: {fileID: 8300000, guid: 94363e267047aa86185bead6b19fd061,
         type: 3}
       <TrackMood>k__BackingField: 0
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: f83e3e54e1c4e658d8a03a8cb56e8e49,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
         type: 3}
       <TrackMood>k__BackingField: 1
     - <TrackClip>k__BackingField: {fileID: 8300000, guid: 247433c18978b42b792f0a5245c5153e,
         type: 3}
       <TrackMood>k__BackingField: 6
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 857136627c2dbde18a69531e062e40b7,
+    - <TrackClip>k__BackingField: {fileID: 8300000, guid: b3e47ba0a4801020e9d3bec56b92592d,
         type: 3}
       <TrackMood>k__BackingField: 7
   <ChirpSfxArray>k__BackingField:
@@ -741,7 +741,7 @@ MonoBehaviour:
         type: 3}
       <TrackMood>k__BackingField: 7
   <ChirpVariantSfxArray>k__BackingField: []
-  chirpInjectionRandomization: 1
+  chirpInjectionRandomization: 0
   chirpInjectionDelayMin: 0.1
   chirpInjectionDelayMax: 1
   chirpLacunaDurationMin: 0.001
@@ -752,43 +752,7 @@ MonoBehaviour:
   chirpClipFraction: 0.2
   clipFractionRandomization: 0
   randomInterrupt: 0
-  <SfxInterruptsArray>k__BackingField:
-  - <AudioInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <InterruptClip>k__BackingField: {fileID: 0}
-      <RandomizeClip>k__BackingField: 0
-      <AudioClips>k__BackingField: []
-    <SilenceInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-    <SfxModeInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-      <Mode>k__BackingField: 0
-  - <AudioInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <InterruptClip>k__BackingField: {fileID: 0}
-      <RandomizeClip>k__BackingField: 0
-      <AudioClips>k__BackingField: []
-    <SilenceInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-    <SfxModeInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-      <Mode>k__BackingField: 0
-  - <AudioInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <InterruptClip>k__BackingField: {fileID: 0}
-      <RandomizeClip>k__BackingField: 0
-      <AudioClips>k__BackingField: []
-    <SilenceInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-    <SfxModeInterrupt>k__BackingField:
-      <TimeOffset>k__BackingField: 0
-      <Duration>k__BackingField: 0
-      <Mode>k__BackingField: 0
+  <SfxInterruptsArray>k__BackingField: []
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0

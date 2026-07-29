@@ -37,6 +37,8 @@ namespace WildsAdv
         /// track position and / or track.Optional emote tags in the text can also direct which track should play
         /// for a particular sentence.
         /// todo: support named sfx for specific lines?
+        /// todo: rename the backing field from defaultVoiceSfxSegmentArray to simply voiceVibes and then re-use that for the chirp algos since
+        ///  it's all just AudioClips as far as the prefab guys are concerned.
         /// </summary>
         VoicedSentencePrefab,
         /// <summary>
@@ -45,6 +47,11 @@ namespace WildsAdv
         /// variance in a voice speaking without running into the annoying discordance you get with
         /// too much variance in the chirps contiguously. This seems to be the pattern used in the 
         /// Shining games as far as my ear can hear.
+        /// Edit: nope, their approach was simply clipping the sfx asset until a sentence ended, then letting
+        /// it play out in full. They may have had some play out in full variance other than just
+        /// sentence end, but that was the crux of it and it's quite good.
+        /// todo: this algo can probably be replaced by ChirpSentencePrefabVariance since they are very similar,
+        /// but the latter is more configurable (if it ever works).
         /// </summary>
         ChirpSentenceAlgoVariance,
         /// <summary>
@@ -443,12 +450,14 @@ namespace WildsAdv
                 {
                     currentMoodMap = ChirpSfxVibeMap;
                     singularSfx.Pause();
+                    Debug.Log("Current chirpy mood is " + currentTreasureSentence.SentenceMood);
                     if (ChirpSfxVibeMap.ContainsKey(currentTreasureSentence.SentenceMood))
                     {
                         List<AudioClip> moodTracks = ChirpSfxVibeMap[currentTreasureSentence.SentenceMood];
                         System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                         currentTrack = moodTracks[clipIndex];
+                        Debug.Log("Current chirp track is " + currentTrack.name);
                     }
                     else
                     {
@@ -489,6 +498,7 @@ namespace WildsAdv
                     else if (sfxMode == SfxMode.ChirpSentencePrefabVariance)
                     {
                         sfxFunction = AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptsArray.ToArray());
+                        singularSfx.Play();
                     }
                     StartCoroutine(sfxFunction);
                 }
@@ -719,63 +729,82 @@ namespace WildsAdv
         {
             // todo: add support for TimeOffset sorting alongside iterativeinterrupindex usage and a timer started outside
             //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
-
-            int iterativeInterruptIndex = 0;
-            // loop forever, depending on the calling control flow to stop the host coroutine.
-            while (true)
+            if (interrupts.Length > 0)
             {
-                // figure out what we're injecting.
-                int interruptIndex = iterativeInterruptIndex;
-                if (randomInterrupt)
+                int iterativeInterruptIndex = 0;
+                // loop forever, depending on the calling control flow to stop the host coroutine.
+                while (true)
                 {
-                    System.Random rand = new System.Random();
-                    interruptIndex = rand.Next(0, interrupts.Length - 1);
-                }
-
-                SfxInterruptsWrapper wrapper = interrupts[interruptIndex];
-                Type wrapperType = wrapper.GetType();
-                System.Reflection.FieldInfo[] wrapperFields = wrapperType.GetFields(System.Reflection.BindingFlags.Public);
-                int misses = 0;
-                for (int interruptFieldIdx = 0; interruptFieldIdx < wrapperFields.Length; interruptFieldIdx++)
-                {
-                    SfxInterrupt interrupt = (SfxInterrupt)wrapperFields[interruptFieldIdx].GetValue(wrapper);
-
-                    if (interrupt != null)
+                    // figure out what we're injecting.
+                    int interruptIndex = iterativeInterruptIndex;
+                    if (randomInterrupt)
                     {
-                        // figure out when to inject it.
-                        float varianceInjectDelay = interrupt.TimeOffset;
-                        if (chirpInjectionRandomization)
+                        System.Random rand = new System.Random();
+                        interruptIndex = rand.Next(0, interrupts.Length - 1);
+                    }
+
+                    SfxInterruptsWrapper wrapper = interrupts[interruptIndex];
+                    Type wrapperType = wrapper.GetType();
+                    Debug.Log("Wrapper type is " + wrapperType.ToString());
+                    System.Reflection.PropertyInfo[] wrapperFields = wrapperType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
+                    Debug.Log("Wrapper props count is " + wrapperFields.Length + " and contains " + string.Join(", ", wrapperFields.Select(field => field.ToString())));
+                    int misses = 0;
+                    for (int interruptFieldIdx = 0; interruptFieldIdx < wrapperFields.Length; interruptFieldIdx++)
+                    {
+                        SfxInterrupt interrupt = (SfxInterrupt)wrapperFields[interruptFieldIdx].GetValue(wrapper);
+
+                        if (interrupt != null)
                         {
-                            float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
-                            float plusMinusRoll = UnityEngine.Random.Range(1, 100);
-                            delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
-                            varianceInjectDelay += delayModifier;
-                            varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
+                            // figure out when to inject it.
+                            float varianceInjectDelay = interrupt.TimeOffset;
+                            if (chirpInjectionRandomization)
+                            {
+                                float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
+                                float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                                delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                                varianceInjectDelay += delayModifier;
+                                varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
+                            }
+                            Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
+                            yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                            // pause the steady-state chirp stream.
+                            singularSfx.Pause();
+
+                            // cache the steady-state track so we can resume it after the interrupt completes.
+                            UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                            yield return interrupt.Interrupt(this);
+                            singularSfx.resource = mainTrack;
+
+                            // resume playing steady-state chirp stream.
+                            singularSfx.Play();
                         }
-                        Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                        yield return new WaitForSecondsRealtime(varianceInjectDelay);
+                        else
+                        {
+                            misses++;
+                        }
+                    }
+                    if (misses >= wrapperFields.Length)
+                    {
+                        Debug.LogError("Failed to find any interrupts configured in interrupt array; cannot inject variance. Wrapper fields len is " + wrapperFields.Length + ", interrupts len is " + interrupts.Length + ", and interrupts contains " + string.Join(", ", interrupts.Select(interrupt => interrupt.ToString())));
+                        yield return null;
+                    }
 
-                        // pause the steady-state chirp stream.
-                        singularSfx.Pause();
-
-                        // cache the steady-state track so we can resume it after the interrupt completes.
-                        UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                        yield return interrupt.Interrupt(this);
-                        singularSfx.resource = mainTrack;
-
-                        // resume playing steady-state chirp stream.
-                        singularSfx.Play();
+                    // increment or reset interrupt index.
+                    if (iterativeInterruptIndex < interrupts.Length - 1)
+                    {
+                        iterativeInterruptIndex++;
                     }
                     else
                     {
-                        misses++;
+                        iterativeInterruptIndex = 0;
                     }
                 }
-                if (misses >= wrapperFields.Length)
-                {
-                    Debug.LogError("Failed to find any interrupts configured in interrupt array; cannot inject variance. Wrapper fields len is " + wrapperFields.Length + " and contains " + string.Join(", ", interrupts.Select(interrupt => interrupt.ToString())));
-                    yield return null;
-                }
+            }
+            else
+            {
+                Debug.LogWarning("AsyncSfx_ChirpSentencePrefabVariance called with empty interrupts array; yielding immediately");
+                yield return null;
             }
         }
 
