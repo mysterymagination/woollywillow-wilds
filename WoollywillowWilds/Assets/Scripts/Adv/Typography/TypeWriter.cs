@@ -307,7 +307,7 @@ namespace WildsAdv
         /// </summary>
         public bool randomInterrupt = false;
         [field: SerializeField]
-        public List<SfxInterruptLacunaSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptLacunaSO>();
+        public List<SfxInterruptSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptSO>();
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
         private Mood currentMood;
@@ -725,7 +725,7 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptLacunaSO[] interrupts)
+        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptSO[] interrupts)
         {
             /*
             // todo: add support for TimeOffset sorting alongside iterativeinterrupindex usage and a timer started outside

@@ -1,10 +1,16 @@
 using UnityEngine;
+using System.Collections;
 
-[CreateAssetMenu(fileName = "LacunaInterrupt.asset", menuName = "SoundAndEffects/LacunaInterruptSO")]
-public class SfxInterruptLacunaSO : ScriptableObject
+namespace WildsAdv
 {
-    [Header("Audio Options")]
-    [SerializeField] public float delay = 0.0F;
-    [SerializeField] public float duration = 0.0F;
-    [SerializeField] public float variance = 0.0F;
+    [CreateAssetMenu(fileName = "LacunaInterrupt.asset", menuName = "SoundAndEffects/LacunaInterruptSO")]
+    public class SfxInterruptLacunaSO : SfxInterruptSO
+    {
+        [Header("Audio Options")]
+        [field: SerializeField] public float Duration { get; set; } = 0.0F;
+        override public IEnumerator Interrupt(IInterruptableSfx _interruptableSfx)
+        {
+            yield return new WaitForSecondsRealtime(Duration);
+        }
+    }
 }
