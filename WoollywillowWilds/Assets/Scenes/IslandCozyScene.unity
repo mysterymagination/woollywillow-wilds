@@ -752,7 +752,8 @@ MonoBehaviour:
   chirpClipFraction: 0.2
   clipFractionRandomization: 0
   randomInterrupt: 0
-  <SfxInterruptsArray>k__BackingField: []
+  <SfxInterruptsArray>k__BackingField:
+  - {fileID: 11400000, guid: e0285ff9907f5c344addc7eb8bacfb53, type: 2}
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -307,7 +307,7 @@ namespace WildsAdv
         /// </summary>
         public bool randomInterrupt = false;
         [field: SerializeField]
-        public List<SfxInterruptsWrapper> SfxInterruptsArray { get; set; } = new List<SfxInterruptsWrapper>();
+        public List<SfxInterruptLacunaSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptLacunaSO>();
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
         private Mood currentMood;
@@ -725,8 +725,9 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptsWrapper[] interrupts)
+        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptLacunaSO[] interrupts)
         {
+            /*
             // todo: add support for TimeOffset sorting alongside iterativeinterrupindex usage and a timer started outside
             //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
             if (interrupts.Length > 0)
@@ -806,6 +807,8 @@ namespace WildsAdv
                 Debug.LogWarning("AsyncSfx_ChirpSentencePrefabVariance called with empty interrupts array; yielding immediately");
                 yield return null;
             }
+            */
+            yield return null;
         }
 
         IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(AudioClip currentTrack)

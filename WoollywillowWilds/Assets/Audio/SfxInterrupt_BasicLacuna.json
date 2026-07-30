@@ -1,0 +1,6 @@
+{
+    "type": "SilenceInterrupt",
+    "delay": "2",
+    "duration": "1",
+    "variance": "0"
+}
