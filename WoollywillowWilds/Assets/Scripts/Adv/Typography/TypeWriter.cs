@@ -727,8 +727,7 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptSO[] interrupts)
         {
-            /*
-            // todo: add support for TimeOffset sorting alongside iterativeinterrupindex usage and a timer started outside
+            // todo: add support for delay sorting alongside iterativeinterrupindex usage and a timer started outside
             //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
             if (interrupts.Length > 0)
             {
@@ -744,52 +743,34 @@ namespace WildsAdv
                         interruptIndex = rand.Next(0, interrupts.Length - 1);
                     }
 
-                    SfxInterruptsWrapper wrapper = interrupts[interruptIndex];
-                    Type wrapperType = wrapper.GetType();
-                    Debug.Log("Wrapper type is " + wrapperType.ToString());
-                    System.Reflection.PropertyInfo[] wrapperFields = wrapperType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
-                    Debug.Log("Wrapper props count is " + wrapperFields.Length + " and contains " + string.Join(", ", wrapperFields.Select(field => field.ToString())));
-                    int misses = 0;
-                    for (int interruptFieldIdx = 0; interruptFieldIdx < wrapperFields.Length; interruptFieldIdx++)
+
+                    SfxInterruptSO interrupt = interrupts[interruptIndex];
+
+
+                    // figure out when to inject it.
+                    float varianceInjectDelay = interrupt.delay;
+                    if (chirpInjectionRandomization)
                     {
-                        SfxInterrupt interrupt = (SfxInterrupt)wrapperFields[interruptFieldIdx].GetValue(wrapper);
-
-                        if (interrupt != null)
-                        {
-                            // figure out when to inject it.
-                            float varianceInjectDelay = interrupt.TimeOffset;
-                            if (chirpInjectionRandomization)
-                            {
-                                float delayModifier = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
-                                float plusMinusRoll = UnityEngine.Random.Range(1, 100);
-                                delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
-                                varianceInjectDelay += delayModifier;
-                                varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.TimeOffset + chirpInjectionDelayMax);
-                            }
-                            Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                            yield return new WaitForSecondsRealtime(varianceInjectDelay);
-
-                            // pause the steady-state chirp stream.
-                            singularSfx.Pause();
-
-                            // cache the steady-state track so we can resume it after the interrupt completes.
-                            UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                            yield return interrupt.Interrupt(this);
-                            singularSfx.resource = mainTrack;
-
-                            // resume playing steady-state chirp stream.
-                            singularSfx.Play();
-                        }
-                        else
-                        {
-                            misses++;
-                        }
+                        float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.variance);
+                        float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                        delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                        varianceInjectDelay += delayModifier;
+                        varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.delay + interrupt.variance);
                     }
-                    if (misses >= wrapperFields.Length)
-                    {
-                        Debug.LogError("Failed to find any interrupts configured in interrupt array; cannot inject variance. Wrapper fields len is " + wrapperFields.Length + ", interrupts len is " + interrupts.Length + ", and interrupts contains " + string.Join(", ", interrupts.Select(interrupt => interrupt.ToString())));
-                        yield return null;
-                    }
+                    Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
+                    yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                    // pause the steady-state chirp stream.
+                    singularSfx.Pause();
+
+                    // cache the steady-state track so we can resume it after the interrupt completes.
+                    UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
+                    yield return interrupt.Interrupt(this);
+                    singularSfx.resource = mainTrack;
+
+                    // resume playing steady-state chirp stream.
+                    singularSfx.Play();
+
 
                     // increment or reset interrupt index.
                     if (iterativeInterruptIndex < interrupts.Length - 1)
@@ -807,8 +788,6 @@ namespace WildsAdv
                 Debug.LogWarning("AsyncSfx_ChirpSentencePrefabVariance called with empty interrupts array; yielding immediately");
                 yield return null;
             }
-            */
-            yield return null;
         }
 
         IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(AudioClip currentTrack)
