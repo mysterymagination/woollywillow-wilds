@@ -3,7 +3,6 @@ namespace WildsAdv
 {
     public class TypeWriterSfx_KeyHammer : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
     {
-        public AudioClip TypingSfx { get; set; }
         /// <summary>
         /// Short sound effects played 1:1 with write events. By default, this will
         /// begin at the 0 index clip and proceed through until the end at which point it will
@@ -23,7 +22,7 @@ namespace WildsAdv
             }
             AudioClip typingSfx = typingSfxBlipArray[sfxBlipIndex];
             sfxBlipIndex++;
-            if (TypingSfx)
+            if (typingSfx)
             {
                 /*
                 float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
@@ -35,9 +34,9 @@ namespace WildsAdv
                 */
 
                 AudioSource source = gameObject.AddComponent<AudioSource>();
-                source.resource = TypingSfx;
+                source.resource = typingSfx;
                 source.Play();
-                yield return new WaitForSeconds(TypingSfx.length);
+                yield return new WaitForSeconds(typingSfx.length);
 
                 // remove the host AudioSource Component at the bottom of the Coroutine functor.
                 Destroy(source);

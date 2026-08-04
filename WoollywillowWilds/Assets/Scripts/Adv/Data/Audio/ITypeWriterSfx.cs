@@ -16,12 +16,6 @@ namespace WildsAdv
         /// </summary>
         public void play();
         /// <summary>
-        /// Play the SFX alongside a typewriter keystroke (or a batch of them).
-        /// </summary>
-        /// <param name="charactersWritten">The batch size of keystrokes</param>
-        /// <param name="typingCadence">Not sure. Milliseconds per character typed?</param>
-        public void playOnWrite(int charactersWritten, float typingCadence);
-        /// <summary>
         /// Pause the SFX, stopping playback but keeping the playhead position.
         /// </summary>
         public void pause();

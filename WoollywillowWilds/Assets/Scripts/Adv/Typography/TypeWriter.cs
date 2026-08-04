@@ -511,17 +511,8 @@ namespace WildsAdv
                     Debug.Log("Write event period ms is " + loopPeriodMs);
                     Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
 
-                    //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer, though not at the same time. Add back AsyncSfx() functor usage in Coroutine for KeyHammer mode around here.
-                    if (sfxMode == SfxMode.BlipArray)
-                    {
-                        if (sfxBlipIndex >= typingSfxBlipArray.Length)
-                        {
-                            sfxBlipIndex = 0;
-                        }
-                        singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
-                        singularSfx.Play();
-                        sfxBlipIndex++;
-                    }
+                    // todo: null-safe play() on Blips and/or KeyHammer SFX components
+
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
                     // write and update pos.
