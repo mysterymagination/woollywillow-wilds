@@ -1,99 +1,14 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System.Linq;
 
 namespace WildsAdv
 {
-    public enum SfxMode
-    {
-        /**
-         * This mode plays sfx per write event, mimicking the sound of a typewriter key press and hammer stamp on paper. Each sfx clip plays on its own AudioSource spawned at runtime in a Coroutine and despawned when the Coroutine functor e.g. AsyncSfx() exits.
-         * In theory this mode might make the most technically accurate bond between the rendering of the text and
-         * the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
-         * include sounding like indistinct speech.
-
-         todo: AsyncSfx() uses are not currently installed.
-         */
-        KeyHammer,
-        /// <summary>
-        /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips.
-        /// </summary>
-        BlipArray,
-        /// <summary>
-        /// This mode steps through the VoiceSfxSegmentMap mood-mapped array or the general VoiceSfxSegmentArray, running through the
-        /// arrays at random or iterative indices (based on voicedSentenceArrayRandomization) for the duration of a given sentence.
-        /// Coroutines with timed yields based on track length are used to determine when a track ends, since there are no callbacks.
-        /// Each sentence either selects a new array based on mood, or jumps to another general index per the above. The idea here is to
-        /// produce a pseudo-procedurally generated set of voice tones that are tied to the sentence structure of the text.
-        /// </summary>
-        VoicedSentenceArray,
-        /// <summary>
-        /// This mode steps through the VoiceSfxSegmentMap, jumping to VoiceSfxSegmentArray if the annotated mood is not found, in accordance
-        /// with completed sentences in the text. Any fullstop character will stop the current sfx and there will
-        /// be a pause before the next sentence picks up either where we left off or at an optionally randomized new
-        /// track position and / or track.Optional emote tags in the text can also direct which track should play
-        /// for a particular sentence.
-        /// todo: support named sfx for specific lines?
-        /// todo: rename the backing field from defaultVoiceSfxSegmentArray to simply voiceVibes and then re-use that for the chirp algos since
-        ///  it's all just AudioClips as far as the prefab guys are concerned.
-        /// </summary>
-        VoicedSentencePrefab,
-        /// <summary>
-        /// This mode runs a base chirp (either mapped from mood or just going down a default list)
-        /// with variants on it injected conditionally, periodically, or randomly to simulate the
-        /// variance in a voice speaking without running into the annoying discordance you get with
-        /// too much variance in the chirps contiguously. This seems to be the pattern used in the 
-        /// Shining games as far as my ear can hear.
-        /// Edit: nope, their approach was simply clipping the sfx asset until a sentence ended, then letting
-        /// it play out in full. They may have had some play out in full variance other than just
-        /// sentence end, but that was the crux of it and it's quite good.
-        /// todo: this algo can probably be replaced by ChirpSentencePrefabVariance since they are very similar,
-        /// but the latter is more configurable (if it ever works).
-        /// </summary>
-        ChirpSentenceAlgoVariance,
-        /// <summary>
-        /// This mode runs a base chirp (either mapped from mood or just going down a default list)
-        /// with variants on it injected at predetermined time offsets to simulate the
-        /// variance in a voice speaking without running into the annoying discordance you get with
-        /// too much variance in the chirps contiguously. We support the following interrupt types:
-        /// <list type="bullet">
-        ///     <item>
-        ///         <see cref="AudioClipInterrupt"/>
-        ///         <description>This interrupts the base chirp with a selected AudioClip prefab.</description>
-        ///     </item>
-        ///     <item>
-        ///         <see cref="LacunaInterrupt"/>
-        ///         <description>This interrupts the base chirp with silence for a given duration.</description>
-        ///     </item>
-        ///     <item>
-        ///         <see cref="FunctionalInterrupt"/>
-        ///         <description>This interrupts the base chirp with the async function at the heart of another <c>SfxMode</c> entirely for a given duration. The interrupt <c>SfxMode</c> async function will run according to its own configuration, as close to being the top level mode selection as possible.</description>
-        ///     </item>
-        /// </list>
-        /// todo: need to check how the editor handles SfxInterrupts; may need an interface with 
-        /// specialized implementers instead of abstract class.
-        /// todo: need to add sfxmode handling for this mode in setup functions.
-        /// </summary>
-        ChirpSentencePrefabVariance,
-        /// <summary>
-        /// This mode runs only one chirp per sentence (either mapped from mood or just going down a default list)
-        /// but purposefully clips the AudioClip short on each playback save the last one before some event,
-        /// e.g. the end of a sentence or some percentage of the sentence. This creates a trilling effect similar to
-        /// the Shining Force dialogue SFX inspiration.
-        /// </summary>
-        ChirpSentenceAlgoClipped,
-        /// <summary>
-        /// None of the behavior of the other SfxModes will apply; this is useful for trying out new techniques right in TypeWrite() without other sound interfering.
-        /// </summary>
-        Experimental,
-    }
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
     /// </summary>
-    public class TypeWriter : MonoBehaviour, IInterruptableSfx
+    public class TypeWriter : MonoBehaviour
     {
         /// <summary>
         /// The TMP_Text textview Component we wish to write into.
@@ -127,58 +42,13 @@ namespace WildsAdv
         /// <summary>
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
+        [field: SerializeField]
         public TreasureText TextToTypeWrite { get; set; }
-        public SfxMode sfxMode = SfxMode.VoicedSentencePrefab;
         /// <summary>
-        /// Scale factor to apply to the typewriter sfx volume, between 0.0 and 1.0 inclusive.
+        /// Delay after each sentence to separate sentences visually and by SFX.
         /// </summary>
-        [Range(0.0F, 1.0F)]
-        public float sfxVolume = 1.0F;
-        /// <summary>
-        /// Named sound effects played during write events. By default, this will
-        /// begin at the beginning of the track and play looping unmodified until it
-        /// is instructed to stop.
-        /// </summary>
-        public Dictionary<string, AudioClip> typingSfxSegmentMap;
-        /// <summary>
-        /// Short sound effects played 1:1 with write events. By default, this will
-        /// begin at the 0 index clip and proceed through until the end at which point it will
-        /// wrap around. Each clip will play to completion without looping, simulating a typewriter
-        /// key-hammer stroke or a single voice tone syllable.
-        /// </summary>
-        public AudioClip[] typingSfxBlipArray;
-        /// <summary>
-        /// Percentage amount +/- to change the default sfx volume.
-        /// </summary>
-        public float sfxVolumeRandomRange = 0.0F;
-        /// <summary>
-        /// Percentage amount +/- to change the default sfx pitch.
-        /// </summary>
-        public float sfxPitchRandomRange = 0.0F;
-        /// <summary>
-        /// The time point in seconds in the track around which any sfxTimeRandomRange
-        /// should move the starting point for the next play. If there is no
-        /// random range, this value will just be the constant starting time point
-        /// whenever the track is played.
-        /// </summary>
-        public float sfxTimePivot = 0.0F;
-        /// <summary>
-        /// Amount of seconds +/- the sfxTimePivot point where the track will start playing next.
-        /// </summary>
-        public float sfxTimeRandomRange = 0.0F;
-        /// <summary>
-        /// Amount of milliseconds to pause both typing and sfx at fullstops.
-        /// </summary>
-        public float breathDelayMs = 1000.0F;
-        /// <summary>
-        /// Amount of clip elements +/- the current index that will be selected to play next after a full stop breath.
-        /// </summary>
-        public int sfxClipIndexRange = 0;
-        /// <summary>
-        /// Whether or not we should set the sfx clip index to a random value around the current one within sfxClipIndexRange after a full stop breath.
-        /// </summary>
-        public bool randomSfxClipIndex = false;
-
+        [field: SerializeField]
+        public float BreathDelayMs { get; set; } = 1000.0F;
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
@@ -188,130 +58,10 @@ namespace WildsAdv
         /// by the hammer onto paper. The delay simulates human typing speed.
         /// </summary>
         private IEnumerator writeFunction;
-        /// <summary>
-        /// The function called by our sfx Coroutine, representing the cadence of a natural voice alongside the typing.
-        /// todo: do we need to overlap sfx at any point? If so, we'll need to map these to the relevant sfx and maybe cancel the looping on everyone
-        /// who isn't the primary sfx but then let them play out to completion? An event delegate might be the cleanest way to do that, and may avoid
-        /// the need to enmap everyone.
-        /// </summary>
-        private IEnumerator sfxFunction;
-        /// <summary>
-        /// The current time point in seconds at which the next sfx AudioSource should play.
-        /// This should be tracked as sfxTimePivot modulo sfxTimeRandomRange plus whatever jump
-        /// or continuous tracking we may want.
-        /// </summary>
-        private float sfxTimePoint = 0.0F;
-        /// <summary>
-        /// Tracks the current index into the typingSfxBlipArray.
-        /// </summary>
-        private int sfxBlipIndex = 0;
-        /// <summary>
-        /// Used for the VoicedSentence sfx mode, where we only have one sfx playing at any given time. We'll pause, seek, and play this same AudioSource as necessary in that mode.
-        /// </summary>
-        private AudioSource singularSfx;
-        /// <summary>
-        /// Default list of AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
-        /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
-        /// </summary>
-        public MoodTrax defaultVoiceSfxSegmentArray;
-        /// <summary>
-        /// Mapping of text mood associations to an array of suitable sfx clips; can be set by the Component calling TypeWrite() if a specific voice is desired, e.g. if a character is speaking.
-        /// </summary>
-        public Dictionary<Mood, List<AudioClip>> VoiceSfxSegmentMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
-        /// <summary>
-        /// Tracks our progress through flat array of sfx irrespective of mood, for cases where there is no mood match or the designer
-        /// didn't populate sfx by mood.
-        /// </summary>
-        private int moodlessSfxTrackIndex = 0;
-        /// <summary>
-        /// List of SFX Voiced Sentence tracks to play through without needing mood associations.
-        /// </summary>
-        [field: SerializeField]
-        public List<AudioClip> VoiceSfxSegmentArray { get; set; } = new List<AudioClip>();
-        /// <summary>
-        /// Determines whether our progression through a voice sfx array is iterative or random.
-        /// </summary>
-        public bool voicedSentenceArrayRandomization = true;
-        /// <summary>
-        /// Default list of chirp sfx AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
-        /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
-        /// </summary>
-        public MoodTrax defaultChirpSfxVibeArray;
-        /// <summary>
-        /// Mapping of text mood associations to an array of chirp sfx clips intended for steady-state looping during a given sentence rendering; can be set by the Component calling TypeWrite() if a specific
-        /// voice chirp is desired, e.g. if a character is speaking.
-        /// </summary>
-        public Dictionary<Mood, List<AudioClip>> ChirpSfxVibeMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
-        /// <summary>
-        /// List of SFX chirp tracks to play through without needing mood associations.
-        /// </summary>
-        [field: SerializeField]
-        public List<AudioClip> ChirpSfxArray { get; set; } = new List<AudioClip>();
-        public bool chirpArrayRandomization = true;
-        /// <summary>
-        /// Mapping of text mood associations to an array of chirp sfx clips intended to interrupt and inject variance into steady-state chirps; can be set by the Component calling TypeWrite() if a specific
-        /// voice chirp interrupt is desired, e.g. if a character is speaking.
-        /// </summary>
-        public Dictionary<Mood, List<AudioClip>> ChirpInterruptSfxMap { get; set; } = new Dictionary<Mood, List<AudioClip>>();
-        /// <summary>
-        /// <see cref="MoodTrax"/> collection of SFX chirp interrupt tracks associated with <see cref="Mood"/>s that we can use to populate the <see cref="ChirpInterruptSfxMap"/> <see cref="Dictionary<Mood, List<AudioClip>>"/> at runtime.
-        /// </summary>
-        [field: SerializeField]
-        public MoodTrax ChirpInterruptSfxVibeArray { get; set; }
-        /// <summary>
-        /// List of SFX chirp interrupt tracks to play through without needing mood associations when injecting variant chirps.
-        /// </summary>
-        [field: SerializeField]
-        public List<AudioClip> ChirpVariantSfxArray { get; set; } = new List<AudioClip>();
-        /// <summary>
-        /// Randomizes the delay between chirp sfx injections (variant chirp, which will have an intrinsic duration or lacuna
-        /// whose duration is defined as a range between chirpLacunaDurationMin and chirpLacunaDurationMax) into the steady-state
-        /// chirp stream, and also the particular chirp variant injected if
-        /// we have variants enabled and we roll a variant if we have both variants and lacunae enabled.
-        /// </summary>
-        public bool chirpInjectionRandomization = true;
-        /// <summary>
-        /// The min delay between chirp injection events.
-        /// </summary>
-        public float chirpInjectionDelayMin = 0.1F;
-        /// <summary>
-        /// The max delay between chirp injection events.
-        /// </summary>
-        public float chirpInjectionDelayMax = 1.0F;
-        /// <summary>
-        /// The min lacuna duration if we roll to inject a lacuna.
-        /// </summary>
-        public float chirpLacunaDurationMin = 0.001F;
-        /// <summary>
-        /// The max lacuna duration if we roll to inject a lacuna.
-        /// </summary>
-        public float chirpLacunaDurationMax = 0.02F;
-        /// <summary>
-        /// Percentage chance that a lacuna will be injected instead of a variant chirp.
-        /// </summary>
-        public float chirpLacunaChance = 0.5F;
-        public bool chirpInjectLacunae = true;
-        public bool chirpInjectVariants = true;
-        /// <summary>
-        /// The fraction of the chirp clip in ChirpSentenceAlgoClipped sfxMode that will play repeatedly until the sentence ends. 
-        /// </summary>
-        public float chirpClipFraction = 0.5F;
-        /// <summary>
-        /// Whether or not to slightly randomize the clip fraction actually used for chirp trills in SfxMode.ChirpSentenceAlgoClipped, using chirpClipFraction as a base.
-        /// If unset, chirpClipFraction will be used directly to determine the trill duration (although Coroutine yield function time fidelity means the actual duration
-        /// will likely vary anyway).
-        /// </summary>
-        public bool clipFractionRandomization = false;
-        /// <summary>
-        /// Whether prefabricated <see cref="SfxInterrupt"/>s should be randomized in <see cref="SfxMode.ChirpSentencePrefabVariance"/> or stepped through in sequence.
-        /// </summary>
-        public bool randomInterrupt = false;
-        [field: SerializeField]
-        public List<SfxInterruptSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptSO>();
-        private AudioClip currentTrack;
-        private AudioSource currentSfxPlayer;
-        private Mood currentMood;
-        private Dictionary<Mood, List<AudioClip>> currentMoodMap;
+        public TypeWriterSfx_Blips blipsSfx;
+        public TypeWriterSfx_KeyHammer keyHammerSfx;
+        public TypeWriterSfx_PrefabClips prefabsSfx;
+        public TypeWriterSfx_ClockClips timedSfx;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -319,14 +69,6 @@ namespace WildsAdv
         public void ResetState()
         {
             textPosition = 0;
-            sfxTimePoint = 0.0F;
-            sfxBlipIndex = 0;
-            moodlessSfxTrackIndex = 0;
-            Destroy(singularSfx);
-            currentSfxPlayer = null;
-            currentTrack = null;
-            currentMoodMap = null;
-            currentMood = Mood.Neutral;
         }
 
         /// <summary>
@@ -335,61 +77,11 @@ namespace WildsAdv
         /// </summary>
         public void TypeWrite()
         {
-            if (VoiceSfxSegmentMap.Count == 0)
-            {
-                if (defaultVoiceSfxSegmentArray != null && defaultVoiceSfxSegmentArray.Vibes.Count > 0)
-                {
-                    foreach (VibeTrack vibe in defaultVoiceSfxSegmentArray.Vibes)
-                    {
-                        if (!VoiceSfxSegmentMap.ContainsKey(vibe.TrackMood))
-                        {
-                            VoiceSfxSegmentMap.Add(vibe.TrackMood, new List<AudioClip>());
-                        }
-                        VoiceSfxSegmentMap[vibe.TrackMood].Add(vibe.TrackClip);
-                    }
-                }
-            }
-
-            if (ChirpSfxVibeMap.Count == 0)
-            {
-                if (defaultChirpSfxVibeArray != null && defaultChirpSfxVibeArray.Vibes.Count > 0)
-                {
-                    foreach (VibeTrack vibe in defaultChirpSfxVibeArray.Vibes)
-                    {
-                        if (!ChirpSfxVibeMap.ContainsKey(vibe.TrackMood))
-                        {
-                            ChirpSfxVibeMap.Add(vibe.TrackMood, new List<AudioClip>());
-                        }
-                        ChirpSfxVibeMap[vibe.TrackMood].Add(vibe.TrackClip);
-                    }
-                }
-            }
-
-            if (ChirpInterruptSfxMap.Count == 0)
-            {
-                if (ChirpInterruptSfxVibeArray != null && ChirpInterruptSfxVibeArray.Vibes.Count > 0)
-                {
-                    foreach (VibeTrack vibe in ChirpInterruptSfxVibeArray.Vibes)
-                    {
-                        if (!ChirpInterruptSfxMap.ContainsKey(vibe.TrackMood))
-                        {
-                            ChirpInterruptSfxMap.Add(vibe.TrackMood, new List<AudioClip>());
-                        }
-                        ChirpInterruptSfxMap[vibe.TrackMood].Add(vibe.TrackClip);
-                    }
-                }
-            }
-
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
-                || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
-            {
-                singularSfx = gameObject.AddComponent<AudioSource>();
-                // update field member for IInterruptableSfx queries.
-                currentSfxPlayer = singularSfx;
-                singularSfx.loop = true;
-                singularSfx.volume = sfxVolume;
-            }
+
+            blipsSfx?.Setup(null);
+            prefabsSfx?.Setup(null);
+            timedSfx?.Setup(null);
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
@@ -406,108 +98,12 @@ namespace WildsAdv
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
-                currentTrack = null;
-                if (sfxMode == SfxMode.VoicedSentencePrefab)
+                if (prefabsSfx)
                 {
-                    currentMoodMap = VoiceSfxSegmentMap;
-                    singularSfx.Pause();
-                    if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
-                    {
-                        List<AudioClip> moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                    }
-                    else
-                    {
-                        if (VoiceSfxSegmentArray.Count >= moodlessSfxTrackIndex)
-                        {
-                            currentTrack = VoiceSfxSegmentArray[moodlessSfxTrackIndex];
-                        }
-                        else
-                        {
-                            Debug.LogError("Current moodless track index " + moodlessSfxTrackIndex + " is beyond the count of the sfxsegmentarray " + VoiceSfxSegmentArray.Count);
-                        }
-
-                        if (moodlessSfxTrackIndex < VoiceSfxSegmentArray.Count - 1)
-                        {
-                            moodlessSfxTrackIndex++;
-                        }
-                        else
-                        {
-                            moodlessSfxTrackIndex = 0;
-                        }
-                    }
-                    if (currentTrack != null)
-                    {
-                        singularSfx.resource = currentTrack;
-                    }
-                    singularSfx.Play();
-                    // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
-                    singularSfx.loop = true;
+                    prefabsSfx.CurrentMood = currentTreasureSentence.SentenceMood;
+                    prefabsSfx.Play();
                 }
-                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
-                {
-                    currentMoodMap = ChirpSfxVibeMap;
-                    singularSfx.Pause();
-                    Debug.Log("Current chirpy mood is " + currentTreasureSentence.SentenceMood);
-                    if (ChirpSfxVibeMap.ContainsKey(currentTreasureSentence.SentenceMood))
-                    {
-                        List<AudioClip> moodTracks = ChirpSfxVibeMap[currentTreasureSentence.SentenceMood];
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                        Debug.Log("Current chirp track is " + currentTrack.name);
-                    }
-                    else
-                    {
-                        if (ChirpSfxArray.Count >= moodlessSfxTrackIndex)
-                        {
-                            currentTrack = ChirpSfxArray[moodlessSfxTrackIndex];
-                        }
-                        else
-                        {
-                            Debug.LogError("Current moodless chirp track index " + moodlessSfxTrackIndex + " is beyond the count of the chirpsfxarray " + ChirpSfxArray.Count);
-                        }
-
-                        if (moodlessSfxTrackIndex < ChirpSfxArray.Count - 1)
-                        {
-                            moodlessSfxTrackIndex++;
-                        }
-                        else
-                        {
-                            moodlessSfxTrackIndex = 0;
-                        }
-                    }
-                    if (currentTrack != null)
-                    {
-                        singularSfx.resource = currentTrack;
-                    }
-
-                    singularSfx.loop = true;
-                    if (sfxMode == SfxMode.ChirpSentenceAlgoVariance)
-                    {
-                        currentMoodMap = ChirpInterruptSfxMap;
-                        sfxFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
-                        singularSfx.Play();
-                    }
-                    else if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
-                    {
-                        sfxFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
-                    }
-                    else if (sfxMode == SfxMode.ChirpSentencePrefabVariance)
-                    {
-                        sfxFunction = AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptsArray.ToArray());
-                        singularSfx.Play();
-                    }
-                    StartCoroutine(sfxFunction);
-                }
-                else if (sfxMode == SfxMode.VoicedSentenceArray)
-                {
-                    sfxFunction = AsyncSfx_VoicedSentence(currentMood);
-                    StartCoroutine(sfxFunction);
-                }
-
+                timedSfx?.Play();
                 while (textPosition < currentTreasureSentence.SentenceText.Length)
                 {
                     // calculate our writeevent period
@@ -519,69 +115,30 @@ namespace WildsAdv
                         loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
                     }
                     Debug.Log("Write event period ms is " + loopPeriodMs);
-                    Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
+                    Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin'");
 
-                    //todo: we want to support the synchronous blip array in BlipArray and also the asynchronous coroutine blip array for keyhammer, though not at the same time. Add back AsyncSfx() functor usage in Coroutine for KeyHammer mode around here.
-                    if (sfxMode == SfxMode.BlipArray)
-                    {
-                        if (sfxBlipIndex >= typingSfxBlipArray.Length)
-                        {
-                            sfxBlipIndex = 0;
-                        }
-                        singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
-                        singularSfx.Play();
-                        sfxBlipIndex++;
-                    }
+                    blipsSfx?.Play();
+                    keyHammerSfx?.Play();
+
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
                     // write and update pos.
                     string storyChunkWritten = OnWriteEvent(textPosition, currentTreasureSentence);
                     textPosition += storyChunkWritten.Length;
 
-                    if (sfxMode == SfxMode.BlipArray)
-                    {
-                        singularSfx.Pause();
-                        if (randomSfxClipIndex)
-                        {
-                            int cachedBlipIndex = sfxBlipIndex;
-                            System.Random blipRnd = new System.Random();
-                            int indexModifier = blipRnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
-                            sfxBlipIndex += indexModifier;
-                            sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
-                            Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
-                        }
-                    }
+                    blipsSfx?.Pause();
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
                 {
                     targetTextViewComponent.text += " ";
                 }
-                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentencePrefabVariance)
-                {
-                    singularSfx.Pause();
-                }
-                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
-                {
-                    StopCoroutine(sfxFunction);
-                }
-                if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
-                {
-                    // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
-                    // and allow the last clip to play through.
-                    singularSfx.Stop();
-                    singularSfx.loop = false;
-                    singularSfx.Play();
-                    currentTrack = (AudioClip)singularSfx.resource;
-                    // ensure we allow enough time for the chirp to play through.
-                    yield return new WaitForSeconds(currentTrack.length);
-                    singularSfx.Pause();
-                    // reset loop to true now that we've finished the unclipped chirp.
-                    singularSfx.loop = true;
-                }
+
+                prefabsSfx?.Stop();
+                timedSfx?.Stop();
 
                 // take a breath after sentence completion.
-                yield return new WaitForSeconds(breathDelayMs / 1000.0F);
+                yield return new WaitForSeconds(BreathDelayMs / 1000.0F);
             } // end text
         }
 
@@ -620,358 +177,6 @@ namespace WildsAdv
             }
         }
 
-        IEnumerator AsyncSfx_ChirpSentenceAlgoVariance(Mood mood)
-        {
-            int iterativeSfxIndex = 0;
-            // loop forever, depending on the calling control flow to stop the host coroutine.
-            while (true)
-            {
-                float varianceInjectDelay = (chirpInjectionDelayMax - chirpInjectionDelayMin) / 2 + chirpInjectionDelayMin;
-                if (chirpInjectionRandomization)
-                {
-                    varianceInjectDelay = UnityEngine.Random.Range(chirpInjectionDelayMin, chirpInjectionDelayMax);
-                }
-                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                yield return new WaitForSecondsRealtime(varianceInjectDelay);
-
-                // pause the steady-state chirp stream.
-                singularSfx.Pause();
-
-                // figure out what we're injecting.
-                bool injectingVariants = chirpInjectVariants;
-                bool injectingLacunae = chirpInjectLacunae;
-                // we can only inject one type of mod at a time between silence or something,
-                // so pick one.
-                if (injectingVariants && injectingLacunae)
-                {
-                    // roll between 0 and percentage lacuna chance to pick lacuna, else variant.
-                    if (UnityEngine.Random.Range(0.0F, chirpLacunaChance) < chirpLacunaChance)
-                    {
-                        injectingVariants = false;
-                    }
-                    else
-                    {
-                        injectingLacunae = false;
-                    }
-                }
-
-                if (injectingVariants)
-                {
-                    AudioClip interruptTrack;
-                    if (ChirpInterruptSfxMap.ContainsKey(mood))
-                    {
-                        List<AudioClip> moodTracks = ChirpInterruptSfxMap[mood];
-                        if (chirpInjectionRandomization)
-                        {
-                            System.Random rnd = new System.Random();
-                            int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                            interruptTrack = moodTracks[clipIndex];
-                        }
-                        else
-                        {
-                            if (iterativeSfxIndex < moodTracks.Count - 1)
-                            {
-                                iterativeSfxIndex++;
-                            }
-                            else
-                            {
-                                iterativeSfxIndex = 0;
-                            }
-                            interruptTrack = moodTracks[iterativeSfxIndex];
-                        }
-                    }
-                    else
-                    {
-                        if (chirpInjectionRandomization)
-                        {
-                            System.Random rnd = new System.Random();
-                            int clipIndex = rnd.Next(0, ChirpVariantSfxArray.Count);
-                            interruptTrack = ChirpVariantSfxArray[clipIndex];
-                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
-                        }
-                        else
-                        {
-                            if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
-                            {
-                                iterativeSfxIndex++;
-                            }
-                            else
-                            {
-                                iterativeSfxIndex = 0;
-                            }
-                            interruptTrack = ChirpVariantSfxArray[iterativeSfxIndex];
-                            Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
-                        }
-                    }
-                    // cache the steady-state track so we can resume it after the interrupt completes.
-                    UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                    if (interruptTrack != null)
-                    {
-                        singularSfx.resource = interruptTrack;
-                    }
-                    singularSfx.Play();
-                    yield return new WaitForSecondsRealtime(interruptTrack.length);
-                    singularSfx.Pause();
-                    singularSfx.resource = mainTrack;
-
-                }
-                else if (injectingLacunae)
-                {
-                    yield return new WaitForSecondsRealtime(UnityEngine.Random.Range(chirpLacunaDurationMin, chirpLacunaDurationMax));
-                }
-
-                // regardless of injection type, resume playing steady-state chirp stream.
-                singularSfx.Play();
-            }
-        }
-
-        IEnumerator AsyncSfx_ChirpSentencePrefabVariance(SfxInterruptSO[] interrupts)
-        {
-            // todo: add support for delay sorting alongside iterativeinterrupindex usage and a timer started outside
-            //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
-            if (interrupts.Length > 0)
-            {
-                int iterativeInterruptIndex = 0;
-                // loop forever, depending on the calling control flow to stop the host coroutine.
-                while (true)
-                {
-                    // figure out what we're injecting.
-                    int interruptIndex = iterativeInterruptIndex;
-                    if (randomInterrupt)
-                    {
-                        System.Random rand = new System.Random();
-                        interruptIndex = rand.Next(0, interrupts.Length - 1);
-                    }
-
-
-                    SfxInterruptSO interrupt = interrupts[interruptIndex];
-
-
-                    // figure out when to inject it.
-                    float varianceInjectDelay = interrupt.delay;
-                    if (chirpInjectionRandomization)
-                    {
-                        float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.variance);
-                        float plusMinusRoll = UnityEngine.Random.Range(1, 100);
-                        delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
-                        varianceInjectDelay += delayModifier;
-                        varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.delay + interrupt.variance);
-                    }
-                    Debug.Log("About to wait for " + varianceInjectDelay + " before injecting chirp mod into stream.");
-                    yield return new WaitForSecondsRealtime(varianceInjectDelay);
-
-                    // pause the steady-state chirp stream.
-                    singularSfx.Pause();
-
-                    // cache the steady-state track so we can resume it after the interrupt completes.
-                    UnityEngine.Audio.AudioResource mainTrack = singularSfx.resource;
-                    yield return interrupt.Interrupt(this);
-                    singularSfx.resource = mainTrack;
-
-                    // resume playing steady-state chirp stream.
-                    singularSfx.Play();
-
-
-                    // increment or reset interrupt index.
-                    if (iterativeInterruptIndex < interrupts.Length - 1)
-                    {
-                        iterativeInterruptIndex++;
-                    }
-                    else
-                    {
-                        iterativeInterruptIndex = 0;
-                    }
-                }
-            }
-            else
-            {
-                Debug.LogWarning("AsyncSfx_ChirpSentencePrefabVariance called with empty interrupts array; yielding immediately");
-                yield return null;
-            }
-        }
-
-        IEnumerator AsyncSfx_ChirpSentenceAlgoClipped(AudioClip currentTrack)
-        {
-            // loop forever, depending on the calling control flow to stop the host coroutine.
-            while (true)
-            {
-                singularSfx.Play();
-                float clipFraction = chirpClipFraction;
-                if (clipFractionRandomization)
-                {
-                    float range = chirpClipFraction / 2.0F;
-                    clipFraction = UnityEngine.Random.Range(chirpClipFraction - range, chirpClipFraction + range);
-                }
-                yield return new WaitUntil(() => singularSfx.time >= currentTrack.length * chirpClipFraction);
-
-                // stop playback and seek playhead back to start.
-                singularSfx.Stop();
-            }
-        }
-
-        IEnumerator AsyncSfx_VoicedSentence(Mood mood)
-        {
-            int iterativeSfxIndex = 0;
-            // loop forever, depending on the calling control flow to stop the host coroutine.
-            while (true)
-            {
-                singularSfx.Pause();
-                AudioClip currentTrack;
-                if (VoiceSfxSegmentMap.ContainsKey(mood))
-                {
-                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
-                    if (voicedSentenceArrayRandomization)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < moodTracks.Count - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        currentTrack = moodTracks[iterativeSfxIndex];
-                    }
-                }
-                else
-                {
-                    if (voicedSentenceArrayRandomization)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
-                        currentTrack = VoiceSfxSegmentArray[clipIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
-                    }
-                }
-                if (currentTrack != null)
-                {
-                    singularSfx.resource = currentTrack;
-                    singularSfx.volume = 0.5F;
-                }
-                singularSfx.loop = true;
-                singularSfx.Play();
-                //Debug.Log("About to wait for " + currentTrack.length / Time.timeScale + "timescaled seconds. Timescale is " + Time.timeScale);
-                yield return new WaitForSecondsRealtime(currentTrack.length);
-            }
-        }
-
-        IEnumerator AsyncSfx_KeyHammer(int charactersWritten, float typingCadence)
-        {
-            if (sfxBlipIndex >= typingSfxBlipArray.Length)
-            {
-                sfxBlipIndex = 0;
-            }
-            AudioClip typingSfx = typingSfxBlipArray[sfxBlipIndex];
-            sfxBlipIndex++;
-            if (typingSfx)
-            {
-                /*
-                float sfxDurationMs = typingCadence - charactersWritten * keyHammerStrikeTimeMilliseconds;
-                sfxDurationMs = Math.Clamp(sfxDurationMs, keyHammerStrikeTimeMilliseconds, keyHammerStrikeTimeMilliseconds + typingCadence);
-                yield return new WaitForSeconds(sfxDurationMs / 1000.0F);
-                */
-                /*
-                yield return new WaitForSeconds(typingSfx.clip.length);
-                */
-
-                AudioSource source = gameObject.AddComponent<AudioSource>();
-                source.resource = typingSfx;
-                source.Play();
-                yield return new WaitForSeconds(typingSfx.length);
-
-                // remove the host AudioSource Component at the bottom of the Coroutine functor.
-                Destroy(source);
-            }
-        }
-
-        protected void PauseSfx()
-        {
-            /*
-            if (typingSfx)
-            {
-                
-                if (typingSfx.isPlaying)
-                {
-                    
-                    if (typingSfx.time >= typingSfx.clip.length)
-                    {
-                        sfxTimePoint = 0.0F;
-                    }
-                    else
-                    {
-                        sfxTimePoint = typingSfx.time;
-                        Debug.Log("SFX timepoint saved as " + sfxTimePoint);
-                    }
-                    
-                typingSfx.Pause();
-                }
-                
-            }
-            */
-        }
-
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
-        {
-            IEnumerator interruptFunction = null;
-            switch (mode)
-            {
-                case SfxMode.ChirpSentenceAlgoClipped:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
-                    break;
-                case SfxMode.ChirpSentenceAlgoVariance:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
-                    break;
-                case SfxMode.VoicedSentenceArray:
-                    interruptFunction = AsyncSfx_VoicedSentence(currentMood);
-                    break;
-            }
-
-            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_ChirpSentencePrefabVariance(),
-            //  gets stopped before we have the chance to stop this 'child' sfx coroutine? Is there a callback Coroutines get when stopped?
-            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
-            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
-            if (interruptFunction != null)
-            {
-                StartCoroutine(interruptFunction);
-                yield return new WaitForSeconds(duration);
-                StopCoroutine(interruptFunction);
-            }
-        }
-
-        public AudioSource QueryPlayer()
-        {
-            return currentSfxPlayer;
-        }
-
-        public Mood QueryMood()
-        {
-            return currentMood;
-        }
-
-        public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
-        {
-            return currentMoodMap;
-        }
-
         public bool Shutdown(bool clear)
         {
             bool succesfulShutdown = true;
@@ -983,22 +188,6 @@ namespace WildsAdv
             {
                 Debug.LogError("Shutdown; writeFunction is null so we cannot stop the write Coroutine.");
                 succesfulShutdown = false;
-            }
-            if (sfxFunction != null)
-            {
-                StopCoroutine(sfxFunction);
-            }
-            else
-            {
-                Debug.LogWarning("Shutdown; sfxFunction is null so we cannot stop the sfx Coroutine if it's running.");
-            }
-            if (singularSfx != null)
-            {
-                singularSfx.Stop();
-            }
-            else
-            {
-                Debug.LogWarning("Shutdown; singularSfx is null so we cannot stop it if it's playing.");
             }
             if (targetTextViewComponent)
             {
@@ -1012,14 +201,16 @@ namespace WildsAdv
                 Debug.LogError("Shutdown; target textview is unset, so we cannot clear its text.");
                 succesfulShutdown = false;
             }
-            /*
-            if (typingSfx)
-            {
-                
-                typingSfx.Stop();
-                
-            }
-            */
+
+            prefabsSfx?.Stop();
+            prefabsSfx?.Teardown();
+            timedSfx?.Stop();
+            timedSfx?.Teardown();
+            blipsSfx?.Stop();
+            blipsSfx?.Teardown();
+            keyHammerSfx?.Stop();
+            keyHammerSfx?.Teardown();
+
             ResetState();
             return succesfulShutdown;
         }

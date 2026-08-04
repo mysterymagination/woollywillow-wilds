@@ -1,19 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Mono.Cecil.Cil;
-using Palmmedia.ReportGenerator.Core.Common;
-using Unity.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WildsAdv
 {
     /// <summary>
-    /// A sentence containing associated mood and text. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
+    /// A sentence containing associated mood and AudioClip. The property setters are private because we overload Equals() and therefore GetHashCode(), and the hashcode is computed
     /// based on the property values; it can be dangerous to have runtime-mutable values used to derive a hashcode since that could lead to the hashcode changing while the
     /// object is stored in a hashtable in-memory.
     /// </summary>
@@ -50,12 +43,12 @@ namespace WildsAdv
     /// An array of AudioClips in which each clip can be associated with a mood; these will help inform
     /// which voice sfx track/segment should play for text of different moods.
     /// </summary>
+    [CreateAssetMenu(fileName = "MoodTrax.asset", menuName = "SoundAndEffects/Moody Tracks")]
     [Serializable]
-    public class MoodTrax
+    public class MoodTraxSO : ScriptableObject
     {
         /**
-         * An ordered array of TreasureSentences, each associated with relevant Mood and presented in the
-         * desired sequence for the final text rendering.
+         * An array of AudioClip to Mood associations.
          */
         public List<VibeTrack> Vibes = new List<VibeTrack>();
 
