@@ -1,6 +1,21 @@
 
 namespace WildsAdv
 {
+    /// <summary>
+    /// This mode plays sfx async per write event, with each write event firing off its own Coroutine
+    /// with its own AudioSource player so we never cut off existing sounds with new ones; instead, they interleave, mimicking 
+    /// the sound of a typewriter hardware key press and hammer stamp on paper. The AudioSource can be destroyed when the
+    /// Coroutine exits.
+    /// Each sfx clip plays on its own AudioSource spawned at runtime in a Coroutine and despawned when the Coroutine functor e.g. AsyncSfx() exits.
+    /// The separate AudioSources is the main point of interest here --  the Coroutine is important mainly because it
+    /// gives us a way to both track the useful lifetime of the created AudioSource and suspend execution until the sfx
+    /// finished playing so that we don't destroy it prematurely (since AudioSource does not block the main thread while playing
+    /// media). If we had nice event callbacks like OnResourceComplete() or something we wouldn't need to build our own
+    /// mechanism...
+    /// In theory this mode might make the most technically accurate bond between the rendering of the text and
+    /// the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
+    /// include sounding like indistinct speech.
+    /// </summary>
     public class TypeWriterSfx_KeyHammer : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
     {
         /// <summary>

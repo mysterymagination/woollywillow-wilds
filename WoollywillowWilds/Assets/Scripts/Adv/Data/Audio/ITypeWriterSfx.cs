@@ -10,18 +10,18 @@ namespace WildsAdv
         /// <summary>
         /// Choose/Load AudioClip and any other preparation for the SFX.
         /// </summary>
-        public void setup();
+        public void Setup();
         /// <summary>
         /// Play the SFX.
         /// </summary>
-        public void play();
+        public void Play();
         /// <summary>
         /// Pause the SFX, stopping playback but keeping the playhead position.
         /// </summary>
-        public void pause();
+        public void Pause();
         /// <summary>
         /// Stop the SFX, resetting he playhead.
         /// </summary>
-        public void stop();
+        public void Stop();
     }
 }

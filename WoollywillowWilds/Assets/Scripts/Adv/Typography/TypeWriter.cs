@@ -9,19 +9,6 @@ namespace WildsAdv
 {
     public enum SfxMode
     {
-        /**
-         * This mode plays sfx per write event, mimicking the sound of a typewriter key press and hammer stamp on paper. Each sfx clip plays on its own AudioSource spawned at runtime in a Coroutine and despawned when the Coroutine functor e.g. AsyncSfx() exits.
-         * In theory this mode might make the most technically accurate bond between the rendering of the text and
-         * the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
-         * include sounding like indistinct speech.
-
-         todo: AsyncSfx() uses are not currently installed.
-         */
-        KeyHammer,
-        /// <summary>
-        /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips.
-        /// </summary>
-        BlipArray,
         /// <summary>
         /// This mode steps through the VoiceSfxSegmentMap mood-mapped array or the general VoiceSfxSegmentArray, running through the
         /// arrays at random or iterative indices (based on voicedSentenceArrayRandomization) for the duration of a given sentence.
@@ -169,11 +156,6 @@ namespace WildsAdv
         /// </summary>
         public int sfxClipIndexRange = 0;
         /// <summary>
-        /// Whether or not we should set the sfx clip index to a random value around the current one within sfxClipIndexRange after a full stop breath.
-        /// </summary>
-        public bool randomSfxClipIndex = false;
-
-        /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
         private int textPosition = 0;
@@ -298,6 +280,9 @@ namespace WildsAdv
         public bool randomInterrupt = false;
         [field: SerializeField]
         public List<SfxInterruptSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptSO>();
+        public TypeWriterSfx_Blips blipsSfx;
+        public TypeWriterSfx_KeyHammer keyHamerSfx;
+
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
         private Mood currentMood;
@@ -511,7 +496,8 @@ namespace WildsAdv
                     Debug.Log("Write event period ms is " + loopPeriodMs);
                     Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
 
-                    // todo: null-safe play() on Blips and/or KeyHammer SFX components
+                    blipsSfx?.Play();
+                    keyHammerSfx?.Play();
 
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
@@ -519,19 +505,7 @@ namespace WildsAdv
                     string storyChunkWritten = OnWriteEvent(textPosition, currentTreasureSentence);
                     textPosition += storyChunkWritten.Length;
 
-                    if (sfxMode == SfxMode.BlipArray)
-                    {
-                        singularSfx.Pause();
-                        if (randomSfxClipIndex)
-                        {
-                            int cachedBlipIndex = sfxBlipIndex;
-                            System.Random blipRnd = new System.Random();
-                            int indexModifier = blipRnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
-                            sfxBlipIndex += indexModifier;
-                            sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
-                            Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
-                        }
-                    }
+                    blipsSfx?.Pause();
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
