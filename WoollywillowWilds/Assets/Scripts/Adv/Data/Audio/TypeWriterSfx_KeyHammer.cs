@@ -29,6 +29,12 @@ namespace WildsAdv
         /// Tracks the current index into the typingSfxBlipArray.
         /// </summary>
         private int sfxBlipIndex = 0;
+        private AudioSource player;
+        public void Teardown()
+        {
+            sfxBlipIndex = 0;
+            Destroy(player);
+        }
         IEnumerator AsyncSfx_KeyHammer(int charactersWritten, float typingCadence)
         {
             if (sfxBlipIndex >= typingSfxBlipArray.Length)

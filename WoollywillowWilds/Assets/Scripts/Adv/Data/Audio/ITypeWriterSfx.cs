@@ -12,6 +12,10 @@ namespace WildsAdv
         /// </summary>
         public void Setup();
         /// <summary>
+        /// Perform any cleanup of state and resources for this SFX.
+        /// </summary>
+        public void Teardown();
+        /// <summary>
         /// Play the SFX.
         /// </summary>
         public void Play();

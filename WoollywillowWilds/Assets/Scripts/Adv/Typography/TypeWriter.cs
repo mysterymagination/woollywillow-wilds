@@ -281,7 +281,7 @@ namespace WildsAdv
         [field: SerializeField]
         public List<SfxInterruptSO> SfxInterruptsArray { get; set; } = new List<SfxInterruptSO>();
         public TypeWriterSfx_Blips blipsSfx;
-        public TypeWriterSfx_KeyHammer keyHamerSfx;
+        public TypeWriterSfx_KeyHammer keyHammerSfx;
 
         private AudioClip currentTrack;
         private AudioSource currentSfxPlayer;
@@ -295,9 +295,9 @@ namespace WildsAdv
         {
             textPosition = 0;
             sfxTimePoint = 0.0F;
-            sfxBlipIndex = 0;
+
             moodlessSfxTrackIndex = 0;
-            Destroy(singularSfx);
+
             currentSfxPlayer = null;
             currentTrack = null;
             currentMoodMap = null;

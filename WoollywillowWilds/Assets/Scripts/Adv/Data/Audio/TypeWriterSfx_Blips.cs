@@ -31,6 +31,11 @@ namespace WildsAdv
             player.loop = true;
             player.volume = sfxVolume;
         }
+        public void Teardown()
+        {
+            sfxBlipIndex = 0;
+            Destroy(player);
+        }
         public void Play()
         {
             if (sfxBlipIndex >= typingSfxBlipArray.Length)
