@@ -19,21 +19,42 @@ namespace WildsAdv
         /// </summary>
         public bool randomSfxClipIndex = false;
         /// <summary>
+        /// Default list of sfx AudioClip to mood associations; this will be used as the contents of VoiceSfxSegmentMap if the Component calling TypeWrite() does
+        /// not set anything for it, and can thus be considered a default narrator voice for this TypeWriter.
+        /// </summary>
+        public MoodTrax blipSfxVibes;
+        /// <summary>
         /// Tracks the current index into the typingSfxBlipArray.
         /// </summary>
         private int sfxBlipIndex = 0;
         private AudioSource player;
+        private Mood mood;
+        private Dictionary<Mood, List<AudioClip>> moodTracksMap;
         public void Setup()
         {
+            if (moodTracksMap.Count == 0)
+            {
+                if (blipSfxVibes != null && blipSfxVibes.Vibes.Count > 0)
+                {
+                    foreach (VibeTrack vibe in blipSfxVibes.Vibes)
+                    {
+                        if (!moodTracksMap.ContainsKey(vibe.TrackMood))
+                        {
+                            moodTracksMap.Add(vibe.TrackMood, new List<AudioClip>());
+                        }
+                        moodTracksMap[vibe.TrackMood].Add(vibe.TrackClip);
+                    }
+                }
+            }
+
             player = gameObject.AddComponent<AudioSource>();
-            // update field member for IInterruptableSfx queries.
-            currentSfxPlayer = singularSfx;
             player.loop = true;
             player.volume = sfxVolume;
         }
         public void Teardown()
         {
             sfxBlipIndex = 0;
+            moodTracksMap.Clear();
             Destroy(player);
         }
         public void Play()
@@ -69,4 +90,47 @@ namespace WildsAdv
             }
         }
     }
-}
+
+    public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
+        {
+            IEnumerator interruptFunction = null;
+            switch (mode)
+            {
+                case SfxMode.ChirpSentenceAlgoClipped:
+                    interruptFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
+                    break;
+                case SfxMode.ChirpSentenceAlgoVariance:
+                    interruptFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
+                    break;
+                case SfxMode.VoicedSentenceArray:
+                    interruptFunction = AsyncSfx_VoicedSentence(currentMood);
+                    break;
+            }
+
+            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_ChirpSentencePrefabVariance(),
+            //  gets stopped before we have the chance to stop this 'child' sfx coroutine? Is there a callback Coroutines get when stopped?
+            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
+            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
+            if (interruptFunction != null)
+            {
+                StartCoroutine(interruptFunction);
+                yield return new WaitForSeconds(duration);
+                StopCoroutine(interruptFunction);
+            }
+        }
+
+        public AudioSource QueryPlayer()
+        {
+            return player;
+        }
+
+        public Mood QueryMood()
+        {
+            return mood;
+        }
+
+        public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
+        {
+            return moodTracksMap;
+        }
+    }

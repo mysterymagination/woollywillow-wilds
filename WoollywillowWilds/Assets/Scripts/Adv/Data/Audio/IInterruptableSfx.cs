@@ -25,6 +25,9 @@ namespace WildsAdv
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
+        /// todo: refactor to make this design mesh with the Component SFX approach -- instead of sfxmode
+        ///  enum, pass in the itypewritersfx impl class you want and then the impl of this function
+        ///  instantiates a Component of that type and stores a ref to it for cleanup if necessary?
         public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration);
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.
