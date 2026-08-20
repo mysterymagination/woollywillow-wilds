@@ -18,17 +18,6 @@ namespace WildsAdv
         /// </summary>
         VoicedSentenceArray,
         /// <summary>
-        /// This mode steps through the VoiceSfxSegmentMap, jumping to VoiceSfxSegmentArray if the annotated mood is not found, in accordance
-        /// with completed sentences in the text. Any fullstop character will stop the current sfx and there will
-        /// be a pause before the next sentence picks up either where we left off or at an optionally randomized new
-        /// track position and / or track.Optional emote tags in the text can also direct which track should play
-        /// for a particular sentence.
-        /// todo: support named sfx for specific lines?
-        /// todo: rename the backing field from defaultVoiceSfxSegmentArray to simply voiceVibes and then re-use that for the chirp algos since
-        ///  it's all just AudioClips as far as the prefab guys are concerned.
-        /// </summary>
-        VoicedSentencePrefab,
-        /// <summary>
         /// This mode runs a base chirp (either mapped from mood or just going down a default list)
         /// with variants on it injected conditionally, periodically, or randomly to simulate the
         /// variance in a voice speaking without running into the annoying discordance you get with
@@ -80,7 +69,7 @@ namespace WildsAdv
     /// <summary>
     /// Component that writes text to a TMP_Text textview at configurable delay to simulate a typewriter.
     /// </summary>
-    public class TypeWriter : MonoBehaviour, IInterruptableSfx
+    public class TypeWriter : MonoBehaviour
     {
         /// <summary>
         /// The TMP_Text textview Component we wish to write into.
@@ -115,7 +104,7 @@ namespace WildsAdv
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
         public TreasureText TextToTypeWrite { get; set; }
-        public SfxMode sfxMode = SfxMode.VoicedSentencePrefab;
+        public SfxMode sfxMode = SfxMode.VoicedSentenceArray;
         /// <summary>
         /// Scale factor to apply to the typewriter sfx volume, between 0.0 and 1.0 inclusive.
         /// </summary>
@@ -343,7 +332,7 @@ namespace WildsAdv
             }
 
             writeFunction = AsyncWrite();
-            if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
+            if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.BlipArray
                 || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
             {
                 singularSfx = gameObject.AddComponent<AudioSource>();
@@ -369,46 +358,8 @@ namespace WildsAdv
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
                 currentTrack = null;
-                if (sfxMode == SfxMode.VoicedSentencePrefab)
-                {
-                    currentMoodMap = VoiceSfxSegmentMap;
-                    singularSfx.Pause();
-                    if (VoiceSfxSegmentMap.ContainsKey(currentTreasureSentence.SentenceMood))
-                    {
-                        List<AudioClip> moodTracks = VoiceSfxSegmentMap[currentTreasureSentence.SentenceMood];
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                    }
-                    else
-                    {
-                        if (VoiceSfxSegmentArray.Count >= moodlessSfxTrackIndex)
-                        {
-                            currentTrack = VoiceSfxSegmentArray[moodlessSfxTrackIndex];
-                        }
-                        else
-                        {
-                            Debug.LogError("Current moodless track index " + moodlessSfxTrackIndex + " is beyond the count of the sfxsegmentarray " + VoiceSfxSegmentArray.Count);
-                        }
 
-                        if (moodlessSfxTrackIndex < VoiceSfxSegmentArray.Count - 1)
-                        {
-                            moodlessSfxTrackIndex++;
-                        }
-                        else
-                        {
-                            moodlessSfxTrackIndex = 0;
-                        }
-                    }
-                    if (currentTrack != null)
-                    {
-                        singularSfx.resource = currentTrack;
-                    }
-                    singularSfx.Play();
-                    // in the absence of a clean way to traverse the moodTracks array until the sentence ends, just loop whichever track we picked.
-                    singularSfx.loop = true;
-                }
-                else if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
+                if (sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentenceAlgoClipped || sfxMode == SfxMode.ChirpSentencePrefabVariance)
                 {
                     currentMoodMap = ChirpSfxVibeMap;
                     singularSfx.Pause();
@@ -499,7 +450,7 @@ namespace WildsAdv
                 {
                     targetTextViewComponent.text += " ";
                 }
-                if (sfxMode == SfxMode.VoicedSentencePrefab || sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentencePrefabVariance)
+                if (sfxMode == SfxMode.VoicedSentenceArray || sfxMode == SfxMode.ChirpSentenceAlgoVariance || sfxMode == SfxMode.ChirpSentencePrefabVariance)
                 {
                     singularSfx.Pause();
                 }
