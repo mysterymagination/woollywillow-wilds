@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace WildsAdv
 {
+    // todo: remove SfxMode enum once all the modes we want to keep have their own Components; the plan is to have null placeholders of each typewritersfx impl Component available for the typewriter to null-safe call on as needed throughout the typing process. The designer can fill in impls of those Components if desired or leave 'em out, and they'll no longer be mutually exclusive.
     public enum SfxMode
     {
         /// <summary>

@@ -2,18 +2,17 @@
 namespace WildsAdv
 {
     /// <summary>
-    /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips
-    /// while a sentence types itself out. Each new write event cuts off the previous sfx and replaces it with a new one.
+    /// Asynchronously loops through a mood-mapped and/or iterative set of prefabricated AudioClips.
+    /// Each clip is played in a Coroutine that yield returns a WaitForSecondsRealtime(X seconds) where
+    /// X is the length of the AudioClip; this way we can fire off clips and let them play to completion
+    /// before moving on to the next one, until an external entity stops us.  
     /// </summary>
-    public class TypeWriterSfx_Blips : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
+    public class TypeWriterSfx_PrefabClips : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
     {
         /// <summary>
-        /// Short sound effects played 1:1 with write events. By default, this will
-        /// begin at the 0 index clip and proceed through until the end at which point it will
-        /// wrap around. Each clip will play to completion without looping, simulating a typewriter
-        /// key-hammer stroke or a single voice tone syllable.
+        /// An array of AudioClips to play through in the event that we don't have one that matches the current mood.
         /// </summary>
-        public AudioClip[] typingSfxBlipArray;
+        public AudioClip[] defaultSfxArray;
         /// <summary>
         /// Whether or not we should set the sfx clip index to a random value around the current one within sfxClipIndexRange after a full stop breath.
         /// </summary>
@@ -21,11 +20,11 @@ namespace WildsAdv
         /// <summary>
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
-        public MoodTrax blipSfxVibes;
+        public MoodTrax sfxVibes;
         /// <summary>
-        /// Tracks the current index into the typingSfxBlipArray.
+        /// Tracks the current index into the defaultSfxArray.
         /// </summary>
-        private int sfxBlipIndex = 0;
+        private int sfxIndex = 0;
         private AudioSource player;
         private Mood mood;
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
@@ -58,7 +57,6 @@ namespace WildsAdv
         }
         public void Play()
         {
-            // todo: add usage of moodTracksMap
             if (sfxBlipIndex >= typingSfxBlipArray.Length)
             {
                 sfxBlipIndex = 0;
