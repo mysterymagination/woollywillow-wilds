@@ -21,13 +21,16 @@ namespace WildsAdv
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
         public MoodTrax sfxVibes;
+        public float volume = 0.5F;
         /// <summary>
         /// Tracks the current index into the defaultSfxArray.
         /// </summary>
         private int sfxIndex = 0;
+        private AudioClip currentTrack;
         private AudioSource player;
         private Mood mood;
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
+        private IEnumerator sfxFunction;
         public void Setup()
         {
             if (moodTracksMap.Count == 0)
@@ -47,7 +50,7 @@ namespace WildsAdv
 
             player = gameObject.AddComponent<AudioSource>();
             player.loop = true;
-            player.volume = sfxVolume;
+            player.volume = volume;
         }
         public void Teardown()
         {
@@ -57,39 +60,80 @@ namespace WildsAdv
         }
         public void Play()
         {
-            if (sfxBlipIndex >= typingSfxBlipArray.Length)
-            {
-                sfxBlipIndex = 0;
-            }
-            AudioClip typingSfx = typingSfxBlipArray[sfxBlipIndex];
-            sfxBlipIndex++;
-            if (typingSfx)
-            {
-                if (sfxBlipIndex >= typingSfxBlipArray.Length)
-                {
-                    sfxBlipIndex = 0;
-                }
-                singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
-                singularSfx.Play();
-                sfxBlipIndex++;
-            }
+            sfxFunction = AsyncSfx_VoicedSentence(mood);
+            StartCoroutine(sfxFunction);
         }
         public void Pause()
         {
             player.Pause();
-            if (randomSfxClipIndex)
+            StopCoroutine(sfxFunction);
+        }
+
+        IEnumerator AsyncSfx_VoicedSentence(Mood mood)
+        {
+            int iterativeSfxIndex = 0;
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
             {
-                int cachedBlipIndex = sfxBlipIndex;
-                System.Random blipRnd = new System.Random();
-                int indexModifier = blipRnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
-                sfxBlipIndex += indexModifier;
-                sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
-                Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
+                player.Pause();
+                AudioClip currentTrack;
+                if (VoiceSfxSegmentMap.ContainsKey(mood))
+                {
+                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
+                    if (randomSfxClipIndex)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                        currentTrack = moodTracks[clipIndex];
+                    }
+                    else
+                    {
+                        if (iterativeSfxIndex < moodTracks.Count - 1)
+                        {
+                            iterativeSfxIndex++;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = moodTracks[iterativeSfxIndex];
+                    }
+                }
+                else
+                {
+                    if (randomSfxClipIndex)
+                    {
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
+                        currentTrack = VoiceSfxSegmentArray[clipIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
+                    }
+                    else
+                    {
+                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                        {
+                            iterativeSfxIndex++;
+                        }
+                        else
+                        {
+                            iterativeSfxIndex = 0;
+                        }
+                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
+                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
+                    }
+                }
+                if (currentTrack != null)
+                {
+                    player.resource = currentTrack;
+                }
+                player.loop = true;
+                player.Play();
+                yield return new WaitForSecondsRealtime(currentTrack.length);
             }
         }
-    }
 
-    public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
+
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
         {
             IEnumerator interruptFunction = null;
             switch (mode)
@@ -132,3 +176,4 @@ namespace WildsAdv
             return moodTracksMap;
         }
     }
+}

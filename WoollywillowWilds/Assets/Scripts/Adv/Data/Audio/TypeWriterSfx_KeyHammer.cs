@@ -34,6 +34,7 @@ namespace WildsAdv
         {
             sfxBlipIndex = 0;
             Destroy(player);
+            StopCoroutine(sfxFunction);
         }
         IEnumerator AsyncSfx_KeyHammer(int charactersWritten, float typingCadence)
         {
