@@ -22,15 +22,24 @@ namespace WildsAdv
         /// </summary>
         public MoodTrax sfxVibes;
         public float volume = 0.5F;
+        public Mood CurrentMood { get; set; } = Mood.Happy;
+        [field: SerializeField]
+        public SfxInterruptSO[] Interrupts { get; set; }
         /// <summary>
-        /// Tracks the current index into the defaultSfxArray.
+        /// The fraction of the current AudioClip we should play, for trilling purposes; by default this is 1.0, meaning we play
+        /// the entire AudioClip and don't trill at all.
         /// </summary>
-        private int sfxIndex = 0;
+        [Range(0.0F, 1.0F)]
+        public float ClipFraction { get; set; } = 1.0F;
+        /// <summary>
+        /// Flag determining if the clip fraction we play for possible trilling should be randomized.
+        /// </summary>
+        public bool ClipFractionRandomization { get; set; } = false;
         private AudioClip currentTrack;
         private AudioSource player;
-        private Mood mood;
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
         private IEnumerator sfxFunction;
+        private IEnumerator interruptFunction;
         public void Setup()
         {
             if (moodTracksMap.Count == 0)
@@ -60,16 +69,23 @@ namespace WildsAdv
         }
         public void Play()
         {
-            sfxFunction = AsyncSfx_VoicedSentence(mood);
+            sfxFunction = AsyncSfx_MainStream(mood);
             StartCoroutine(sfxFunction);
+            if (Interrupts.Length > 0)
+            {
+                interruptFunction = Async_Interrupt();
+                StartCoroutine(interruptFunction);
+            }
         }
         public void Pause()
         {
             player.Pause();
             StopCoroutine(sfxFunction);
+            // todo: add in trill `one complete clip playthrough` behavior.
+            // todo: stop interrupt coroutine if relevant.
         }
 
-        IEnumerator AsyncSfx_VoicedSentence(Mood mood)
+        IEnumerator AsyncSfx_MainStream(Mood mood)
         {
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
@@ -82,7 +98,7 @@ namespace WildsAdv
                     List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
                     if (randomSfxClipIndex)
                     {
-                        System.Random rnd = new System.Random();
+                        Random rnd = new Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                         currentTrack = moodTracks[clipIndex];
                     }
@@ -103,7 +119,7 @@ namespace WildsAdv
                 {
                     if (randomSfxClipIndex)
                     {
-                        System.Random rnd = new System.Random();
+                        Random rnd = new Random();
                         int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
                         currentTrack = VoiceSfxSegmentArray[clipIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
@@ -128,8 +144,74 @@ namespace WildsAdv
                 }
                 player.loop = true;
                 player.Play();
-                yield return new WaitForSecondsRealtime(currentTrack.length);
+
+                float clipFraction = Math.Clamp(chirpClipFraction, 0.0F, 1.0F);
+                if (clipFractionRandomization)
+                {
+                    float range = chirpClipFraction / 2.0F;
+                    clipFraction = UnityEngine.Random.Range(chirpClipFraction - range, chirpClipFraction + range);
+                }
+                yield return new WaitUntil(() => player.time >= currentTrack.length * clipFraction);
             }
+        }
+
+        IEnumerator AsyncSfx_Interrupt()
+        {
+            // todo: add support for delay sorting alongside iterativeinterrupindex usage and a timer started outside
+            //  the loop here so the designer can set specific interrupts to occur at specific absolute times in sequence?
+
+            int iterativeInterruptIndex = 0;
+            // loop forever, depending on the calling control flow to stop the host coroutine.
+            while (true)
+            {
+                // figure out what we're injecting.
+                int interruptIndex = iterativeInterruptIndex;
+                if (randomInterrupt)
+                {
+                    Random rand = new Random();
+                    interruptIndex = rand.Next(0, Interrupts.Length - 1);
+                }
+
+
+                SfxInterruptSO interrupt = Interrupts[interruptIndex];
+
+
+                // figure out when to inject it.
+                float varianceInjectDelay = interrupt.delay;
+                if (chirpInjectionRandomization)
+                {
+                    float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.variance);
+                    float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                    delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                    varianceInjectDelay += delayModifier;
+                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.delay + interrupt.variance);
+                }
+                Debug.Log("About to wait for " + varianceInjectDelay + " before injecting interrupt into main stream.");
+                yield return new WaitForSecondsRealtime(varianceInjectDelay);
+
+                // pause the main stream.
+                player.Pause();
+
+                // cache the current main stream track so we can resume it after the interrupt completes.
+                UnityEngine.Audio.AudioResource mainTrack = player.resource;
+                yield return interrupt.Interrupt(this);
+                player.resource = mainTrack;
+
+                // resume playing main stream.
+                player.Play();
+
+
+                // increment or reset interrupt index.
+                if (iterativeInterruptIndex < Interrupts.Length - 1)
+                {
+                    iterativeInterruptIndex++;
+                }
+                else
+                {
+                    iterativeInterruptIndex = 0;
+                }
+            }
+
         }
 
 
