@@ -30,7 +30,7 @@ namespace WildsAdv
         /// the entire AudioClip and don't trill at all.
         /// </summary>
         [Range(0.0F, 1.0F)]
-        public float ClipFraction { get; set; } = 1.0F;
+        public float TrillingClipFraction { get; set; } = 1.0F;
         /// <summary>
         /// Flag determining if the clip fraction we play for possible trilling should be randomized.
         /// </summary>
@@ -81,8 +81,23 @@ namespace WildsAdv
         {
             player.Pause();
             StopCoroutine(sfxFunction);
-            // todo: add in trill `one complete clip playthrough` behavior.
-            // todo: stop interrupt coroutine if relevant.
+            // trill support
+            if (TrillingClipFraction < 1.0F)
+            {
+                // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
+                // and allow the last clip to play through.
+                singularSfx.Stop();
+                singularSfx.loop = false;
+                singularSfx.Play();
+                currentTrack = (AudioClip)singularSfx.resource;
+                // ensure we allow enough time for the chirp to play through.
+                yield return new WaitForSeconds(currentTrack.length);
+                singularSfx.Pause();
+                // reset loop to true now that we've finished the unclipped chirp.
+                singularSfx.loop = true;
+            }
+            // stop interrupt coroutine if relevant.
+            StopCoroutine(interruptFunction);
         }
 
         IEnumerator AsyncSfx_MainStream(Mood mood)
@@ -92,7 +107,6 @@ namespace WildsAdv
             while (true)
             {
                 player.Pause();
-                AudioClip currentTrack;
                 if (VoiceSfxSegmentMap.ContainsKey(mood))
                 {
                     List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];

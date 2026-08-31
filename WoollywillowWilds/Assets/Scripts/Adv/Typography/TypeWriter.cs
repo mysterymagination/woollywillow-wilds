@@ -42,7 +42,13 @@ namespace WildsAdv
         /// <summary>
         /// Property that stores the text string to be written with typewriter effects.
         /// </summary>
+        [field: SerializeField]
         public TreasureText TextToTypeWrite { get; set; }
+        /// <summary>
+        /// Delay after each sentence to separate sentences visually and by SFX.
+        /// </summary>
+        [field: SerializeField]
+        public float BreathDelayMs { get; set; } = 1000.0F;
         /// <summary>
         /// The current index position we should write to storyview on the next OnWriteEvent().
         /// </summary>
@@ -93,8 +99,11 @@ namespace WildsAdv
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
 
-                prefabsSfx?.CurrentMood = currentTreasureSentence.SentenceMood;
-                prefabsSfx?.Play();
+                if (prefabsSfx)
+                {
+                    prefabsSfx.CurrentMood = currentTreasureSentence.SentenceMood;
+                    prefabsSfx.Play();
+                }
 
 
                 while (textPosition < currentTreasureSentence.SentenceText.Length)
@@ -110,8 +119,14 @@ namespace WildsAdv
                     Debug.Log("Write event period ms is " + loopPeriodMs);
                     Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
 
-                    blipsSfx?.Play();
-                    keyHammerSfx?.Play();
+                    if (blipsSfx)
+                    {
+                        blipsSfx.Play();
+                    }
+                    if (keyHammerSfx)
+                    {
+                        keyHammerSfx.Play();
+                    }
 
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
@@ -119,7 +134,10 @@ namespace WildsAdv
                     string storyChunkWritten = OnWriteEvent(textPosition, currentTreasureSentence);
                     textPosition += storyChunkWritten.Length;
 
-                    blipsSfx?.Pause();
+                    if (blipsSfx)
+                    {
+                        blipsSfx.Pause();
+                    }
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
@@ -127,25 +145,13 @@ namespace WildsAdv
                     targetTextViewComponent.text += " ";
                 }
 
-                prefabsSfx?.Pause();
-
-                if (sfxMode == SfxMode.ChirpSentenceAlgoClipped)
+                if (prefabsSfx)
                 {
-                    // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
-                    // and allow the last clip to play through.
-                    singularSfx.Stop();
-                    singularSfx.loop = false;
-                    singularSfx.Play();
-                    currentTrack = (AudioClip)singularSfx.resource;
-                    // ensure we allow enough time for the chirp to play through.
-                    yield return new WaitForSeconds(currentTrack.length);
-                    singularSfx.Pause();
-                    // reset loop to true now that we've finished the unclipped chirp.
-                    singularSfx.loop = true;
+                    prefabsSfx.Pause();
                 }
 
                 // take a breath after sentence completion.
-                yield return new WaitForSeconds(breathDelayMs / 1000.0F);
+                yield return new WaitForSeconds(BreathDelayMs / 1000.0F);
             } // end text
         }
 
@@ -221,22 +227,6 @@ namespace WildsAdv
             {
                 Debug.LogError("Shutdown; writeFunction is null so we cannot stop the write Coroutine.");
                 succesfulShutdown = false;
-            }
-            if (sfxFunction != null)
-            {
-                StopCoroutine(sfxFunction);
-            }
-            else
-            {
-                Debug.LogWarning("Shutdown; sfxFunction is null so we cannot stop the sfx Coroutine if it's running.");
-            }
-            if (singularSfx != null)
-            {
-                singularSfx.Stop();
-            }
-            else
-            {
-                Debug.LogWarning("Shutdown; singularSfx is null so we cannot stop it if it's playing.");
             }
             if (targetTextViewComponent)
             {
