@@ -21,7 +21,8 @@ namespace WildsAdv
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
         public MoodTrax sfxVibes;
-        public float volume = 0.5F;
+        [Range(0.0F, 1.0F)]
+        public float Volume { get; set; } = 0.5F;
         public Mood CurrentMood { get; set; } = Mood.Happy;
         [field: SerializeField]
         public SfxInterruptSO[] Interrupts { get; set; }
@@ -59,7 +60,7 @@ namespace WildsAdv
 
             player = gameObject.AddComponent<AudioSource>();
             player.loop = true;
-            player.volume = volume;
+            player.volume = Volume;
         }
         public void Teardown()
         {

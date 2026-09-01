@@ -1,3 +1,4 @@
+using UnityEngine;
 
 namespace WildsAdv
 {
@@ -16,7 +17,7 @@ namespace WildsAdv
     /// the accompanying sounds, but in practice it's difficult to make this sound 'good' for values of good that
     /// include sounding like indistinct speech.
     /// </summary>
-    public class TypeWriterSfx_KeyHammer : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
+    public class TypeWriterSfx_KeyHammer : MonoBehaviour, ITypeWriterSfx
     {
         /// <summary>
         /// Short sound effects played 1:1 with write events. By default, this will
@@ -30,6 +31,26 @@ namespace WildsAdv
         /// </summary>
         private int sfxBlipIndex = 0;
         private AudioSource player;
+        [Range(0.0F, 1.0F)]
+        public float Volume { get; set; } = 0.5F;
+        [field: SerializeField]
+        public int CharactersWritten { get; set; } = 0.0F;
+        [field: SerializeField]
+        public float TypingCadence { get; set; } = 0.0F;
+        public void Setup()
+        {
+            Debug.LogError("Unexpected call to Setup of keyhammer sfx; he's designed to set everything up afresh in each Coroutine then fire n forget em.");
+        }
+
+        public void Play()
+        {
+            sfxFunction = AsyncSfx_KeyHammer(CharactersWritten, TypingCadence);
+            StartCoroutine(sfxFunction);
+        }
+        public void Pause()
+        {
+            Debug.LogError("Unexpected call to Pause of keyhammer sfx; he's designed to rock on until Teardown()");
+        }
         public void Teardown()
         {
             sfxBlipIndex = 0;

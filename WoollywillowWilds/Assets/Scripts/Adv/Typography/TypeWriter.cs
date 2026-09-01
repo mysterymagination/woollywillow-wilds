@@ -80,7 +80,6 @@ namespace WildsAdv
             writeFunction = AsyncWrite();
 
             blipsSfx?.Setup();
-            keyHammerSfx?.Setup();
             prefabsSfx?.Setup();
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
@@ -248,6 +247,18 @@ namespace WildsAdv
                 
             }
             */
+            if (prefabsSfx)
+            {
+                prefabsSfx.Teardown();
+            }
+            if (blipsSfx)
+            {
+                blipsSfx.Teardown();
+            }
+            if (keyHammerSfx)
+            {
+                keyHammerSfx.Teardown();
+            }
             ResetState();
             return succesfulShutdown;
         }
