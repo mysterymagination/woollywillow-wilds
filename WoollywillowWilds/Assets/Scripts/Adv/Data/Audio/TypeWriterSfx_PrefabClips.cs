@@ -108,9 +108,9 @@ namespace WildsAdv
             while (true)
             {
                 player.Pause();
-                if (VoiceSfxSegmentMap.ContainsKey(mood))
+                if (moodTracksMap.ContainsKey(mood))
                 {
-                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
+                    List<AudioClip> moodTracks = moodTracksMap[mood];
                     if (randomSfxClipIndex)
                     {
                         Random rnd = new Random();
@@ -135,13 +135,13 @@ namespace WildsAdv
                     if (randomSfxClipIndex)
                     {
                         Random rnd = new Random();
-                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
-                        currentTrack = VoiceSfxSegmentArray[clipIndex];
+                        int clipIndex = rnd.Next(0, defaultSfxArray.Count);
+                        currentTrack = defaultSfxArray[clipIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
-                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                        if (iterativeSfxIndex < defaultSfxArray.Count - 1)
                         {
                             iterativeSfxIndex++;
                         }
@@ -149,7 +149,7 @@ namespace WildsAdv
                         {
                             iterativeSfxIndex = 0;
                         }
-                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
+                        currentTrack = defaultSfxArray[iterativeSfxIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
                     }
                 }

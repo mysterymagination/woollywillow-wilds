@@ -58,22 +58,47 @@ namespace WildsAdv
         }
         public void Play()
         {
-            // todo: add usage of moodTracksMap
-            if (sfxBlipIndex >= typingSfxBlipArray.Length)
+            if (moodTracksMap.ContainsKey(mood))
             {
-                sfxBlipIndex = 0;
-            }
-            AudioClip typingSfx = typingSfxBlipArray[sfxBlipIndex];
-            sfxBlipIndex++;
-            if (typingSfx)
-            {
-                if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                List<AudioClip> moodTracks = moodTracksMap[mood];
+                if (randomSfxClipIndex)
                 {
-                    sfxBlipIndex = 0;
+                    Random rnd = new Random();
+                    int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                    currentTrack = moodTracks[clipIndex];
                 }
-                singularSfx.resource = typingSfxBlipArray[sfxBlipIndex];
+                else
+                {
+                    if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                    {
+                        sfxBlipIndex = 0;
+                    }
+                    currentTrack = moodTracks[sfxBlipIndex];
+                    sfxBlipIndex++;
+                }
+            }
+            else
+            {
+                if (randomSfxClipIndex)
+                {
+                    Random rnd = new Random();
+                    int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                    currentTrack = typingSfxBlipArray[clipIndex];
+                }
+                else
+                {
+                    if (sfxBlipIndex >= typingSfxBlipArray.Length)
+                    {
+                        sfxBlipIndex = 0;
+                    }
+                    currentTrack = typingSfxBlipArray[sfxBlipIndex];
+                    sfxBlipIndex++;
+                }
+            }
+            if (currentTrack)
+            {
+                singularSfx.resource = currentTrack;
                 singularSfx.Play();
-                sfxBlipIndex++;
             }
         }
         public void Pause()
@@ -89,9 +114,9 @@ namespace WildsAdv
                 Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
             }
         }
-    }
 
-    public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
+
+        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
         {
             IEnumerator interruptFunction = null;
             switch (mode)
@@ -134,3 +159,4 @@ namespace WildsAdv
             return moodTracksMap;
         }
     }
+}
