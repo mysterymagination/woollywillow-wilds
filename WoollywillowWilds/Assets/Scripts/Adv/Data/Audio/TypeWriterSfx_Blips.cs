@@ -5,7 +5,7 @@ namespace WildsAdv
     /// A mix of keyhammer and voice tone, we use a singular AudioSource to play through a large array of short AudioClips
     /// while a sentence types itself out. Each new write event cuts off the previous sfx and replaces it with a new one.
     /// </summary>
-    public class TypeWriterSfx_Blips : MonoBehaviour, ITypeWriterSfx, IInterruptableSfx
+    public class TypeWriterSfx_Blips : MonoBehaviour, ITypeWriterSfx
     {
         /// <summary>
         /// Short sound effects played 1:1 with write events. By default, this will
@@ -58,6 +58,7 @@ namespace WildsAdv
         }
         public void Play()
         {
+            AudioClip currentTrack = null;
             if (moodTracksMap.ContainsKey(mood))
             {
                 List<AudioClip> moodTracks = moodTracksMap[mood];
@@ -113,50 +114,6 @@ namespace WildsAdv
                 sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
                 Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
             }
-        }
-
-
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
-        {
-            IEnumerator interruptFunction = null;
-            switch (mode)
-            {
-                case SfxMode.ChirpSentenceAlgoClipped:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
-                    break;
-                case SfxMode.ChirpSentenceAlgoVariance:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
-                    break;
-                case SfxMode.VoicedSentenceArray:
-                    interruptFunction = AsyncSfx_VoicedSentence(currentMood);
-                    break;
-            }
-
-            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_ChirpSentencePrefabVariance(),
-            //  gets stopped before we have the chance to stop this 'child' sfx coroutine? Is there a callback Coroutines get when stopped?
-            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
-            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
-            if (interruptFunction != null)
-            {
-                StartCoroutine(interruptFunction);
-                yield return new WaitForSeconds(duration);
-                StopCoroutine(interruptFunction);
-            }
-        }
-
-        public AudioSource QueryPlayer()
-        {
-            return player;
-        }
-
-        public Mood QueryMood()
-        {
-            return mood;
-        }
-
-        public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
-        {
-            return moodTracksMap;
         }
     }
 }
