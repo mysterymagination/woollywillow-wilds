@@ -1,4 +1,9 @@
 
+using UnityEngine;
+using System.Collections;
+using System;
+using System.Collections.Generic;
+
 namespace WildsAdv
 {
     /// <summary>
@@ -45,9 +50,9 @@ namespace WildsAdv
         {
             if (moodTracksMap.Count == 0)
             {
-                if (blipSfxVibes != null && blipSfxVibes.Vibes.Count > 0)
+                if (sfxVibes != null && sfxVibes.Vibes.Count > 0)
                 {
-                    foreach (VibeTrack vibe in blipSfxVibes.Vibes)
+                    foreach (VibeTrack vibe in sfxVibes.Vibes)
                     {
                         if (!moodTracksMap.ContainsKey(vibe.TrackMood))
                         {
@@ -64,17 +69,16 @@ namespace WildsAdv
         }
         public void Teardown()
         {
-            sfxBlipIndex = 0;
             moodTracksMap.Clear();
             Destroy(player);
         }
         public void Play()
         {
-            sfxFunction = AsyncSfx_MainStream(mood);
+            sfxFunction = AsyncSfx_MainStream(CurrentMood);
             StartCoroutine(sfxFunction);
             if (Interrupts.Length > 0)
             {
-                interruptFunction = Async_Interrupt();
+                interruptFunction = AsyncSfx_Interrupt();
                 StartCoroutine(interruptFunction);
             }
         }
@@ -87,15 +91,15 @@ namespace WildsAdv
             {
                 // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
                 // and allow the last clip to play through.
-                singularSfx.Stop();
-                singularSfx.loop = false;
-                singularSfx.Play();
-                currentTrack = (AudioClip)singularSfx.resource;
+                player.Stop();
+                player.loop = false;
+                player.Play();
+                currentTrack = (AudioClip)player.resource;
                 // ensure we allow enough time for the chirp to play through.
                 yield return new WaitForSeconds(currentTrack.length);
-                singularSfx.Pause();
+                player.Pause();
                 // reset loop to true now that we've finished the unclipped chirp.
-                singularSfx.loop = true;
+                player.loop = true;
             }
             // stop interrupt coroutine if relevant.
             StopCoroutine(interruptFunction);
@@ -108,9 +112,9 @@ namespace WildsAdv
             while (true)
             {
                 player.Pause();
-                if (VoiceSfxSegmentMap.ContainsKey(mood))
+                if (moodTracksMap.ContainsKey(mood))
                 {
-                    List<AudioClip> moodTracks = VoiceSfxSegmentMap[mood];
+                    List<AudioClip> moodTracks = moodTracksMap[mood];
                     if (randomSfxClipIndex)
                     {
                         Random rnd = new Random();
@@ -135,13 +139,13 @@ namespace WildsAdv
                     if (randomSfxClipIndex)
                     {
                         Random rnd = new Random();
-                        int clipIndex = rnd.Next(0, VoiceSfxSegmentArray.Count);
-                        currentTrack = VoiceSfxSegmentArray[clipIndex];
+                        int clipIndex = rnd.Next(0, defaultSfxArray.Count);
+                        currentTrack = defaultSfxArray[clipIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
-                        if (iterativeSfxIndex < VoiceSfxSegmentArray.Count - 1)
+                        if (iterativeSfxIndex < defaultSfxArray.Count - 1)
                         {
                             iterativeSfxIndex++;
                         }
@@ -149,7 +153,7 @@ namespace WildsAdv
                         {
                             iterativeSfxIndex = 0;
                         }
-                        currentTrack = VoiceSfxSegmentArray[iterativeSfxIndex];
+                        currentTrack = defaultSfxArray[iterativeSfxIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
                     }
                 }
