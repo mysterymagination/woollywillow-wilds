@@ -89,22 +89,39 @@ namespace WildsAdv
             // trill support
             if (TrillingClipFraction < 1.0F)
             {
-                // instead of pausing the sfx, we set looping false, ensure we're at the top of the playhead,
-                // and allow the last clip to play through.
-                player.Stop();
-                player.loop = false;
-                player.Play();
-                currentTrack = (AudioClip)player.resource;
-                // ensure we allow enough time for the chirp to play through.
-                yield return new WaitForSeconds(currentTrack.length);
-                player.Pause();
-                // reset loop to true now that we've finished the unclipped chirp.
-                player.loop = true;
+                StartCoroutine(AsyncSfx_TrillCompletion());
             }
             // stop interrupt coroutine if relevant.
             StopCoroutine(interruptFunction);
         }
 
+        public void Stop()
+        {
+            player.Stop();
+            StopCoroutine(sfxFunction);
+            // trill support
+            if (TrillingClipFraction < 1.0F)
+            {
+                StartCoroutine(AsyncSfx_TrillCompletion());
+            }
+            // stop interrupt coroutine if relevant.
+            StopCoroutine(interruptFunction);
+        }
+
+        IEnumerator AsyncSfx_TrillCompletion()
+        {
+            // set looping false, ensure we're at the top of the playhead,
+            // and allow the clip to play through completely once.
+            player.Stop();
+            player.loop = false;
+            player.Play();
+            currentTrack = (AudioClip)player.resource;
+            // ensure we allow enough time for the chirp to play through.
+            yield return new WaitForSeconds(currentTrack.length);
+            player.Stop();
+            // reset loop to true now that we've finished the unclipped chirp.
+            player.loop = true;
+        }
         IEnumerator AsyncSfx_MainStream(Mood mood)
         {
             int iterativeSfxIndex = 0;
@@ -117,7 +134,7 @@ namespace WildsAdv
                     List<AudioClip> moodTracks = moodTracksMap[mood];
                     if (randomSfxClipIndex)
                     {
-                        Random rnd = new Random();
+                        System.Random rnd = new System.Random();
                         int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                         currentTrack = moodTracks[clipIndex];
                     }
@@ -138,14 +155,14 @@ namespace WildsAdv
                 {
                     if (randomSfxClipIndex)
                     {
-                        Random rnd = new Random();
-                        int clipIndex = rnd.Next(0, defaultSfxArray.Count);
+                        System.Random rnd = new System.Random();
+                        int clipIndex = rnd.Next(0, defaultSfxArray.Length);
                         currentTrack = defaultSfxArray[clipIndex];
                         Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
-                        if (iterativeSfxIndex < defaultSfxArray.Count - 1)
+                        if (iterativeSfxIndex < defaultSfxArray.Length - 1)
                         {
                             iterativeSfxIndex++;
                         }
@@ -164,11 +181,11 @@ namespace WildsAdv
                 player.loop = true;
                 player.Play();
 
-                float clipFraction = Math.Clamp(chirpClipFraction, 0.0F, 1.0F);
-                if (clipFractionRandomization)
+                float clipFraction = Math.Clamp(TrillingClipFraction, 0.0F, 1.0F);
+                if (ClipFractionRandomization)
                 {
-                    float range = chirpClipFraction / 2.0F;
-                    clipFraction = UnityEngine.Random.Range(chirpClipFraction - range, chirpClipFraction + range);
+                    float range = clipFraction / 2.0F;
+                    clipFraction = UnityEngine.Random.Range(clipFraction - range, clipFraction + range);
                 }
                 yield return new WaitUntil(() => player.time >= currentTrack.length * clipFraction);
             }
@@ -187,13 +204,11 @@ namespace WildsAdv
                 int interruptIndex = iterativeInterruptIndex;
                 if (randomInterrupt)
                 {
-                    Random rand = new Random();
+                    System.Random rand = new System.Random();
                     interruptIndex = rand.Next(0, Interrupts.Length - 1);
                 }
 
-
                 SfxInterruptSO interrupt = Interrupts[interruptIndex];
-
 
                 // figure out when to inject it.
                 float varianceInjectDelay = interrupt.delay;
@@ -233,35 +248,6 @@ namespace WildsAdv
 
         }
 
-
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration)
-        {
-            IEnumerator interruptFunction = null;
-            switch (mode)
-            {
-                case SfxMode.ChirpSentenceAlgoClipped:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoClipped(currentTrack);
-                    break;
-                case SfxMode.ChirpSentenceAlgoVariance:
-                    interruptFunction = AsyncSfx_ChirpSentenceAlgoVariance(currentMood);
-                    break;
-                case SfxMode.VoicedSentenceArray:
-                    interruptFunction = AsyncSfx_VoicedSentence(currentMood);
-                    break;
-            }
-
-            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_ChirpSentencePrefabVariance(),
-            //  gets stopped before we have the chance to stop this 'child' sfx coroutine? Is there a callback Coroutines get when stopped?
-            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
-            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
-            if (interruptFunction != null)
-            {
-                StartCoroutine(interruptFunction);
-                yield return new WaitForSeconds(duration);
-                StopCoroutine(interruptFunction);
-            }
-        }
-
         public AudioSource QueryPlayer()
         {
             return player;
@@ -269,7 +255,7 @@ namespace WildsAdv
 
         public Mood QueryMood()
         {
-            return mood;
+            return CurrentMood;
         }
 
         public Dictionary<Mood, List<AudioClip>> QueryMoodMap()
