@@ -1,3 +1,5 @@
+using UnityEngine;
+using System.Collections.Generic;
 
 namespace WildsAdv
 {
@@ -18,6 +20,8 @@ namespace WildsAdv
         /// Whether or not we should set the sfx clip index to a random value around the current one within sfxClipIndexRange after a full stop breath.
         /// </summary>
         public bool randomSfxClipIndex = false;
+        [Range(0.0F, 1.0F)]
+        public float Volume { get; set; } = 0.5F;
         /// <summary>
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
@@ -48,7 +52,7 @@ namespace WildsAdv
 
             player = gameObject.AddComponent<AudioSource>();
             player.loop = true;
-            player.volume = sfxVolume;
+            player.volume = Volume;
         }
         public void Teardown()
         {
@@ -58,13 +62,13 @@ namespace WildsAdv
         }
         public void Play()
         {
-            AudioClip currentTrack = null;
+            AudioClip currentTrack;
             if (moodTracksMap.ContainsKey(mood))
             {
                 List<AudioClip> moodTracks = moodTracksMap[mood];
                 if (randomSfxClipIndex)
                 {
-                    Random rnd = new Random();
+                    System.Random rnd = new System.Random();
                     int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                     currentTrack = moodTracks[clipIndex];
                 }
@@ -82,8 +86,8 @@ namespace WildsAdv
             {
                 if (randomSfxClipIndex)
                 {
-                    Random rnd = new Random();
-                    int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                    System.Random rnd = new System.Random();
+                    int clipIndex = rnd.Next(0, typingSfxBlipArray.Length - 1);
                     currentTrack = typingSfxBlipArray[clipIndex];
                 }
                 else
@@ -98,22 +102,18 @@ namespace WildsAdv
             }
             if (currentTrack)
             {
-                singularSfx.resource = currentTrack;
-                singularSfx.Play();
+                player.resource = currentTrack;
+                player.Play();
             }
         }
         public void Pause()
         {
             player.Pause();
-            if (randomSfxClipIndex)
-            {
-                int cachedBlipIndex = sfxBlipIndex;
-                System.Random blipRnd = new System.Random();
-                int indexModifier = blipRnd.Next(-sfxClipIndexRange, sfxClipIndexRange);
-                sfxBlipIndex += indexModifier;
-                sfxBlipIndex = Math.Clamp(sfxBlipIndex, 0, typingSfxBlipArray.Length - 1);
-                Debug.Log("Randomizing blip index from " + cachedBlipIndex + " to " + sfxBlipIndex + " based on index mod " + indexModifier);
-            }
+        }
+
+        public void Stop()
+        {
+            player.Stop();
         }
     }
 }
