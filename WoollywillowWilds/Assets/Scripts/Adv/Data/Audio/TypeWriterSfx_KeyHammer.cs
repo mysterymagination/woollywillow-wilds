@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 namespace WildsAdv
 {
@@ -37,6 +38,8 @@ namespace WildsAdv
         public int CharactersWritten { get; set; } = 0.0F;
         [field: SerializeField]
         public float TypingCadence { get; set; } = 0.0F;
+        private IEnumerator sfxFunction;
+
         public void Setup()
         {
             Debug.LogError("Unexpected call to Setup of keyhammer sfx; he's designed to set everything up afresh in each Coroutine then fire n forget em.");
@@ -50,6 +53,10 @@ namespace WildsAdv
         public void Pause()
         {
             Debug.LogError("Unexpected call to Pause of keyhammer sfx; he's designed to rock on until Teardown()");
+        }
+        public void Stop()
+        {
+            Debug.LogError("Unexpected call to Stop of keyhammer sfx; he's designed to rock on until Teardown()");
         }
         public void Teardown()
         {
