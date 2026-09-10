@@ -6,9 +6,18 @@ namespace WildsAdv
     [CreateAssetMenu(fileName = "SfxInterrupt.asset", menuName = "SoundAndEffects/SfxInterruptSO")]
     public class SfxInterruptSO : ScriptableObject
     {
+        /// <summary>
+        /// Initial delay offset into the main stream play time before
+        /// the interrupt occurs.
+        /// </summary>
         [Header("Audio Options")]
-        [SerializeField] public float delay = 0.0F;
-        [SerializeField] public float variance = 0.0F;
+        [field: SerializeField] public float Delay { get; set; } = 0.0F;
+        /// <summary>
+        /// Variance allowed in the initial delay offset into the main stream
+        /// play time before the interrupt occurs. If 0, the delay will be equal to delay above.
+        /// </summary>
+        [Header("Audio Options")]
+        [field: SerializeField] public float DelayVariance { get; set; } = 0.0F;
         /// <summary>
         /// Interrupts the SFX currently being played by the input player for the input sentence.
         /// The manner of this interruption depends on the particular <see cref="IInterruptableSfx"/> implementation. 

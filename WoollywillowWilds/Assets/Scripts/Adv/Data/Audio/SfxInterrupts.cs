@@ -227,7 +227,7 @@ namespace WildsAdv
         }
         public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
-            Debug.LogError("Use of deprecated FunctionalInterrupt that no longer functions.");
+            Debug.LogError("Use of deprecated FunctionalInterrupt that no longer functions *rimshot*.");
             yield return null;// interruptableSfx.OnFunctionalInterrupt(Mode, Duration);
         }
     }

@@ -211,14 +211,14 @@ namespace WildsAdv
                 SfxInterruptSO interrupt = Interrupts[interruptIndex];
 
                 // figure out when to inject it.
-                float varianceInjectDelay = interrupt.delay;
+                float varianceInjectDelay = interrupt.Delay;
                 if (chirpInjectionRandomization)
                 {
-                    float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.variance);
+                    float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.DelayVariance);
                     float plusMinusRoll = UnityEngine.Random.Range(1, 100);
                     delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
                     varianceInjectDelay += delayModifier;
-                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.delay + interrupt.variance);
+                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.Delay + interrupt.DelayVariance);
                 }
                 Debug.Log("About to wait for " + varianceInjectDelay + " before injecting interrupt into main stream.");
                 yield return new WaitForSecondsRealtime(varianceInjectDelay);
