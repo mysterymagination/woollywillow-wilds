@@ -11,6 +11,7 @@ namespace WildsAdv
     /// Wraps concrete SfxInterrupt subclasses for Unity Inspector's benefit.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public class SfxInterruptsWrapper
     {
         [field: SerializeField]
@@ -29,6 +30,7 @@ namespace WildsAdv
     /// SFX interrupt base class with common properties.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public abstract class SfxInterrupt
     {
         public SfxInterrupt(float timeOffset)
@@ -55,6 +57,7 @@ namespace WildsAdv
     /// object is stored in a hashtable in-memory.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public class AudioClipInterrupt : SfxInterrupt
     {
         public AudioClipInterrupt(float timeOffset, AudioClip interruptClip, bool randomizeClip, List<AudioClip> audioClips) : base(timeOffset)
@@ -155,6 +158,7 @@ namespace WildsAdv
     /// object is stored in a hashtable in-memory.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public class LacunaInterrupt : SfxInterrupt
     {
         public LacunaInterrupt(float timeOffset, float duration) : base(timeOffset)
@@ -193,9 +197,10 @@ namespace WildsAdv
     /// for great variance and the best of both worlds.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public class FunctionalInterrupt : SfxInterrupt
     {
-        public FunctionalInterrupt(float timeOffset, float duration, SfxMode mode) : base(timeOffset)
+        public FunctionalInterrupt(float timeOffset, float duration, int mode) : base(timeOffset)
         {
             Duration = duration;
             Mode = mode;
@@ -203,7 +208,7 @@ namespace WildsAdv
         [field: SerializeField]
         public float Duration { get; private set; }
         [field: SerializeField]
-        public SfxMode Mode { get; private set; }
+        public int Mode { get; private set; }
         override public string ToString()
         {
             return "{\n  \"functional interrupt duration\": \"" + Duration + "\",\n  \"time offset\": \"" + TimeOffset + "\"\n \"sfxMode algo\": \"" + Mode + "\"\n}";
@@ -222,7 +227,8 @@ namespace WildsAdv
         }
         public override IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
-            yield return interruptableSfx.OnFunctionalInterrupt(Mode, Duration);
+            Debug.LogError("Use of deprecated FunctionalInterrupt that no longer functions.");
+            yield return null;// interruptableSfx.OnFunctionalInterrupt(Mode, Duration);
         }
     }
 
@@ -230,6 +236,7 @@ namespace WildsAdv
     /// An array of SFX interrupts of various concrete types to be injected into a steady-state SFX stream.
     /// </summary>
     [Serializable]
+    [Obsolete("Use SfxInterruptsSO and derivatives instead.")]
     public class SfxInterrupts
     {
         /**

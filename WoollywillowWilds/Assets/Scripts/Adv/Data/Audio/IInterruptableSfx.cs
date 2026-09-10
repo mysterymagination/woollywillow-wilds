@@ -6,9 +6,9 @@ namespace WildsAdv
 {
     /// <summary>
     /// An object that manages playing a sound effect and can provide information
-    /// to an <see cref="SfxInterrupt"/> about current state and loaded options for e.g.
+    /// to an <see cref="SfxInterruptSO"/> about current state and loaded options for e.g.
     /// mood:track associations. This allows the interruptable sfx manager to simply call
-    /// <see cref="SfxInterrupt.Interrupt(this)"/> without needing to know anything about the
+    /// <see cref="SfxInterruptSO.Interrupt(this)"/> without needing to know anything about the
     /// details of how the interrupt works.
     /// </summary>
     public interface IInterruptableSfx
