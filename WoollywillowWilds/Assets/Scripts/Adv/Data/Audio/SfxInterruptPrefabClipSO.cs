@@ -1,33 +1,24 @@
 using UnityEngine;
 using System.Collections;
+using MoodMap = System.Collections.Generic.Dictionary<WildsAdv.Mood, System.Collections.Generic.List<UnityEngine.AudioClip>>;
 
 namespace WildsAdv
 {
+    /// <summary>
+    /// Interrupts an sfx stream with a single AudioClip selected from InterruptAudioClips.
+    /// todo: would be nice to be able to set a duration and have the populated array of clips run
+    /// only as long as that duration (if duration is less than the combined clips' length) or
+    /// keeps selecting from the array until duration is met (if duration exceeds combined clips' length).
+    /// todo: would also be nice to be able to play through an entire array of AudioClips in a single interrupt
+    /// event if desired, to avoid having to populated lots of AudioClip arrays across multiple interrupt SOs
+    /// in the Inspector.
+    /// </summary>
     [CreateAssetMenu(fileName = "PrefabClipInterrupt.asset", menuName = "SoundAndEffects/PrefabClipInterruptSO")]
     public class SfxInterruptPrefabClipSO : SfxInterruptSO
     {
         /// <summary>
-        /// Total duration of the interrupt; if this is 0, the PrefabClips interrupt
-        /// will run through the length of each interrupt clip by default. Otherwise,
-        /// the interrupt stream will cut off after Duration has elapsed regardless of
-        /// the interrupt clip progression.
-        /// </summary>
-        [Header("Audio Options")]
-        [field: SerializeField] public float Duration { get; set; } = 0.0F;
-        /// <summary>
         /// True to select randomly from within the pool of InterruptAudioClips, false
-        /// to traverse the array sequentially.
-        /// todo: to ensure we eventually stop the interruption, we'll need to track
-        /// which clips have been used if Duration is unset; for random clips, this means
-        /// tracking not just whether we've reached the end of the array by index but rather
-        /// whether we've already played every clips without a known sequence. Simplest way
-        /// would be to just count in both cases and quit when played count >= array size.
-        /// A private setter for InterruptAudioClips might be nice for that case, depending on how the
-        /// Inspector handles them, to ensure the pool of clips can't be modded once we're rollin'.
-        /// To support deterministic interruption durations without making the designer calculate and set one
-        /// ahead of time, it would be best to only allow each clip to play once; that means either rerolling when
-        /// we hit a dup (and tracking clips played already) or removing clips played from a pool as we draw them,
-        /// and then picking randomly from that runtime pool.
+        /// to traverse the array sequentially per interrupt event.
         /// </summary>
         [Header("Audio Options")]
         [field: SerializeField]
@@ -44,7 +35,63 @@ namespace WildsAdv
         private int iterativeSfxIndex = 0;
         override public IEnumerator Interrupt(IInterruptableSfx _interruptableSfx)
         {
-            yield return new WaitForSecondsRealtime(Duration);
+            AudioClip interruptTrack;
+            Mood mood = interruptableSfx.QueryMood();
+            MoodMap moodMap = interruptableSfx.QueryMoodMap();
+            if (moodMap.ContainsKey(mood))
+            {
+                List<AudioClip> moodTracks = moodMap[mood];
+                if (RandomizeClip)
+                {
+                    Random rnd = new Random();
+                    int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                    interruptTrack = moodTracks[clipIndex];
+                }
+                else
+                {
+                    if (iterativeSfxIndex < moodTracks.Count - 1)
+                    {
+                        iterativeSfxIndex++;
+                    }
+                    else
+                    {
+                        iterativeSfxIndex = 0;
+                    }
+                    interruptTrack = moodTracks[iterativeSfxIndex];
+                }
+            }
+            else
+            {
+                if (RandomizeClip)
+                {
+                    Random rnd = new Random();
+                    int clipIndex = rnd.Next(0, AudioClips.Count);
+                    interruptTrack = AudioClips[clipIndex];
+                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
+                }
+                else
+                {
+                    if (iterativeSfxIndex < AudioClips.Count - 1)
+                    {
+                        iterativeSfxIndex++;
+                    }
+                    else
+                    {
+                        iterativeSfxIndex = 0;
+                    }
+                    interruptTrack = AudioClips[iterativeSfxIndex];
+                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
+                }
+            }
+            // cache the main stream track so we can resume it after the interrupt completes.
+            AudioSource player = interruptableSfx.QueryPlayer();
+            if (interruptTrack != null)
+            {
+                player.resource = interruptTrack;
+            }
+            player.Play();
+            yield return new WaitUntil(() => player.time >= interruptTrack.length);
+            player.Stop();
         }
     }
 }

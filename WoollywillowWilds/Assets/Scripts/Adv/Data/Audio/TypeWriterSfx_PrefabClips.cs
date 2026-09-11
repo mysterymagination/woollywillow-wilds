@@ -23,6 +23,10 @@ namespace WildsAdv
         /// </summary>
         public bool randomSfxClipIndex = false;
         /// <summary>
+        /// True to select randomly from the Interrupts array when an interrupt is called for, false to traverse it sequentially.
+        /// </summary>
+        public bool randomInterrupt = false;
+        /// <summary>
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
         public MoodTrax sfxVibes;
@@ -212,14 +216,12 @@ namespace WildsAdv
 
                 // figure out when to inject it.
                 float varianceInjectDelay = interrupt.Delay;
-                if (chirpInjectionRandomization)
-                {
-                    float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.DelayVariance);
-                    float plusMinusRoll = UnityEngine.Random.Range(1, 100);
-                    delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
-                    varianceInjectDelay += delayModifier;
-                    varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.Delay + interrupt.DelayVariance);
-                }
+                float delayModifier = UnityEngine.Random.Range(0.0F, interrupt.DelayVariance);
+                float plusMinusRoll = UnityEngine.Random.Range(1, 100);
+                delayModifier *= plusMinusRoll <= 50 ? -1 : 1;
+                varianceInjectDelay += delayModifier;
+                varianceInjectDelay = (float)Math.Clamp(varianceInjectDelay, 0.0, interrupt.Delay + interrupt.DelayVariance);
+
                 Debug.Log("About to wait for " + varianceInjectDelay + " before injecting interrupt into main stream.");
                 yield return new WaitForSecondsRealtime(varianceInjectDelay);
 
