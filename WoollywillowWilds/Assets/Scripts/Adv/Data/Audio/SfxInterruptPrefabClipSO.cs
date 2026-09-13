@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using MoodMap = System.Collections.Generic.Dictionary<WildsAdv.Mood, System.Collections.Generic.List<UnityEngine.AudioClip>>;
 
 namespace WildsAdv
@@ -33,7 +34,7 @@ namespace WildsAdv
         /// Tracks where we are in the InterruptAudioClips array if RandomizeClip is false.
         /// </summary>
         private int iterativeSfxIndex = 0;
-        override public IEnumerator Interrupt(IInterruptableSfx _interruptableSfx)
+        override public IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
             AudioClip interruptTrack;
             Mood mood = interruptableSfx.QueryMood();
@@ -43,7 +44,7 @@ namespace WildsAdv
                 List<AudioClip> moodTracks = moodMap[mood];
                 if (RandomizeClip)
                 {
-                    Random rnd = new Random();
+                    System.Random rnd = new System.Random();
                     int clipIndex = rnd.Next(0, moodTracks.Count - 1);
                     interruptTrack = moodTracks[clipIndex];
                 }
@@ -64,14 +65,14 @@ namespace WildsAdv
             {
                 if (RandomizeClip)
                 {
-                    Random rnd = new Random();
-                    int clipIndex = rnd.Next(0, AudioClips.Count);
-                    interruptTrack = AudioClips[clipIndex];
+                    System.Random rnd = new System.Random();
+                    int clipIndex = rnd.Next(0, InterruptAudioClips.Count);
+                    interruptTrack = InterruptAudioClips[clipIndex];
                     Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + clipIndex);
                 }
                 else
                 {
-                    if (iterativeSfxIndex < AudioClips.Count - 1)
+                    if (iterativeSfxIndex < InterruptAudioClips.Count - 1)
                     {
                         iterativeSfxIndex++;
                     }
@@ -79,7 +80,7 @@ namespace WildsAdv
                     {
                         iterativeSfxIndex = 0;
                     }
-                    interruptTrack = AudioClips[iterativeSfxIndex];
+                    interruptTrack = InterruptAudioClips[iterativeSfxIndex];
                     Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
                 }
             }

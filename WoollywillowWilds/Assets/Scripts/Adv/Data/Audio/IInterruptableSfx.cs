@@ -14,39 +14,49 @@ namespace WildsAdv
     public interface IInterruptableSfx
     {
         /// <summary>
-        /// Tells the interruptable sfx that it should run the input <see cref="ITypeWriterSfx"/>
-        /// for the duration of the interrupt. This can be used to e.g. interrupt a stream of prefabricated
+        /// Tells the interruptable sfx that it's being interrupted and should run the input <see cref="ITypeWriterSfx"/>
+        /// for the duration of the interrupt, usually via RunFunctionalInterrupt(). This can be used to e.g. interrupt a stream of prefabricated
         /// chirp trilling with algorithmically clipped chirp trilling to ensure we maximize quality while
         /// avoiding repetitive patterns.
         /// </summary>
-        /// <param name="gameObject">
-        /// The host <see cref="GameObject"/> to which the interrupting sfx <see cref="Component"/> will be added to by default. 
-        /// </param>
         /// <param name="sfxInterruptClass">
-        /// The <see cref="System.Type"/> which by default will be a <see cref="Component"/> that implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
-        /// This Component will be added to the host <see cref="GameObject"/> by default, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
+        /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
+        /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
         /// </param>
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public IEnumerator OnFunctionalInterrupt(GameObject gameObject, System.Type sfxInterruptClass, float duration)
+        public IEnumerator OnFunctionalInterrupt<T>(T sfxInterruptClass, float duration) where T : Component, ITypeWriterSfx;
+        /// <summary>
+        /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterruptClass --
+        /// AddComponent -> Setup -> Play -> wait for duration -> Stop -> Teardown -> Destroy. 
+        /// </summary>
+        /// <param name="T">
+        /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
+        /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
+        /// </param>
+        /// <param name="gameObject">
+        /// The host <see cref="GameObject"/> to which the interrupting sfx <see cref="Component"/> will be added to by default. 
+        /// </param>
+        /// <param name="duration">
+        /// The duration of the interrupt in seconds.
+        /// </param>
+        public static IEnumerator RunFunctionalInterrupt<T>(GameObject gameObject, float duration) where T : Component, ITypeWriterSfx
         {
-            Component sfxInterruptComponent = gameObject.AddComponent(sfxInterruptClass);
-            ITypeWriterSfx sfxInterrupt = (ITypeWriterSfx)sfxInterruptComponent;
+            T sfxInterrupt = gameObject.AddComponent<T>();
 
             // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_MainStream(),
             //  gets stopped before we have the chance to stop this sfxInterrupt with 'child' sfx coroutine(s)? Is there a callback Coroutines get when stopped?
             //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
             //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
-            if (sfxInterrupt != null)
-            {
-                sfxInterrupt.Setup();
-                sfxInterrupt.Play();
-                yield return new WaitForSeconds(duration);
-                sfxInterrupt.Stop();
-                sfxInterrupt.Teardown();
-            }
-            Object.Destroy(sfxInterruptComponent);
+
+            sfxInterrupt.Setup();
+            sfxInterrupt.Play();
+            yield return new WaitForSeconds(duration);
+            sfxInterrupt.Stop();
+            sfxInterrupt.Teardown();
+
+            Object.Destroy(sfxInterrupt);
         }
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.

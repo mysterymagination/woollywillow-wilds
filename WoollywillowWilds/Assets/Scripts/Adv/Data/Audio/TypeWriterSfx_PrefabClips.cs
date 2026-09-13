@@ -250,6 +250,13 @@ namespace WildsAdv
 
         }
 
+        public IEnumerator OnFunctionalInterrupt<T>(T sfxInterruptClass, float duration) where T : Component, ITypeWriterSfx
+        {
+            player.Pause();
+            yield return IInterruptableSfx.RunFunctionalInterrupt<T>(gameObject, duration);
+            player.Play();
+        }
+
         public AudioSource QueryPlayer()
         {
             return player;

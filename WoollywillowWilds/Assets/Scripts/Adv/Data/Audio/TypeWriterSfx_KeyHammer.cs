@@ -35,7 +35,7 @@ namespace WildsAdv
         [Range(0.0F, 1.0F)]
         public float Volume { get; set; } = 0.5F;
         [field: SerializeField]
-        public int CharactersWritten { get; set; } = 0.0F;
+        public int CharactersWritten { get; set; } = 0;
         [field: SerializeField]
         public float TypingCadence { get; set; } = 0.0F;
         private IEnumerator sfxFunction;
