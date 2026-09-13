@@ -19,14 +19,14 @@ namespace WildsAdv
         /// chirp trilling with algorithmically clipped chirp trilling to ensure we maximize quality while
         /// avoiding repetitive patterns.
         /// </summary>
-        /// <param name="sfxInterruptClass">
+        /// <param name="T">
         /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
         /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
         /// </param>
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public IEnumerator OnFunctionalInterrupt<T>(T sfxInterruptClass, float duration) where T : Component, ITypeWriterSfx;
+        public IEnumerator OnFunctionalInterrupt<T>(float duration) where T : Component, ITypeWriterSfx;
         /// <summary>
         /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterruptClass --
         /// AddComponent -> Setup -> Play -> wait for duration -> Stop -> Teardown -> Destroy. 
