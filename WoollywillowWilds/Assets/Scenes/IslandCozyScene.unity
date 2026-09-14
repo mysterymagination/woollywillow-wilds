@@ -692,68 +692,12 @@ MonoBehaviour:
   characterChunkSize: 1
   randomChunkSize: 0
   randomChunkSizeRange: 2
-  sfxMode: 5
-  sfxVolume: 0.451
-  typingSfxBlipArray: []
-  sfxVolumeRandomRange: 0.1
-  sfxPitchRandomRange: 0.1
-  sfxTimePivot: 2
-  sfxTimeRandomRange: 0
-  breathDelayMs: 1000
-  sfxClipIndexRange: 1
-  randomSfxClipIndex: 0
-  defaultVoiceSfxSegmentArray:
-    Vibes: []
-  <VoiceSfxSegmentArray>k__BackingField:
-  - {fileID: 8300000, guid: db63ab54bc7fc9a489163ac0c322b0aa, type: 3}
-  - {fileID: 8300000, guid: 4e3a2145bf10bde47be2ee077aa2d685, type: 3}
-  - {fileID: 8300000, guid: 92c95236dba59fbc88e3e42cec3c1fc0, type: 3}
-  voicedSentenceArrayRandomization: 0
-  defaultChirpSfxVibeArray:
-    Vibes:
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 94363e267047aa86185bead6b19fd061,
-        type: 3}
-      <TrackMood>k__BackingField: 0
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
-        type: 3}
-      <TrackMood>k__BackingField: 1
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 247433c18978b42b792f0a5245c5153e,
-        type: 3}
-      <TrackMood>k__BackingField: 6
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: b3e47ba0a4801020e9d3bec56b92592d,
-        type: 3}
-      <TrackMood>k__BackingField: 7
-  <ChirpSfxArray>k__BackingField:
-  - {fileID: 8300000, guid: f026d7015875946978a048d8aab6814e, type: 3}
-  chirpArrayRandomization: 0
-  <ChirpInterruptSfxVibeArray>k__BackingField:
-    Vibes:
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: efd2c3dd94d5c3c4997d2c18a6dcc502,
-        type: 3}
-      <TrackMood>k__BackingField: 0
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 8b92d8f62026cb459a7d6ac470a3a153,
-        type: 3}
-      <TrackMood>k__BackingField: 1
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 9e06cbf982f21aecfb374e1daeab4f28,
-        type: 3}
-      <TrackMood>k__BackingField: 6
-    - <TrackClip>k__BackingField: {fileID: 8300000, guid: 0305164d6202d483c9ff6a8293852814,
-        type: 3}
-      <TrackMood>k__BackingField: 7
-  <ChirpVariantSfxArray>k__BackingField: []
-  chirpInjectionRandomization: 0
-  chirpInjectionDelayMin: 0.1
-  chirpInjectionDelayMax: 1
-  chirpLacunaDurationMin: 0.001
-  chirpLacunaDurationMax: 0.02
-  chirpLacunaChance: 0.5
-  chirpInjectLacunae: 1
-  chirpInjectVariants: 1
-  chirpClipFraction: 0.2
-  clipFractionRandomization: 0
-  randomInterrupt: 0
-  <SfxInterruptsArray>k__BackingField:
-  - {fileID: 11400000, guid: fd0dab56417b56d5c907e059ff5103e1, type: 2}
+  <TextToTypeWrite>k__BackingField:
+    Contents: []
+  <BreathDelayMs>k__BackingField: 1000
+  blipsSfx: {fileID: 0}
+  keyHammerSfx: {fileID: 0}
+  prefabsSfx: {fileID: 452892849}
 --- !u!114 &452892848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -781,6 +725,25 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &452892849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452892843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c13f6328bdd49080917b8d2320f513e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WildsAdvAsm::WildsAdv.TypeWriterSfx_PrefabClips
+  defaultSfxArray: []
+  randomSfxClipIndex: 0
+  randomInterrupt: 0
+  sfxVibes:
+    Vibes: []
+  <Interrupts>k__BackingField:
+  - {fileID: 11400000, guid: 72715813926dc2e5aa3155c969723445, type: 2}
 --- !u!1 &567670016 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3164335655978825420, guid: b9cd15040409ab648ab5d444cc8dfb6c,
@@ -2231,6 +2194,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 452892848}
+    - targetCorrespondingSourceObject: {fileID: 5793696499084509159, guid: b9cd15040409ab648ab5d444cc8dfb6c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 452892849}
     - targetCorrespondingSourceObject: {fileID: 401539167266732375, guid: b9cd15040409ab648ab5d444cc8dfb6c,
         type: 3}
       insertIndex: -1
