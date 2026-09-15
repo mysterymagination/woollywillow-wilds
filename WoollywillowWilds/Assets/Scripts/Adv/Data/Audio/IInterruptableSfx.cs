@@ -23,10 +23,13 @@ namespace WildsAdv
         /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
         /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
         /// </param>
+        /// <param name="sfxData">
+        /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
+        /// </param>
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public IEnumerator OnFunctionalInterrupt<T>(float duration) where T : Component, ITypeWriterSfx;
+        public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx;
         /// <summary>
         /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterruptClass --
         /// AddComponent -> Setup -> Play -> wait for duration -> Stop -> Teardown -> Destroy. 
@@ -38,10 +41,13 @@ namespace WildsAdv
         /// <param name="gameObject">
         /// The host <see cref="GameObject"/> to which the interrupting sfx <see cref="Component"/> will be added to by default. 
         /// </param>
+        /// <param name="sfxData">
+        /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
+        /// </param>
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public static IEnumerator RunFunctionalInterrupt<T>(GameObject gameObject, float duration) where T : Component, ITypeWriterSfx
+        public static IEnumerator RunFunctionalInterrupt<T>(GameObject gameObject, ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
         {
             T sfxInterrupt = gameObject.AddComponent<T>();
 
@@ -50,7 +56,7 @@ namespace WildsAdv
             //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
             //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
 
-            sfxInterrupt.Setup();
+            sfxInterrupt.Setup(sfxData);
             sfxInterrupt.Play();
             yield return new WaitForSeconds(duration);
             sfxInterrupt.Stop();

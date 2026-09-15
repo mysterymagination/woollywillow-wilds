@@ -29,14 +29,14 @@ namespace WildsAdv
         [field: SerializeField]
         public float Duration { get; set; } = 0.0F;
         /// <summary>
-        /// The duration of the interruption.
+        /// Configuration data asset to be used in setting up the <see cref="ITypeWriterSfx"/> Component.
         /// </summary>
         [Header("Audio Options")]
         [field: SerializeField]
-        public System.Type InterruptType { get; set; }
+        public ScriptableObject SfxData { get; set; }
         override public IEnumerator Interrupt(IInterruptableSfx interruptableSfx)
         {
-            yield return interruptableSfx.OnFunctionalInterrupt<T>(Duration);
+            yield return interruptableSfx.OnFunctionalInterrupt<T>(SfxData, Duration);
         }
     }
 }

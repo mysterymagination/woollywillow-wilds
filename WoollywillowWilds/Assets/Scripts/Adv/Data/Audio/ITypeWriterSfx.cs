@@ -1,4 +1,6 @@
 
+using UnityEngine;
+
 namespace WildsAdv
 {
     /// <summary>
@@ -10,7 +12,10 @@ namespace WildsAdv
         /// <summary>
         /// Choose/Load AudioClip and any other preparation for the SFX.
         /// </summary>
-        public void Setup();
+        /// <param name="sfxData">
+        /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
+        /// </param>
+        public void Setup(ScriptableObject sfxData);
         /// <summary>
         /// Perform any cleanup of state and resources for this SFX.
         /// </summary>

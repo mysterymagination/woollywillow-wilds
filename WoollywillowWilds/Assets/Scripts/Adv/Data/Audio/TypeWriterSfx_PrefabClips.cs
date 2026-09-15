@@ -50,9 +50,14 @@ namespace WildsAdv
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
         private IEnumerator sfxFunction;
         private IEnumerator interruptFunction;
-        private TypeWriterSfx_PrefabClipsDataSO DataPack { get; set; }
-        public void Setup()
+        public void Setup(ScriptableObject sfxData)
         {
+            TypeWriterSfx_PrefabClipsDataSO clipsSfxData = (TypeWriterSfx_PrefabClipsDataSO)sfxData;
+            if (clipsSfxData)
+            {
+                clipsSfxData.Populate(this);
+            }
+
             if (moodTracksMap.Count == 0)
             {
                 if (sfxVibes != null && sfxVibes.Vibes.Count > 0)
@@ -66,11 +71,6 @@ namespace WildsAdv
                         moodTracksMap[vibe.TrackMood].Add(vibe.TrackClip);
                     }
                 }
-            }
-
-            if (DataPack)
-            {
-                DataPack.Populate(this);
             }
 
             player = gameObject.AddComponent<AudioSource>();
@@ -256,10 +256,10 @@ namespace WildsAdv
 
         }
 
-        public IEnumerator OnFunctionalInterrupt<T>(float duration) where T : Component, ITypeWriterSfx
+        public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
         {
             player.Pause();
-            yield return IInterruptableSfx.RunFunctionalInterrupt<T>(gameObject, duration);
+            yield return IInterruptableSfx.RunFunctionalInterrupt<T>(gameObject, sfxData, duration);
             player.Play();
         }
 

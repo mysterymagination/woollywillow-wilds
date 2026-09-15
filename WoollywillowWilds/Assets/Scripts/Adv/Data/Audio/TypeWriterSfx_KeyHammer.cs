@@ -40,9 +40,10 @@ namespace WildsAdv
         public float TypingCadence { get; set; } = 0.0F;
         private IEnumerator sfxFunction;
 
-        public void Setup()
+        public void Setup(ScriptableObject sfxData)
         {
-            Debug.LogError("Unexpected call to Setup of keyhammer sfx; he's designed to set everything up afresh in each Coroutine then fire n forget em.");
+            // todo: use sfxData to configure if relevant.
+            Debug.LogWarning("Call to Setup of keyhammer sfx not yet implemented; this isn't a problem if sfxData was left null since setup doesn't have anything else to do here, but if you were hoping the input sfxData SO would populate our configuration you're out of luck atm.");
         }
 
         public void Play()

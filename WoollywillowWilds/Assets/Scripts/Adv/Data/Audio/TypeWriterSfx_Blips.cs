@@ -33,8 +33,10 @@ namespace WildsAdv
         private AudioSource player;
         private Mood mood;
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
-        public void Setup()
+        public void Setup(ScriptableObject sfxData)
         {
+            // todo: use sfxData if relevant
+
             if (moodTracksMap.Count == 0)
             {
                 if (blipSfxVibes != null && blipSfxVibes.Vibes.Count > 0)
