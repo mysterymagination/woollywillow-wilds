@@ -79,8 +79,8 @@ namespace WildsAdv
         {
             writeFunction = AsyncWrite();
 
-            blipsSfx?.Setup();
-            prefabsSfx?.Setup();
+            blipsSfx?.Setup(null);
+            prefabsSfx?.Setup(null);
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
