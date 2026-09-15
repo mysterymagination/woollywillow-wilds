@@ -50,6 +50,7 @@ namespace WildsAdv
         private Dictionary<Mood, List<AudioClip>> moodTracksMap;
         private IEnumerator sfxFunction;
         private IEnumerator interruptFunction;
+        private TypeWriterSfx_PrefabClipsDataSO DataPack { get; set; }
         public void Setup()
         {
             if (moodTracksMap.Count == 0)
@@ -65,6 +66,11 @@ namespace WildsAdv
                         moodTracksMap[vibe.TrackMood].Add(vibe.TrackClip);
                     }
                 }
+            }
+
+            if (DataPack)
+            {
+                DataPack.Populate(this);
             }
 
             player = gameObject.AddComponent<AudioSource>();
