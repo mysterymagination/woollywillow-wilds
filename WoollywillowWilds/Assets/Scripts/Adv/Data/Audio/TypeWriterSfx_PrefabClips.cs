@@ -95,14 +95,6 @@ namespace WildsAdv
         public void Pause()
         {
             player.Pause();
-            StopCoroutine(sfxFunction);
-            // trill support
-            if (TrillingClipFraction < 1.0F)
-            {
-                StartCoroutine(AsyncSfx_TrillCompletion());
-            }
-            // stop interrupt coroutine if relevant.
-            StopCoroutine(interruptFunction);
         }
 
         public void Stop()
@@ -138,7 +130,7 @@ namespace WildsAdv
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                player.Pause();
+                player.Stop();
                 if (moodTracksMap.ContainsKey(mood))
                 {
                     List<AudioClip> moodTracks = moodTracksMap[mood];

@@ -737,7 +737,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c13f6328bdd49080917b8d2320f513e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WildsAdvAsm::WildsAdv.TypeWriterSfx_PrefabClips
-  defaultSfxArray: []
+  defaultSfxArray:
+  - {fileID: 8300000, guid: 94363e267047aa86185bead6b19fd061, type: 3}
   randomSfxClipIndex: 0
   randomInterrupt: 0
   sfxVibes:

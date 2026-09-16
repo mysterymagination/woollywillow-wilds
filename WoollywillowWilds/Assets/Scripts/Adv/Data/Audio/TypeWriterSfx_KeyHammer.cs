@@ -57,13 +57,12 @@ namespace WildsAdv
         }
         public void Stop()
         {
-            Debug.LogError("Unexpected call to Stop of keyhammer sfx; he's designed to rock on until Teardown()");
+            sfxBlipIndex = 0;
+            StopCoroutine(sfxFunction);
         }
         public void Teardown()
         {
-            sfxBlipIndex = 0;
             Destroy(player);
-            StopCoroutine(sfxFunction);
         }
         IEnumerator AsyncSfx_KeyHammer(int charactersWritten, float typingCadence)
         {

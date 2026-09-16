@@ -116,7 +116,7 @@ namespace WildsAdv
                         loopPeriodMs = Math.Clamp(loopPeriodMs, 0, float.MaxValue);
                     }
                     Debug.Log("Write event period ms is " + loopPeriodMs);
-                    Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin");
+                    Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin'");
 
                     if (blipsSfx)
                     {
@@ -146,7 +146,7 @@ namespace WildsAdv
 
                 if (prefabsSfx)
                 {
-                    prefabsSfx.Pause();
+                    prefabsSfx.Stop();
                 }
 
                 // take a breath after sentence completion.
@@ -249,14 +249,17 @@ namespace WildsAdv
             */
             if (prefabsSfx)
             {
+                prefabsSfx.Stop();
                 prefabsSfx.Teardown();
             }
             if (blipsSfx)
             {
+                blipsSfx.Stop();
                 blipsSfx.Teardown();
             }
             if (keyHammerSfx)
             {
+                keyHammerSfx.Stop();
                 keyHammerSfx.Teardown();
             }
             ResetState();

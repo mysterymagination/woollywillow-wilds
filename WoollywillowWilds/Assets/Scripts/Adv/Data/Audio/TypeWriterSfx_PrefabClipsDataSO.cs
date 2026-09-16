@@ -21,6 +21,7 @@ namespace WildsAdv
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
         public MoodTrax sfxVibes;
+        [field: SerializeField]
         [Range(0.0F, 1.0F)]
         public float Volume { get; set; } = 0.5F;
         public Mood CurrentMood { get; set; } = Mood.Happy;
@@ -30,11 +31,13 @@ namespace WildsAdv
         /// The fraction of the current AudioClip we should play, for trilling purposes; by default this is 1.0, meaning we play
         /// the entire AudioClip and don't trill at all.
         /// </summary>
+        [field: SerializeField]
         [Range(0.0F, 1.0F)]
         public float TrillingClipFraction { get; set; } = 1.0F;
         /// <summary>
         /// Flag determining if the clip fraction we play for possible trilling should be randomized.
         /// </summary>
+        [field: SerializeField]
         public bool ClipFractionRandomization { get; set; } = false;
 
         /// <summary>
