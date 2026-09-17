@@ -124,6 +124,7 @@ namespace WildsAdv
             // reset loop to true now that we've finished the unclipped chirp.
             player.loop = true;
         }
+
         IEnumerator AsyncSfx_MainStream(Mood mood)
         {
             int iterativeSfxIndex = 0;
@@ -234,7 +235,6 @@ namespace WildsAdv
                 // resume playing main stream.
                 player.Play();
 
-
                 // increment or reset interrupt index.
                 if (iterativeInterruptIndex < Interrupts.Length - 1)
                 {
@@ -245,7 +245,6 @@ namespace WildsAdv
                     iterativeInterruptIndex = 0;
                 }
             }
-
         }
 
         public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
