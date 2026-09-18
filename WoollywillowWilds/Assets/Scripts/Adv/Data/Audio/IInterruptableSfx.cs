@@ -58,7 +58,9 @@ namespace WildsAdv
 
             sfxInterrupt.Setup(sfxData);
             sfxInterrupt.Play();
+            Debug.Log("Playing interrupt for " + duration);
             yield return new WaitForSeconds(duration);
+            Debug.Log("Stopping interrupt after " + duration);
             sfxInterrupt.Stop();
             sfxInterrupt.Teardown();
 

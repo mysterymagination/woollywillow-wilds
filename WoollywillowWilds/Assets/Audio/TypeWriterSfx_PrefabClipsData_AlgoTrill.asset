@@ -18,7 +18,7 @@ MonoBehaviour:
   randomInterrupt: 0
   sfxVibes:
     Vibes: []
-  <Volume>k__BackingField: 0.5
+  <Volume>k__BackingField: 0.25
   <Interrupts>k__BackingField: []
-  <TrillingClipFraction>k__BackingField: 0.25
+  <TrillingClipFraction>k__BackingField: 0.15
   <ClipFractionRandomization>k__BackingField: 0

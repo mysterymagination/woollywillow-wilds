@@ -47,7 +47,7 @@ namespace WildsAdv
         public bool ClipFractionRandomization { get; set; } = false;
         private AudioClip currentTrack;
         private AudioSource player;
-        private Dictionary<Mood, List<AudioClip>> moodTracksMap;
+        private Dictionary<Mood, List<AudioClip>> moodTracksMap = new Dictionary<Mood, List<AudioClip>>();
         private IEnumerator sfxFunction;
         private IEnumerator interruptFunction;
         public void Setup(ScriptableObject sfxData)
@@ -106,6 +106,9 @@ namespace WildsAdv
             {
                 StartCoroutine(AsyncSfx_TrillCompletion());
             }
+
+            // todo: we can wind up stopping the interrupt coroutine while the sfxInterrupt player is active and looping, effectively skipping the sfxInterrupt.Stop/Teardown etc. calls.
+
             // stop interrupt coroutine if relevant.
             StopCoroutine(interruptFunction);
         }
@@ -127,6 +130,9 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_MainStream(Mood mood)
         {
+            // todo: since the main stream coroutine is independent of the interrupt stream coroutine we'll need a way to effectively pause the main stream itself,
+            //  I guess just via a condition inside the loop that skips its logic, else the main stream could start playing itself again during an insterruption.
+
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
@@ -249,9 +255,7 @@ namespace WildsAdv
 
         public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
         {
-            player.Pause();
             yield return IInterruptableSfx.RunFunctionalInterrupt<T>(gameObject, sfxData, duration);
-            player.Play();
         }
 
         public AudioSource QueryPlayer()
