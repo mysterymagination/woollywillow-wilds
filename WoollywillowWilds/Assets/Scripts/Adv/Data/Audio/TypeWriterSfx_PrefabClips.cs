@@ -107,7 +107,9 @@ namespace WildsAdv
                 StartCoroutine(AsyncSfx_TrillCompletion());
             }
 
-            // todo: we can wind up stopping the interrupt coroutine while the sfxInterrupt player is active and looping, effectively skipping the sfxInterrupt.Stop/Teardown etc. calls.
+            // todo: we can wind up stopping the interrupt coroutine while the
+            //  sfxInterrupt player is active and looping, effectively skipping
+            //  the sfxInterrupt.Stop/Teardown etc. calls.
 
             // stop interrupt coroutine if relevant.
             StopCoroutine(interruptFunction);
@@ -217,6 +219,8 @@ namespace WildsAdv
                     interruptIndex = rand.Next(0, Interrupts.Length - 1);
                 }
 
+                // todo: store a ref to the current interrupt so we can tell him to gracefully
+                //  shutdown anything it needs to before the interrupt coroutine host is pulled out from under it.
                 SfxInterruptSO interrupt = Interrupts[interruptIndex];
 
                 // figure out when to inject it.

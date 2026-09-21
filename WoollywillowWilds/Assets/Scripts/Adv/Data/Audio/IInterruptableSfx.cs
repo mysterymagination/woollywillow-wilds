@@ -51,10 +51,9 @@ namespace WildsAdv
         {
             T sfxInterrupt = gameObject.AddComponent<T>();
 
-            // todo: what happens if the 'parent' sfx coroutine we're currently running from, presumably AsyncSfx_MainStream(),
-            //  gets stopped before we have the chance to stop this sfxInterrupt with 'child' sfx coroutine(s)? Is there a callback Coroutines get when stopped?
-            //  EDIT: looks like nothing built in; you can sort of hack it yourself, but that would involve storing the IEnumerator handle we get
-            //   here somewhere higher up? Perhaps maintain a list of SFX stuff to kill when a sentence ends?
+            // todo: if we want to have the ability to shut down the sfxInterrupt from the main stream
+            //  we'll need to mutex sync this man in some way to avoid nondeterminism in the order of
+            //  operations in playing and shutting things down.
 
             sfxInterrupt.Setup(sfxData);
             sfxInterrupt.Play();

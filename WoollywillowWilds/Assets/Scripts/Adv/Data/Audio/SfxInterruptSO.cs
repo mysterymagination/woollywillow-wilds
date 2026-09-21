@@ -28,5 +28,10 @@ namespace WildsAdv
         {
             yield return null;
         }
+
+        /// <summary>
+        /// The interrupt host coroutine is about to be destroyed so this interrupt needs to prepare for a graceful shutdown.   
+        /// </summary>
+        virtual public void OnHostShutdown() { }
     }
 }
