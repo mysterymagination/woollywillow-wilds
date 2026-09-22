@@ -50,6 +50,7 @@ namespace WildsAdv
         private Dictionary<Mood, List<AudioClip>> moodTracksMap = new Dictionary<Mood, List<AudioClip>>();
         private IEnumerator sfxFunction;
         private IEnumerator interruptFunction;
+        private ITypeWriterSfx currentSfxInterrupt;
         public void Setup(ScriptableObject sfxData)
         {
             TypeWriterSfx_PrefabClipsDataSO clipsSfxData = (TypeWriterSfx_PrefabClipsDataSO)sfxData;
@@ -107,9 +108,17 @@ namespace WildsAdv
                 StartCoroutine(AsyncSfx_TrillCompletion());
             }
 
-            // todo: we can wind up stopping the interrupt coroutine while the
-            //  sfxInterrupt player is active and looping, effectively skipping
-            //  the sfxInterrupt.Stop/Teardown etc. calls.
+            if (currentSfxInterrupt != null)
+            {
+                currentSfxInterrupt.Stop();
+                currentSfxInterrupt.Teardown();
+                Component sfxComponent = (Component)currentSfxInterrupt;
+                if (sfxComponent)
+                {
+                    UnityEngine.Object.Destroy(sfxComponent);
+                }
+                currentSfxInterrupt = null;
+            }
 
             // stop interrupt coroutine if relevant.
             StopCoroutine(interruptFunction);
@@ -259,7 +268,11 @@ namespace WildsAdv
 
         public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
         {
-            yield return IInterruptableSfx.RunFunctionalInterrupt<T>(gameObject, sfxData, duration);
+            T sfxInterrupt = gameObject.AddComponent<T>();
+            currentSfxInterrupt = sfxInterrupt;
+            yield return IInterruptableSfx.RunFunctionalInterrupt(currentSfxInterrupt, sfxData, duration);
+            UnityEngine.Object.Destroy(sfxInterrupt);
+            currentSfxInterrupt = null;
         }
 
         public AudioSource QueryPlayer()

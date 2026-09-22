@@ -31,15 +31,12 @@ namespace WildsAdv
         /// </param>
         public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx;
         /// <summary>
-        /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterruptClass --
-        /// AddComponent -> Setup -> Play -> wait for duration -> Stop -> Teardown -> Destroy. 
+        /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterrupt --
+        /// Setup -> Play -> wait for duration -> Stop -> Teardown. 
         /// </summary>
-        /// <param name="T">
+        /// <param name="sfxInterrupt">
         /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
-        /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
-        /// </param>
-        /// <param name="gameObject">
-        /// The host <see cref="GameObject"/> to which the interrupting sfx <see cref="Component"/> will be added to by default. 
+        /// This Component will run through the ITypeWriterSfx lifetime. 
         /// </param>
         /// <param name="sfxData">
         /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
@@ -47,14 +44,8 @@ namespace WildsAdv
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public static IEnumerator RunFunctionalInterrupt<T>(GameObject gameObject, ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx
+        public static IEnumerator RunFunctionalInterrupt(ITypeWriterSfx sfxInterrupt, ScriptableObject sfxData, float duration)
         {
-            T sfxInterrupt = gameObject.AddComponent<T>();
-
-            // todo: if we want to have the ability to shut down the sfxInterrupt from the main stream
-            //  we'll need to mutex sync this man in some way to avoid nondeterminism in the order of
-            //  operations in playing and shutting things down.
-
             sfxInterrupt.Setup(sfxData);
             sfxInterrupt.Play();
             Debug.Log("Playing interrupt for " + duration);
@@ -62,8 +53,6 @@ namespace WildsAdv
             Debug.Log("Stopping interrupt after " + duration);
             sfxInterrupt.Stop();
             sfxInterrupt.Teardown();
-
-            Object.Destroy(sfxInterrupt);
         }
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.
