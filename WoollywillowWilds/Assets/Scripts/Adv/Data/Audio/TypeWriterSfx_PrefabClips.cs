@@ -110,6 +110,7 @@ namespace WildsAdv
 
             if (currentSfxInterrupt != null)
             {
+                Debug.Log("Shutting down interrupt man from host.");
                 currentSfxInterrupt.Stop();
                 currentSfxInterrupt.Teardown();
                 Component sfxComponent = (Component)currentSfxInterrupt;
@@ -121,7 +122,10 @@ namespace WildsAdv
             }
 
             // stop interrupt coroutine if relevant.
-            StopCoroutine(interruptFunction);
+            if (interruptFunction != null)
+            {
+                StopCoroutine(interruptFunction);
+            }
         }
 
         IEnumerator AsyncSfx_TrillCompletion()

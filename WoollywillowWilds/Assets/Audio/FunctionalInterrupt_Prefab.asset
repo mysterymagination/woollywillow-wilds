@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: WildsAdvAsm::WildsAdv.SfxInterruptFunctionalSO_Prefab
   <Delay>k__BackingField: 2
   <DelayVariance>k__BackingField: 0
-  <Duration>k__BackingField: 1
+  <Duration>k__BackingField: 2
   <SfxData>k__BackingField: {fileID: 11400000, guid: 1d835d32fda760a43b7ca5d927b31967,
     type: 2}

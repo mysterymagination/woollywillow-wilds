@@ -51,6 +51,7 @@ namespace WildsAdv
             Debug.Log("Playing interrupt for " + duration);
             yield return new WaitForSeconds(duration);
             Debug.Log("Stopping interrupt after " + duration);
+            Debug.Log("Shutting down interrupt man from himself");
             sfxInterrupt.Stop();
             sfxInterrupt.Teardown();
         }
