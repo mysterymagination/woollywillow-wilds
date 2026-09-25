@@ -51,6 +51,7 @@ namespace WildsAdv
         private IEnumerator sfxFunction;
         private IEnumerator interruptFunction;
         private ITypeWriterSfx currentSfxInterrupt;
+        private bool interruptInProgress = false;
         public void Setup(ScriptableObject sfxData)
         {
             TypeWriterSfx_PrefabClipsDataSO clipsSfxData = (TypeWriterSfx_PrefabClipsDataSO)sfxData;
@@ -125,6 +126,7 @@ namespace WildsAdv
             if (interruptFunction != null)
             {
                 StopCoroutine(interruptFunction);
+                interruptInProgress = false;
             }
         }
 
@@ -145,73 +147,73 @@ namespace WildsAdv
 
         IEnumerator AsyncSfx_MainStream(Mood mood)
         {
-            // todo: since the main stream coroutine is independent of the interrupt stream coroutine we'll need a way to effectively pause the main stream itself,
-            //  I guess just via a condition inside the loop that skips its logic, else the main stream could start playing itself again during an insterruption.
-
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
-                player.Stop();
-                if (moodTracksMap.ContainsKey(mood))
+                if (!interruptInProgress)
                 {
-                    List<AudioClip> moodTracks = moodTracksMap[mood];
-                    if (randomSfxClipIndex)
+                    player.Stop();
+                    if (moodTracksMap.ContainsKey(mood))
                     {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < moodTracks.Count - 1)
+                        List<AudioClip> moodTracks = moodTracksMap[mood];
+                        if (randomSfxClipIndex)
                         {
-                            iterativeSfxIndex++;
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, moodTracks.Count - 1);
+                            currentTrack = moodTracks[clipIndex];
                         }
                         else
                         {
-                            iterativeSfxIndex = 0;
+                            if (iterativeSfxIndex < moodTracks.Count - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            currentTrack = moodTracks[iterativeSfxIndex];
                         }
-                        currentTrack = moodTracks[iterativeSfxIndex];
-                    }
-                }
-                else
-                {
-                    if (randomSfxClipIndex)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, defaultSfxArray.Length);
-                        currentTrack = defaultSfxArray[clipIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                     }
                     else
                     {
-                        if (iterativeSfxIndex < defaultSfxArray.Length - 1)
+                        if (randomSfxClipIndex)
                         {
-                            iterativeSfxIndex++;
+                            System.Random rnd = new System.Random();
+                            int clipIndex = rnd.Next(0, defaultSfxArray.Length);
+                            currentTrack = defaultSfxArray[clipIndex];
+                            Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
                         }
                         else
                         {
-                            iterativeSfxIndex = 0;
+                            if (iterativeSfxIndex < defaultSfxArray.Length - 1)
+                            {
+                                iterativeSfxIndex++;
+                            }
+                            else
+                            {
+                                iterativeSfxIndex = 0;
+                            }
+                            currentTrack = defaultSfxArray[iterativeSfxIndex];
+                            Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
                         }
-                        currentTrack = defaultSfxArray[iterativeSfxIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
                     }
-                }
-                if (currentTrack != null)
-                {
-                    player.resource = currentTrack;
-                }
-                player.loop = true;
-                player.Play();
+                    if (currentTrack != null)
+                    {
+                        player.resource = currentTrack;
+                    }
+                    player.loop = true;
+                    player.Play();
 
-                float clipFraction = Math.Clamp(TrillingClipFraction, 0.0F, 1.0F);
-                if (ClipFractionRandomization)
-                {
-                    float range = clipFraction / 2.0F;
-                    clipFraction = UnityEngine.Random.Range(clipFraction - range, clipFraction + range);
+                    float clipFraction = Math.Clamp(TrillingClipFraction, 0.0F, 1.0F);
+                    if (ClipFractionRandomization)
+                    {
+                        float range = clipFraction / 2.0F;
+                        clipFraction = UnityEngine.Random.Range(clipFraction - range, clipFraction + range);
+                    }
+                    yield return new WaitUntil(() => player.time >= currentTrack.length * clipFraction);
                 }
-                yield return new WaitUntil(() => player.time >= currentTrack.length * clipFraction);
             }
         }
 
@@ -252,7 +254,9 @@ namespace WildsAdv
 
                 // cache the current main stream track so we can resume it after the interrupt completes.
                 UnityEngine.Audio.AudioResource mainTrack = player.resource;
+                interruptInProgress = true;
                 yield return interrupt.Interrupt(this);
+                interruptInProgress = false;
                 player.resource = mainTrack;
 
                 // resume playing main stream.
