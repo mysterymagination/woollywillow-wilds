@@ -26,45 +26,18 @@ namespace WildsAdv
 
         public void Setup(ScriptableObject sfxData)
         {
-            TypeWriterSfx_PrefabClipsDataSO clipsSfxData = (TypeWriterSfx_PrefabClipsDataSO)sfxData;
-            if (clipsSfxData)
-            {
-                clipsSfxData.Populate(this);
-            }
-
-            if (moodTracksMap.Count == 0)
-            {
-                if (sfxVibes != null && sfxVibes.Vibes.Count > 0)
-                {
-                    foreach (VibeTrack vibe in sfxVibes.Vibes)
-                    {
-                        if (!moodTracksMap.ContainsKey(vibe.TrackMood))
-                        {
-                            moodTracksMap.Add(vibe.TrackMood, new List<AudioClip>());
-                        }
-                        moodTracksMap[vibe.TrackMood].Add(vibe.TrackClip);
-                    }
-                }
-            }
-
             player = gameObject.AddComponent<AudioSource>();
-            player.loop = true;
+            player.loop = false;
             player.volume = Volume;
         }
         public void Teardown()
         {
-            moodTracksMap.Clear();
             Destroy(player);
         }
         public void Play()
         {
             sfxFunction = AsyncSfx_MainStream(CurrentMood);
             StartCoroutine(sfxFunction);
-            if (Interrupts.Length > 0)
-            {
-                interruptFunction = AsyncSfx_Interrupt();
-                StartCoroutine(interruptFunction);
-            }
         }
         public void Pause()
         {
@@ -75,38 +48,11 @@ namespace WildsAdv
         {
             player.Stop();
             StopCoroutine(sfxFunction);
-            // trill support
-            if (TrillingClipFraction < 1.0F)
-            {
-                StartCoroutine(AsyncSfx_TrillCompletion());
-            }
-
-            if (currentSfxInterrupt != null)
-            {
-                Debug.Log("Shutting down interrupt man from host.");
-                currentSfxInterrupt.Stop();
-                currentSfxInterrupt.Teardown();
-                Component sfxComponent = (Component)currentSfxInterrupt;
-                if (sfxComponent)
-                {
-                    UnityEngine.Object.Destroy(sfxComponent);
-                }
-                currentSfxInterrupt = null;
-            }
-
-            // stop interrupt coroutine if relevant.
-            if (interruptFunction != null)
-            {
-                StopCoroutine(interruptFunction);
-            }
         }
 
 
         IEnumerator AsyncSfx_MainStream(Mood mood)
         {
-            // todo: since the main stream coroutine is independent of the interrupt stream coroutine we'll need a way to effectively pause the main stream itself,
-            //  I guess just via a condition inside the loop that skips its logic, else the main stream could start playing itself again during an insterruption.
-
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
