@@ -18,7 +18,7 @@ namespace WildsAdv
         /// <summary>
         /// An array of AudioClip to duration associations.
         /// </summary>
-        public TimeTraxSO trackArray;
+        public TimeTraxSO trackTimes;
         [Range(0.0F, 1.0F)]
         public float Volume { get; set; } = 0.5F;
         private AudioSource player;
@@ -36,7 +36,7 @@ namespace WildsAdv
         }
         public void Play()
         {
-            sfxFunction = AsyncSfx_MainStream(CurrentMood);
+            sfxFunction = AsyncSfx_MainStream();
             StartCoroutine(sfxFunction);
         }
         public void Pause()
@@ -51,72 +51,34 @@ namespace WildsAdv
         }
 
 
-        IEnumerator AsyncSfx_MainStream(Mood mood)
+        IEnumerator AsyncSfx_MainStream()
         {
             int iterativeSfxIndex = 0;
             // loop forever, depending on the calling control flow to stop the host coroutine.
             while (true)
             {
                 player.Stop();
-                if (moodTracksMap.ContainsKey(mood))
+                TimeTrack currentTrack = trackTimes.Tracks[iterativeSfxIndex];
+                Debug.Log("Playing " + currentTrack.TrackClip.name + " for " + currentTrack.TrackDuration + ", from index " + iterativeSfxIndex);
+                if (currentTrack != null)
                 {
-                    List<AudioClip> moodTracks = moodTracksMap[mood];
-                    if (randomSfxClipIndex)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, moodTracks.Count - 1);
-                        currentTrack = moodTracks[clipIndex];
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < moodTracks.Count - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        currentTrack = moodTracks[iterativeSfxIndex];
-                    }
+                    player.resource = currentTrack.TrackClip;
+                }
+                player.Play();
+                if (currentTrack.TrackClip.length < currentTrack.TrackDuration)
+                {
+                    player.loop = true;
+                }
+                yield return new WaitForSeconds(currentTrack.TrackDuration);
+                player.loop = false;
+                if (iterativeSfxIndex < trackTimes.Tracks.Count - 1)
+                {
+                    iterativeSfxIndex++;
                 }
                 else
                 {
-                    if (randomSfxClipIndex)
-                    {
-                        System.Random rnd = new System.Random();
-                        int clipIndex = rnd.Next(0, defaultSfxArray.Length);
-                        currentTrack = defaultSfxArray[clipIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + clipIndex);
-                    }
-                    else
-                    {
-                        if (iterativeSfxIndex < defaultSfxArray.Length - 1)
-                        {
-                            iterativeSfxIndex++;
-                        }
-                        else
-                        {
-                            iterativeSfxIndex = 0;
-                        }
-                        currentTrack = defaultSfxArray[iterativeSfxIndex];
-                        Debug.Log("Playing " + currentTrack.name + " for " + currentTrack.length + ", from index " + iterativeSfxIndex);
-                    }
+                    iterativeSfxIndex = 0;
                 }
-                if (currentTrack != null)
-                {
-                    player.resource = currentTrack;
-                }
-                player.loop = true;
-                player.Play();
-
-                float clipFraction = Math.Clamp(TrillingClipFraction, 0.0F, 1.0F);
-                if (ClipFractionRandomization)
-                {
-                    float range = clipFraction / 2.0F;
-                    clipFraction = UnityEngine.Random.Range(clipFraction - range, clipFraction + range);
-                }
-                yield return new WaitUntil(() => player.time >= currentTrack.length * clipFraction);
             }
         }
     }

@@ -25,7 +25,7 @@ namespace WildsAdv
         /// <summary>
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
-        public MoodTrax blipSfxVibes;
+        public MoodTraxSO blipSfxVibes;
         /// <summary>
         /// Tracks the current index into the typingSfxBlipArray.
         /// </summary>

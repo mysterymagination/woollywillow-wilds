@@ -20,7 +20,7 @@ namespace WildsAdv
         /// <summary>
         /// AudioClip to mood associations; these will be massaged into an in-memory Dictionary in Setup().
         /// </summary>
-        public MoodTrax sfxVibes;
+        public MoodTraxSO sfxVibes;
         [field: SerializeField]
         [Range(0.0F, 1.0F)]
         public float Volume { get; set; } = 0.5F;

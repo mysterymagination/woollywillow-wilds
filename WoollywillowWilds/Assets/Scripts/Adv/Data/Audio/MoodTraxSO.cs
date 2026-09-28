@@ -43,6 +43,7 @@ namespace WildsAdv
     /// An array of AudioClips in which each clip can be associated with a mood; these will help inform
     /// which voice sfx track/segment should play for text of different moods.
     /// </summary>
+    [CreateAssetMenu(fileName = "MoodTrax.asset", menuName = "SoundAndEffects/Moody Tracks")]
     [Serializable]
     public class MoodTraxSO : ScriptableObject
     {

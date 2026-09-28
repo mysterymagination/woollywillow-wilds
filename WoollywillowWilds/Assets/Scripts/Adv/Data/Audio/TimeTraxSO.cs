@@ -1,5 +1,7 @@
 using System.Text;
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
 namespace WildsAdv
 {
@@ -20,7 +22,8 @@ namespace WildsAdv
         /// Duration the track should play, in seconds.
         /// </summary>
         [Min(0F)]
-        public float Duration { get; set; } = 1.0F;
+        [field: SerializeField]
+        public float TrackDuration { get; set; } = 1.0F;
 
         override public string ToString()
         {
@@ -31,6 +34,7 @@ namespace WildsAdv
     /// An array of AudioClips in which each clip can be associated with a duration for which
     /// the track should play.
     /// </summary>
+    [CreateAssetMenu(fileName = "TimeTrax.asset", menuName = "SoundAndEffects/Timed Tracks")]
     [Serializable]
     public class TimeTraxSO : ScriptableObject
     {

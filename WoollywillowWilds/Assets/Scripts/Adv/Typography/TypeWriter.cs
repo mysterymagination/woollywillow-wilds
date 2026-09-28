@@ -61,7 +61,7 @@ namespace WildsAdv
         public TypeWriterSfx_Blips blipsSfx;
         public TypeWriterSfx_KeyHammer keyHammerSfx;
         public TypeWriterSfx_PrefabClips prefabsSfx;
-        private AudioClip currentTrack;
+        public TypeWriterSfx_ClockClips timedSfx;
 
         /// <summary>
         /// Resets the stateful fields of TypeWriter so it can be re-used at runtime. Does not modify public configurable fields.
@@ -81,6 +81,7 @@ namespace WildsAdv
 
             blipsSfx?.Setup(null);
             prefabsSfx?.Setup(null);
+            timedSfx?.Setup(null);
 
             // we want to interrupt any old Coroutine hosting this code, so stop any currently running before starting the new guy.
             StopCoroutine(writeFunction);
@@ -97,14 +98,12 @@ namespace WildsAdv
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
-
                 if (prefabsSfx)
                 {
                     prefabsSfx.CurrentMood = currentTreasureSentence.SentenceMood;
                     prefabsSfx.Play();
                 }
-
-
+                timedSfx?.Play();
                 while (textPosition < currentTreasureSentence.SentenceText.Length)
                 {
                     // calculate our writeevent period
@@ -118,14 +117,8 @@ namespace WildsAdv
                     Debug.Log("Write event period ms is " + loopPeriodMs);
                     Debug.Log("About to delay for " + loopPeriodMs + "ms before keystrokin'");
 
-                    if (blipsSfx)
-                    {
-                        blipsSfx.Play();
-                    }
-                    if (keyHammerSfx)
-                    {
-                        keyHammerSfx.Play();
-                    }
+                    blipsSfx?.Play();
+                    keyHammerSfx?.Play();
 
                     yield return new WaitForSeconds(loopPeriodMs / 1000.0F);
 
@@ -133,10 +126,7 @@ namespace WildsAdv
                     string storyChunkWritten = OnWriteEvent(textPosition, currentTreasureSentence);
                     textPosition += storyChunkWritten.Length;
 
-                    if (blipsSfx)
-                    {
-                        blipsSfx.Pause();
-                    }
+                    blipsSfx?.Pause();
                 } // end sentence
                 // single whitespace after fullstop.
                 if (targetTextViewComponent)
@@ -144,10 +134,8 @@ namespace WildsAdv
                     targetTextViewComponent.text += " ";
                 }
 
-                if (prefabsSfx)
-                {
-                    prefabsSfx.Stop();
-                }
+                prefabsSfx?.Stop();
+                timedSfx?.Stop();
 
                 // take a breath after sentence completion.
                 yield return new WaitForSeconds(BreathDelayMs / 1000.0F);
@@ -189,32 +177,6 @@ namespace WildsAdv
             }
         }
 
-        protected void PauseSfx()
-        {
-            /*
-            if (typingSfx)
-            {
-                
-                if (typingSfx.isPlaying)
-                {
-                    
-                    if (typingSfx.time >= typingSfx.clip.length)
-                    {
-                        sfxTimePoint = 0.0F;
-                    }
-                    else
-                    {
-                        sfxTimePoint = typingSfx.time;
-                        Debug.Log("SFX timepoint saved as " + sfxTimePoint);
-                    }
-                    
-                typingSfx.Pause();
-                }
-                
-            }
-            */
-        }
-
         public bool Shutdown(bool clear)
         {
             bool succesfulShutdown = true;
@@ -239,29 +201,16 @@ namespace WildsAdv
                 Debug.LogError("Shutdown; target textview is unset, so we cannot clear its text.");
                 succesfulShutdown = false;
             }
-            /*
-            if (typingSfx)
-            {
-                
-                typingSfx.Stop();
-                
-            }
-            */
-            if (prefabsSfx)
-            {
-                prefabsSfx.Stop();
-                prefabsSfx.Teardown();
-            }
-            if (blipsSfx)
-            {
-                blipsSfx.Stop();
-                blipsSfx.Teardown();
-            }
-            if (keyHammerSfx)
-            {
-                keyHammerSfx.Stop();
-                keyHammerSfx.Teardown();
-            }
+
+            prefabsSfx?.Stop();
+            prefabsSfx?.Teardown();
+            timedSfx?.Stop();
+            timedSfx?.Teardown();
+            blipsSfx?.Stop();
+            blipsSfx?.Teardown();
+            keyHammerSfx?.Stop();
+            keyHammerSfx?.Teardown();
+
             ResetState();
             return succesfulShutdown;
         }
