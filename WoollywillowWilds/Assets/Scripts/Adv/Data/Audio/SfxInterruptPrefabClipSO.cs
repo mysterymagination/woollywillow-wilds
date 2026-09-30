@@ -50,6 +50,7 @@ namespace WildsAdv
                 }
                 else
                 {
+                    interruptTrack = moodTracks[iterativeSfxIndex];
                     if (iterativeSfxIndex < moodTracks.Count - 1)
                     {
                         iterativeSfxIndex++;
@@ -58,7 +59,6 @@ namespace WildsAdv
                     {
                         iterativeSfxIndex = 0;
                     }
-                    interruptTrack = moodTracks[iterativeSfxIndex];
                 }
             }
             else
@@ -72,6 +72,8 @@ namespace WildsAdv
                 }
                 else
                 {
+                    interruptTrack = InterruptAudioClips[iterativeSfxIndex];
+                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
                     if (iterativeSfxIndex < InterruptAudioClips.Count - 1)
                     {
                         iterativeSfxIndex++;
@@ -80,8 +82,6 @@ namespace WildsAdv
                     {
                         iterativeSfxIndex = 0;
                     }
-                    interruptTrack = InterruptAudioClips[iterativeSfxIndex];
-                    Debug.Log("Playing " + interruptTrack.name + " for " + interruptTrack.length + ", from index " + iterativeSfxIndex);
                 }
             }
             // cache the main stream track so we can resume it after the interrupt completes.
