@@ -6,26 +6,55 @@ namespace WildsAdv
 {
     /// <summary>
     /// An object that manages playing a sound effect and can provide information
-    /// to an <see cref="SfxInterrupt"/> about current state and loaded options for e.g.
+    /// to an <see cref="SfxInterruptSO"/> about current state and loaded options for e.g.
     /// mood:track associations. This allows the interruptable sfx manager to simply call
-    /// <see cref="SfxInterrupt.Interrupt(this)"/> without needing to know anything about the
+    /// <see cref="SfxInterruptSO.Interrupt(this)"/> without needing to know anything about the
     /// details of how the interrupt works.
     /// </summary>
     public interface IInterruptableSfx
     {
         /// <summary>
-        /// Tells the interruptable sfx manager that it should run the code for the input <see cref="SfxMode"/>
-        /// for the duration of the interrupt. This can be used to e.g. interrupt a stream of prefabricated
+        /// Tells the interruptable sfx that it's being interrupted and should run the input <see cref="ITypeWriterSfx"/>
+        /// for the duration of the interrupt, usually via RunFunctionalInterrupt(). This can be used to e.g. interrupt a stream of prefabricated
         /// chirp trilling with algorithmically clipped chirp trilling to ensure we maximize quality while
         /// avoiding repetitive patterns.
         /// </summary>
-        /// <param name="mode">
-        /// The <see cref="SfxMode" we wish to emulate during our interrupt.>.
+        /// <param name="T">
+        /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
+        /// This Component will be added to the host <see cref="GameObject"/>, run through the ITypeWriterSfx lifetime, and will then be destroyed. 
+        /// </param>
+        /// <param name="sfxData">
+        /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
         /// </param>
         /// <param name="duration">
         /// The duration of the interrupt in seconds.
         /// </param>
-        public IEnumerator OnFunctionalInterrupt(SfxMode mode, float duration);
+        public IEnumerator OnFunctionalInterrupt<T>(ScriptableObject sfxData, float duration) where T : Component, ITypeWriterSfx;
+        /// <summary>
+        /// Performs the default setup and runthrough of the input <see cref="ITypeWriterSfx"/> sfxInterrupt --
+        /// Setup -> Play -> wait for duration -> Stop -> Teardown. 
+        /// </summary>
+        /// <param name="sfxInterrupt">
+        /// A <see cref="Component"/> who implements <see cref="ITypeWriterSfx"/> that we wish to run as an interrupt sfx behavior.
+        /// This Component will run through the ITypeWriterSfx lifetime. 
+        /// </param>
+        /// <param name="sfxData">
+        /// Optional data asset used to configure the <see cref="ITypeWriterSfx"/> Component.
+        /// </param>
+        /// <param name="duration">
+        /// The duration of the interrupt in seconds.
+        /// </param>
+        public static IEnumerator RunFunctionalInterrupt(ITypeWriterSfx sfxInterrupt, ScriptableObject sfxData, float duration)
+        {
+            sfxInterrupt.Setup(sfxData);
+            sfxInterrupt.Play();
+            Debug.Log("Playing interrupt for " + duration);
+            yield return new WaitForSeconds(duration);
+            Debug.Log("Stopping interrupt after " + duration);
+            Debug.Log("Shutting down interrupt man from himself");
+            sfxInterrupt.Stop();
+            sfxInterrupt.Teardown();
+        }
         /// <summary>
         /// Asks the interruptable sfx manager for its current player.
         /// </summary>
