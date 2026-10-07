@@ -127,6 +127,11 @@ namespace WildsAdv
             string annotationTokenOpener = "[@";
             string annotationTokenCloser = "@]";
             string fullstopPattern = "[.!?:;…]+";
+            // double newline, one to newline down from the end of
+            // the last text line and one to skip a line, indicates
+            // a 'page' break where the renderer should pause for user
+            // input indicating progress should resume.
+            string paginationPattern = "(\n\n)+";
 
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
