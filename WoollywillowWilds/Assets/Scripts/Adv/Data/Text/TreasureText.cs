@@ -138,7 +138,10 @@ namespace WildsAdv
                 int textProcessed = 0;
                 Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
                 int absoluteMatchPosition = nextFullstop.Index + currentTextPosition;
-                Debug.Log("nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop " + nextFullstop + " occurs at " + absoluteMatchPosition);
+                Match nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
+                int absoluteNextPage = nextPage.Index + currentTextPosition;
+                Debug.Log("treasuretext parsing; Pagination match success: " + nextPage.Success);
+                Debug.Log("treasuretext parsing; From current pos " + currentTextPosition + ", nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop " + nextFullstop + " occurs at " + absoluteMatchPosition + ". Next page breaks occurs at " + absoluteNextPage);
                 if (absoluteMatchPosition < nextAnnotationPosition)
                 {
                     // mood continuation case, append next sentence substring to current mood bucket.
