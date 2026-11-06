@@ -118,8 +118,12 @@ namespace WildsAdv
         /// todo: support multi-mooded sentences?
         /// </summary>
         /// <param name="rawAnnotatedText">A text string annotated with mood e.g. [@happy@]</param>
-        public void ParseAnnotatedText(string rawAnnotatedText)
+        /// <returns>A 2D array of <see cref="TreasureSentence" />s with first level array
+        /// representing virtual pages of text and the second level holding an array of sentences,
+        /// each associated with a mood.</returns>
+        public static TreasureSentence[][] ParseAnnotatedText(string rawAnnotatedText)
         {
+            List<List<TreasureSentence>> treasurePages = new List<List<TreasureSentence>>();
             string annotatedText = rawAnnotatedText.Trim();
             Mood currentMood = Mood.Neutral;
             int currentTextPosition = 0;
@@ -132,6 +136,10 @@ namespace WildsAdv
             // a 'page' break where the renderer should pause for user
             // input indicating progress should resume.
             string paginationPattern = "(\n\n)+";
+            // todo: do we want to support page breaks within a given annotated set of sentences? If so, then we'll need to search for
+            //  pagination pattern inside the annotation processing loop. Else, we can split on pagination up here and then use the
+            //  annotation parsing mostly unmodified.
+            string[] textPages = Regex.Split(annotatedText, paginationPattern);
 
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
@@ -142,6 +150,7 @@ namespace WildsAdv
                 int absoluteNextPage = nextPage.Index + currentTextPosition;
                 Debug.Log("treasuretext parsing; Pagination match success: " + nextPage.Success);
                 Debug.Log("treasuretext parsing; From current pos " + currentTextPosition + ", nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop " + nextFullstop + " occurs at " + absoluteMatchPosition + ". Next page breaks occurs at " + absoluteNextPage);
+
                 if (absoluteMatchPosition < nextAnnotationPosition)
                 {
                     // mood continuation case, append next sentence substring to current mood bucket.
@@ -151,6 +160,16 @@ namespace WildsAdv
                     string[] currentMoodSentencesArray = Regex.Split(currentMoodSentences, fullstopPattern);
                     foreach (string sentence in currentMoodSentencesArray)
                     {
+                        if (currentTextPosition >= absoluteNextPage)
+                        {
+                            treasurePages.Add(new List<TreasureSentence>());
+                            // refresh pagination mark in case we have multiple page breaks in a single annotation span
+                            nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
+                            absoluteNextPage = nextPage.Index + currentTextPosition;
+                            Debug.Log("treasuretext parsing; Pagination match success: " + nextPage.Success);
+                            Debug.Log("treasuretext parsing; From current pos " + currentTextPosition + ", nextAnnotation occurs at " + nextAnnotationPosition + ", and nextfullstop " + nextFullstop + " occurs at " + absoluteMatchPosition + ". Next page breaks occurs at " + absoluteNextPage);
+
+                        }
                         Match nextFullstopInContinuation = Regex.Match(annotatedText.Substring(currentTextPosition + textProcessed, currentMoodTextSpan - textProcessed), fullstopPattern);
                         string reconstructedSentence = sentence.Trim() + nextFullstopInContinuation;
                         // Split will give us an empty string on the far side of the final real split element.
@@ -158,9 +177,12 @@ namespace WildsAdv
                         {
                             TreasureSentence treasureSentence = new TreasureSentence(currentMood, reconstructedSentence);
                             Debug.Log("Mood continuation case; adding treasuresentence " + treasureSentence.ToString());
-                            Contents.Add(treasureSentence);
+                            treasurePages[treasurePages.Count - 1].Add(treasureSentence);
                             textProcessed += sentence.Length + nextFullstopInContinuation.Length;
                             Debug.Log("Mood continuation case; text processed this frame: " + textProcessed);
+
+                            // update currentTextPosition
+                            currentTextPosition += textProcessed;
                         }
                         else
                         {
@@ -168,8 +190,8 @@ namespace WildsAdv
                         }
                     }
                     // jump to opening of next annotation.
-                    currentTextPosition = nextAnnotationPosition;
-                    Debug.Log("Mood continuation case; jumped currentTextPosition to " + currentTextPosition);
+                    //currentTextPosition = nextAnnotationPosition;
+                    //Debug.Log("Mood continuation case; jumped currentTextPosition to " + currentTextPosition);
                 }
                 else
                 {
