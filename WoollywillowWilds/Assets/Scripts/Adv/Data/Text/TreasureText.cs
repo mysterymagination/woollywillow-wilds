@@ -127,10 +127,11 @@ namespace WildsAdv
             string annotatedText = rawAnnotatedText.Trim();
             Mood currentMood = Mood.Neutral;
             int currentTextPosition = 0;
-            int nextAnnotationPosition;
-            string annotationTokenOpener = "[@";
-            string annotationTokenCloser = "@]";
+            //int nextAnnotationPosition;
+            string annotationTokenOpenerPattern = "([@)+";
+            string annotationTokenCloserPattern = "(@])+";
             string fullstopPattern = "[.!?:;…]+";
+            string annotationTokensPattern = "(\[@|@\])+"; // or me lookin' at this code XD
             // double newline, one to newline down from the end of
             // the last text line and one to skip a line, indicates
             // a 'page' break where the renderer should pause for user
@@ -141,6 +142,20 @@ namespace WildsAdv
             //  annotation parsing mostly unmodified.
             string[] textPages = Regex.Split(annotatedText, paginationPattern);
 
+            // todo: I think I would prefer doing relative accounting rather than absolute; the abs approach is breaking my brain.
+            int textProcessed = 0;
+            int totalText = annotatedText.Length;
+            while (textProcessed < totalText)
+            {
+                // todo: figure out where everything is from our current vantage; page breaks are supported everywhere, so if the next matched thing
+                //  is a page break, proceed to a new page. Otherwise, follow the below algo for establishing annotation blocks and sentences within them.
+                Match nextAnnotationOpener = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenOpenerPattern);
+                Match nextAnnotationCloser = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenCloserPattern);
+                Match nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
+                Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+            }
+
+            /*
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)
             {
                 int textProcessed = 0;
@@ -231,6 +246,7 @@ namespace WildsAdv
                     currentTextPosition += sentence.Length + nextFullstop.Length;
                 }
             }
+            */
 
             foreach (TreasureSentence sentence in Contents)
             {
