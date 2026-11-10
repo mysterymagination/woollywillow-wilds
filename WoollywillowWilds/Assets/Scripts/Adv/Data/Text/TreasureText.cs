@@ -152,7 +152,13 @@ namespace WildsAdv
                 Match nextAnnotationOpener = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenOpenerPattern);
                 Match nextAnnotationCloser = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenCloserPattern);
                 Match nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
-                Match nextFullstop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+                Match nextFullStop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+
+                // find the next token
+                List<Match> unorderedTokenMatches = new List<Match> { nextAnnotationOpener, nextAnnotationCloser, nextPage, nextFullStop };
+                Debug.Log("Unordered token match list says: " + unorderedTokenMatches.ToString());
+                List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
+                Debug.Log("Ordered token match list says: " + orderedTokenMatches.ToString());
             }
 
             /*
