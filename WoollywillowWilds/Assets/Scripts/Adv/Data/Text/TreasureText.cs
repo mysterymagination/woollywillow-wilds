@@ -2,13 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using Mono.Cecil.Cil;
-using Palmmedia.ReportGenerator.Core.Common;
-using Unity.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WildsAdv
 {
@@ -66,10 +61,20 @@ namespace WildsAdv
     public class TreasureText
     {
         /**
-         * An ordered array of TreasureSentences, each associated with relevant Mood and presented in the
-         * desired sequence for the final text rendering.
+         * An ordered array of TreasureSentence arrays, each page holds text associated with relevant Mood that should be rendered
+         * together; subsequent pages will display after the UI prompts for user input.
          */
-        public List<TreasureSentence> Contents = new List<TreasureSentence>();
+        public List<List<TreasureSentence>> Pages = new List<List<TreasureSentence>>();
+        public int CurrentPage { get; set; } = 0;
+
+        /// <summary>
+        /// Fetches the <see cref="TreasureSentence"/> list whose contents represent the current page to render.
+        /// </summary>
+        /// <returns>Contents of the current page.</returns>
+        public List<TreasureSentence> ReadCurrentPage()
+        {
+            return Pages[CurrentPage];
+        }
 
         public static Mood StringToMood(string moodString)
         {
@@ -118,10 +123,10 @@ namespace WildsAdv
         /// todo: support multi-mooded sentences?
         /// </summary>
         /// <param name="rawAnnotatedText">A text string annotated with mood e.g. [@happy@]</param>
-        /// <returns>A 2D array of <see cref="TreasureSentence" />s with first level array
+        /// <returns>A 2D List of <see cref="TreasureSentence" />s with first level array
         /// representing virtual pages of text and the second level holding an array of sentences,
         /// each associated with a mood.</returns>
-        public static TreasureSentence[][] ParseAnnotatedText(string rawAnnotatedText)
+        public static List<List<TreasureSentence>> ParseAnnotatedText(string rawAnnotatedText)
         {
             List<List<TreasureSentence>> treasurePages = new List<List<TreasureSentence>>();
             string annotatedText = rawAnnotatedText.Trim();
@@ -131,7 +136,7 @@ namespace WildsAdv
             string annotationTokenOpenerPattern = "([@)+";
             string annotationTokenCloserPattern = "(@])+";
             string fullstopPattern = "[.!?:;…]+";
-            string annotationTokensPattern = "(\[@|@\])+"; // or me lookin' at this code XD
+            string annotationTokensPattern = @"(\[@|@\])+"; // or me lookin' at this code XD
             // double newline, one to newline down from the end of
             // the last text line and one to skip a line, indicates
             // a 'page' break where the renderer should pause for user
@@ -160,6 +165,8 @@ namespace WildsAdv
                 List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
                 Debug.Log("Ordered token match list says: " + orderedTokenMatches.ToString());
             }
+
+            return new List<List<TreasureSentence>>();
 
             /*
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)

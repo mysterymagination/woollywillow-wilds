@@ -94,7 +94,7 @@ namespace WildsAdv
         /// <returns></returns>
         IEnumerator AsyncWrite()
         {
-            foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.Contents)
+            foreach (TreasureSentence currentTreasureSentence in TextToTypeWrite.ReadCurrentPage())
             {
                 // todo: look ahead for fullstop and mod volume/pitch etc. based on punctuation e.g. louder for `!`
                 textPosition = 0;
