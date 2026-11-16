@@ -164,6 +164,15 @@ namespace WildsAdv
                 Debug.Log("Unordered token match list says: " + unorderedTokenMatches.ToString());
                 List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
                 Debug.Log("Ordered token match list says: " + orderedTokenMatches.ToString());
+
+                // todo: FlexAlgo (flexible, extensible, symbolic rather than arithmetic, robust) process the ordered tokens:
+                //  1. Pagination ends the current Page's last sentence at the pagination token
+                //     and then appends a new page to the Pages list.
+                //  2. Annotation opener changes current mood.
+                //  3. Annotation closer marks the beginning of sentence content.
+                //  4. Full stop marks the normal end of a sentence; if we're not at the end of
+                //     the file contents, add a new sentence to the current mood set and start
+                //     adding the next text content to it.
             }
 
             return new List<List<TreasureSentence>>();
@@ -261,13 +270,15 @@ namespace WildsAdv
             }
             */
 
+            /*
             foreach (TreasureSentence sentence in Contents)
             {
                 Debug.Log("Parsed treasure sentence: " + sentence.ToString());
             }
+            */
 
             // parse a mood annotated string into the Contents array.
-            /// Algo:
+            /// Algo (brittle, rigid, to the point):
             /// 1. Assume current mood of neutral and current text position P that begins at 0.
             /// 2. Find next `[@` token position A.
             /// 3. If A != NPOS: working case
@@ -295,6 +306,18 @@ namespace WildsAdv
                     {
                         text: "How are you?"
                         mood: Mood.Neutral
+                    },
+                    {
+                        text: "The day, she is warm!"
+                        mood: Mood.Happy
+                    },
+                    {
+                        text: "I wonder if the chipmunks will return?"
+                        mood: Mood.Happy
+                    },
+                    {
+                        text: "Godsend it so!"
+                        mood: Mood.Happy
                     },
                     {
                         text: "whaaaaaat's good, bb?"
