@@ -13,10 +13,11 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/SingleSentence_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
-        Assert.That(systemUnderText.Contents.Count, Is.EqualTo(1));
+        TreasureText.ParseAnnotatedText(testText);
+        Assert.That(systemUnderText.Pages.Count, Is.EqualTo(1));
+        Assert.That(systemUnderText.GetCurrentPage().Count, Is.EqualTo(1));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "She's so pretty!");
-        Assert.That(systemUnderText.Contents[0], Is.EqualTo(expectedSentence1));
+        Assert.That(systemUnderText.ToString(), Is.EqualTo(expectedSentence1));
     }
 
     /// <summary>

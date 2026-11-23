@@ -71,9 +71,26 @@ namespace WildsAdv
         /// Fetches the <see cref="TreasureSentence"/> list whose contents represent the current page to render.
         /// </summary>
         /// <returns>Contents of the current page.</returns>
-        public List<TreasureSentence> ReadCurrentPage()
+        public List<TreasureSentence> GetCurrentPage()
         {
             return Pages[CurrentPage];
+        }
+
+        /// <summary>
+        /// Extracts the text from the list of <see cref="TreasureSentence"/>s on the current page.
+        /// </summary>
+        /// <returns>Contents of the current page.</returns>
+        public string ReadCurrentPage()
+        {
+            var page = GetCurrentPage();
+            var sb = new StringBuilder();
+            foreach (var sentence in page)
+            {
+                sb.Append(sentence);
+                sb.Append(" ");
+            }
+            sb.Remove(sb.Length - 1, 1);
+            return sb.ToString();
         }
 
         public static Mood StringToMood(string moodString)
@@ -164,6 +181,11 @@ namespace WildsAdv
                 Debug.Log("Unordered token match list says: " + unorderedTokenMatches.ToString());
                 List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
                 Debug.Log("Ordered token match list says: " + orderedTokenMatches.ToString());
+
+                foreach (var token in orderedTokenMatches)
+                {
+                    Debug.Log("Token " + token.Name + " represents " + token.Value);
+                }
 
                 // todo: FlexAlgo (flexible, extensible, symbolic rather than arithmetic, robust) process the ordered tokens:
                 //  1. Pagination ends the current Page's last sentence at the pagination token
@@ -340,32 +362,19 @@ namespace WildsAdv
         }
 
         /// <summary>
-        /// Dumps the JSON string representation of each TreasureSentence in the TreasureText.Contents array.
+        /// Dumps the string content of each TreasureSentence in the TreasureText.Pages 2D array into a single string.
         /// </summary>
-        /// <returns>string containing the JSON rep of Contents.</returns>
+        /// <returns>string containing the full text from Pages.</returns>
         override public string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (TreasureSentence sentence in Contents)
+            foreach (List<TreasureSentence> page in Pages)
             {
-                sb.Append(sentence);
-                sb.Append(" ");
-            }
-            sb.Remove(sb.Length - 1, 1);
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Pulls out the text only from the TreasureSentences in the TreasureText.Contents array.
-        /// </summary>
-        /// <returns>string containing the text data only extracted from Contents.</returns>
-        public string ExtractText()
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (TreasureSentence sentence in Contents)
-            {
-                sb.Append(sentence.SentenceText);
-                sb.Append(" ");
+                foreach (TreasureSentence sentence in page)
+                {
+                    sb.Append(sentence);
+                    sb.Append(" ");
+                }
             }
             sb.Remove(sb.Length - 1, 1);
             return sb.ToString();
