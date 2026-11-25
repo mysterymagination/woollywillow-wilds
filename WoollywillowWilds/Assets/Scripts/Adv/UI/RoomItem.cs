@@ -66,7 +66,7 @@ namespace WildsAdv
             if (descriptionTextAsset != null && !string.IsNullOrEmpty(descriptionTextAsset.text))
             {
                 Debug.Log("Parsing " + descriptionTextAsset.name + " for our treasuretext contents.");
-                defaultDescription.Pages = TreasureText.ParseAnnotatedText(descriptionTextAsset.text);
+                defaultDescription = TreasureText.ParseAnnotatedText(descriptionTextAsset.text);
             }
             return defaultDescription;
         }

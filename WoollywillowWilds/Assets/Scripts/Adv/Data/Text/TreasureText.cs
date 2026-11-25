@@ -64,7 +64,7 @@ namespace WildsAdv
          * An ordered array of TreasureSentence arrays, each page holds text associated with relevant Mood that should be rendered
          * together; subsequent pages will display after the UI prompts for user input.
          */
-        public List<List<TreasureSentence>> Pages = new List<List<TreasureSentence>>();
+        public List<List<TreasureSentence>> Pages { get; set; } = new List<List<TreasureSentence>>();
         public int CurrentPage { get; set; } = 0;
 
         /// <summary>
@@ -135,16 +135,18 @@ namespace WildsAdv
         }
 
         /// <summary>
-        /// Parses the given string for mood annotations and then populates this instance's Contents array with sentence(s) and associated mood in the required sequence to have
-        /// the complete text passage make sense.
+        /// Builds a <see cref="TreasureText" /> instance by parsing the given mood-annotated string.
+        /// The new <see cref="TreasureText" />'s Pages array will be populated with sentence(s) and
+        /// associated mood in the required sequence to have the complete text passage make sense.
         /// todo: support multi-mooded sentences?
         /// </summary>
         /// <param name="rawAnnotatedText">A text string annotated with mood e.g. [@happy@]</param>
         /// <returns>A 2D List of <see cref="TreasureSentence" />s with first level array
         /// representing virtual pages of text and the second level holding an array of sentences,
         /// each associated with a mood.</returns>
-        public static List<List<TreasureSentence>> ParseAnnotatedText(string rawAnnotatedText)
+        public static TreasureText ParseAnnotatedText(string rawAnnotatedText)
         {
+            TreasureText treasureText = new TreasureText();
             List<List<TreasureSentence>> treasurePages = new List<List<TreasureSentence>>();
             string annotatedText = rawAnnotatedText.Trim();
             Mood currentMood = Mood.Neutral;
@@ -196,8 +198,8 @@ namespace WildsAdv
                 //     the file contents, add a new sentence to the current mood set and start
                 //     adding the next text content to it.
             }
-
-            return new List<List<TreasureSentence>>();
+            treasureText.Pages = treasurePages;
+            return treasureText;
 
             /*
             while ((nextAnnotationPosition = annotatedText.IndexOf(annotationTokenOpener, currentTextPosition)) >= 0)

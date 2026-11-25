@@ -12,8 +12,7 @@ public class TreasureTextTestScript
     public void ParseMoodAnnotationSimplestHappyPath()
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/SingleSentence_TestDesc.txt").text;
-        TreasureText systemUnderText = new TreasureText();
-        TreasureText.ParseAnnotatedText(testText);
+        TreasureText systemUnderText = TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Pages.Count, Is.EqualTo(1));
         Assert.That(systemUnderText.GetCurrentPage().Count, Is.EqualTo(1));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "She's so pretty!");
@@ -28,7 +27,7 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/SingleMoodMultiSentence_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(3));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "She's so pretty!");
         TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Enthusiastic, "Here we sit.");
@@ -46,7 +45,7 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/LillyLittlebush_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(7));
         TreasureSentence case1_expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "She's so pretty!");
         TreasureSentence case1_expectedSentence2 = new TreasureSentence(Mood.Enthusiastic, "And leafy!");
@@ -65,7 +64,7 @@ public class TreasureTextTestScript
 
         testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/HumongousFungus_TestDesc.txt").text;
         systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(10));
         TreasureSentence case2_expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "Look at the size of 'im!");
         TreasureSentence case2_expectedSentence2 = new TreasureSentence(Mood.Enthusiastic, "Crikey.");
@@ -97,7 +96,7 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/Multiline_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(4));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Curious, "Wow, what's bubbling away in that beaker?");
         TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Sultry, "Looks spicy!");
@@ -118,7 +117,7 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/NoAnnotationsError_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(3));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Neutral, "She's so pretty!");
         TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Neutral, "Ooh look a horse.");
@@ -136,7 +135,7 @@ public class TreasureTextTestScript
     {
         string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/MultiMoodError_TestDesc.txt").text;
         TreasureText systemUnderText = new TreasureText();
-        systemUnderText.ParseAnnotatedText(testText);
+        TreasureText.ParseAnnotatedText(testText);
         Assert.That(systemUnderText.Contents.Count, Is.EqualTo(3));
         TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Happy, "She's so pretty!");
         TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Curious, "Ooh look a horse.");
