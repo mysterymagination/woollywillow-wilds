@@ -145,4 +145,40 @@ public class TreasureTextTestScript
         Assert.That(systemUnderText.Pages[0][1], Is.EqualTo(expectedSentence2));
         Assert.That(systemUnderText.Pages[0][2], Is.EqualTo(expectedSentence3));
     }
+
+    /// <summary>
+    /// Tests that pagination tokens produce the correct page layout.
+    /// </summary>
+    [Test]
+    public void ParsePagination()
+    {
+        string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/HumongousFungus_Pages_TestDesc.txt").text;
+        TreasureText systemUnderText = TreasureText.ParseAnnotatedText(testText);
+        Assert.That(systemUnderText.Pages.Count, Is.EqualTo(3));
+        Assert.That(systemUnderText.Pages[0].Count, Is.EqualTo(8));
+        Assert.That(systemUnderText.Pages[1].Count, Is.EqualTo(2));
+        Assert.That(systemUnderText.Pages[2].Count, Is.EqualTo(1));
+        TreasureSentence expectedSentence1 = new TreasureSentence(Mood.Enthusiastic, "Look at the size of 'im!");
+        TreasureSentence expectedSentence2 = new TreasureSentence(Mood.Enthusiastic, "Crikey.");
+        TreasureSentence expectedSentence3 = new TreasureSentence(Mood.Sad, "If only there were more of him.");
+        TreasureSentence expectedSentence4 = new TreasureSentence(Mood.Curious, "Such a beauty.");
+        TreasureSentence expectedSentence5 = new TreasureSentence(Mood.Curious, "Mighty and magnificent;");
+        TreasureSentence expectedSentence6 = new TreasureSentence(Mood.Curious, "ancient beyond all comprehension, he is.");
+        TreasureSentence expectedSentence7 = new TreasureSentence(Mood.Serious, "Danger danger, for sure.");
+        TreasureSentence expectedSentence8 = new TreasureSentence(Mood.Happy, "Let's take a");
+        TreasureSentence expectedSentence9 = new TreasureSentence(Mood.Happy, "look at how he works...");
+        TreasureSentence expectedSentence10 = new TreasureSentence(Mood.Happy, "Fruiting bodies, now made from literal human bodies, spread throughout civilizations just like they used to spread through soil before the Spellplague…");
+        TreasureSentence expectedSentence11 = new TreasureSentence(Mood.Curious, "it's not ideal, but it sure is interesting!");
+        Assert.That(systemUnderText.Pages[0][0], Is.EqualTo(expectedSentence1));
+        Assert.That(systemUnderText.Pages[0][1], Is.EqualTo(expectedSentence2));
+        Assert.That(systemUnderText.Pages[0][2], Is.EqualTo(expectedSentence3));
+        Assert.That(systemUnderText.Pages[0][3], Is.EqualTo(expectedSentence4));
+        Assert.That(systemUnderText.Pages[0][4], Is.EqualTo(expectedSentence5));
+        Assert.That(systemUnderText.Pages[0][5], Is.EqualTo(expectedSentence6));
+        Assert.That(systemUnderText.Pages[0][6], Is.EqualTo(expectedSentence7));
+        Assert.That(systemUnderText.Pages[0][7], Is.EqualTo(expectedSentence8));
+        Assert.That(systemUnderText.Pages[1][0], Is.EqualTo(expectedSentence9));
+        Assert.That(systemUnderText.Pages[1][1], Is.EqualTo(expectedSentence10));
+        Assert.That(systemUnderText.Pages[2][0], Is.EqualTo(expectedSentence11));
+    }
 }
