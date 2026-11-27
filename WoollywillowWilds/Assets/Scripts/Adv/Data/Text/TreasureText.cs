@@ -148,12 +148,16 @@ namespace WildsAdv
         {
             TreasureText treasureText = new TreasureText();
             List<List<TreasureSentence>> treasurePages = new List<List<TreasureSentence>>();
+            int currentPage = 0;
             string annotatedText = rawAnnotatedText.Trim();
             Mood currentMood = Mood.Neutral;
             int currentTextPosition = 0;
             //int nextAnnotationPosition;
-            string annotationTokenOpenerPattern = "([@)+";
-            string annotationTokenCloserPattern = "(@])+";
+            const string annotationTokenOpener = "[@";
+            const string annotationTokenCloser = "@]";
+            const string paginationToken = "\n\n";
+            string annotationTokenOpenerPattern = @"(\[@)+";
+            string annotationTokenCloserPattern = @"(@\])+";
             string fullstopPattern = "[.!?:;…]+";
             string annotationTokensPattern = @"(\[@|@\])+"; // or me lookin' at this code XD
             // double newline, one to newline down from the end of
@@ -167,37 +171,88 @@ namespace WildsAdv
             string[] textPages = Regex.Split(annotatedText, paginationPattern);
 
             // todo: I think I would prefer doing relative accounting rather than absolute; the abs approach is breaking my brain.
-            int textProcessed = 0;
+            int totalTextProcessed = 0;
             int totalText = annotatedText.Length;
-            while (textProcessed < totalText)
+            //while (totalTextProcessed < totalText)
+            //{
+            // todo: figure out where everything is from our current vantage; page breaks are supported everywhere, so if the next matched thing
+            //  is a page break, proceed to a new page. Otherwise, follow the below algo for establishing annotation blocks and sentences within them.
+            int chunkTextProcessed = 0;
+
+            Match nextAnnotationOpener = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenOpenerPattern);
+            Match nextAnnotationCloser = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenCloserPattern);
+            Match nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
+            Match nextFullStop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
+
+            // find the next token
+            List<Match> unorderedTokenMatches = new List<Match> { nextAnnotationOpener, nextAnnotationCloser, nextPage, nextFullStop };
+            Debug.Log("Unordered token match list says: " + string.Join(", ", unorderedTokenMatches));
+            List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
+            Debug.Log("Ordered token match list says: " + string.Join(", ", orderedTokenMatches));
+
+            int openerIndex = 0;
+            int closerIndex = 0;
+            int openerPosition = 0;
+            int closerPosition = 0;
+            int paginationPosition = 0;
+            for (int tokenIdx = 0; tokenIdx < orderedTokenMatches.Count; tokenIdx++)
             {
-                // todo: figure out where everything is from our current vantage; page breaks are supported everywhere, so if the next matched thing
-                //  is a page break, proceed to a new page. Otherwise, follow the below algo for establishing annotation blocks and sentences within them.
-                Match nextAnnotationOpener = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenOpenerPattern);
-                Match nextAnnotationCloser = Regex.Match(annotatedText.Substring(currentTextPosition), annotationTokenCloserPattern);
-                Match nextPage = Regex.Match(annotatedText.Substring(currentTextPosition), paginationPattern);
-                Match nextFullStop = Regex.Match(annotatedText.Substring(currentTextPosition), fullstopPattern);
-
-                // find the next token
-                List<Match> unorderedTokenMatches = new List<Match> { nextAnnotationOpener, nextAnnotationCloser, nextPage, nextFullStop };
-                Debug.Log("Unordered token match list says: " + unorderedTokenMatches.ToString());
-                List<Match> orderedTokenMatches = unorderedTokenMatches.OrderBy(tokenMatches => tokenMatches.Index).ToList();
-                Debug.Log("Ordered token match list says: " + orderedTokenMatches.ToString());
-
-                foreach (var token in orderedTokenMatches)
+                string token = orderedTokenMatches[tokenIdx].Value;
+                Debug.Log("Token at " + tokenIdx + " represents " + orderedTokenMatches[tokenIdx].Value);
+                switch (token)
                 {
-                    Debug.Log("Token " + token.Name + " represents " + token.Value);
+                    case annotationTokenOpener:
+                        openerIndex = tokenIdx;
+                        chunkTextProcessed += annotationTokenOpener.Length;
+                        break;
+                    case annotationTokenCloser:
+                        closerIndex = tokenIdx;
+                        if (closerIndex - openerIndex == 1)
+                        {
+                            openerPosition = orderedTokenMatches[openerIndex].Index;
+                            closerPosition = orderedTokenMatches[closerIndex].Index;
+                            string moodString = annotatedText.Substring(currentTextPosition + openerPosition, closerPosition - openerPosition);
+                            currentMood = StringToMood(moodString);
+                            chunkTextProcessed += moodString.Length;
+                        }
+                        else
+                        {
+                            throw new ArgumentException("A mood annotation token was found interrupting an opening and closing token pair.");
+                        }
+                        chunkTextProcessed += annotationTokenCloser.Length;
+                        break;
+                    case paginationToken:
+                        treasurePages.Add(new List<TreasureSentence>());
+                        closerPosition = orderedTokenMatches[closerIndex].Index;
+                        paginationPosition = orderedTokenMatches[tokenIdx].Index;
+                        string contentFragment = annotatedText.Substring(
+                            currentTextPosition + chunkTextProcessed,
+                            paginationPosition - closerPosition
+                        );
+                        TreasureSentence fragment = new TreasureSentence(currentMood, contentFragment);
+                        treasurePages[currentPage].Add(fragment);
+                        chunkTextProcessed += contentFragment.Length;
+                        chunkTextProcessed += paginationToken.Length;
+                        break;
                 }
-
-                // todo: FlexAlgo (flexible, extensible, symbolic rather than arithmetic, robust) process the ordered tokens:
-                //  1. Pagination ends the current Page's last sentence at the pagination token
-                //     and then appends a new page to the Pages list.
-                //  2. Annotation opener changes current mood.
-                //  3. Annotation closer marks the beginning of sentence content.
-                //  4. Full stop marks the normal end of a sentence; if we're not at the end of
-                //     the file contents, add a new sentence to the current mood set and start
-                //     adding the next text content to it.
+                Match fullStop = Regex.Match(token, fullstopPattern);
+                if (fullStop.Success)
+                {
+                    // todo: add sentence
+                }
             }
+            currentTextPosition += chunkTextProcessed;
+            totalTextProcessed += chunkTextProcessed;
+
+            // todo: FlexAlgo (flexible, extensible, symbolic rather than arithmetic, robust) process the ordered tokens:
+            //  1. Pagination ends the current Page's last sentence at the pagination token
+            //     and then appends a new page to the Pages list.
+            //  2. Annotation opener changes current mood.
+            //  3. Annotation closer marks the beginning of sentence content.
+            //  4. Full stop marks the normal end of a sentence; if we're not at the end of
+            //     the file contents, add a new sentence to the current mood set and start
+            //     adding the next text content to it.
+            //}
             treasureText.Pages = treasurePages;
             return treasureText;
 

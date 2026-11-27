@@ -129,6 +129,16 @@ public class TreasureTextTestScript
     }
 
     /// <summary>
+    /// Tests that text with a parsing token interrupting the mood token pairing throws as expected.
+    /// </summary>
+    [Test]
+    public void ParseMoodAnnotationInterruptedError()
+    {
+        string testText = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Tests/Test_Assets/Resources/InterruptedMoodError_TestDesc.txt").text;
+        Assert.Throws<System.ArgumentException>(() => TreasureText.ParseAnnotatedText(testText));
+    }
+
+    /// <summary>
     /// Tests that multiple mood annotations contiguously are well-handled, with the last being set as the current mood.
     /// </summary>
     [Test]
